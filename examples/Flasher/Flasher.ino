@@ -33,8 +33,10 @@ void setup() {
 }
 
 void loop() {
-  if (dmx.packetAvailable()) {
-    lastValue = dmx.packet()[CHANNEL];
+  static uint8_t buf[teensydmx::TeensyDMX::kMaxDMXPacketSize];
+  int read = dmx.readPacket(buf);
+  if (read >= 0) {
+    lastValue = buf[CHANNEL];
     lastFrameTime = 0;
   }
 
