@@ -273,6 +273,10 @@ void TeensyDMX::flushInput() const {
 
 // These error ISR routines need to be outside the namespace:
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 // UART0 will throw a frame error on the DMX break pulse. That's our
 // cue to switch buffers and reset the index to zero.
 void uart0_error_isr() {
@@ -364,4 +368,8 @@ void uart5_error_isr() {
     instances[5]->flushInput();
   }
 }
+#endif
+
+#ifdef __cplusplus
+}  // extern "C"
 #endif
