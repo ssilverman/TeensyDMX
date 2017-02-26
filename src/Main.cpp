@@ -37,7 +37,7 @@ void setup() {
 void loop() {
   static uint8_t buf[teensydmx::TeensyDMX::kMaxDMXPacketSize];
   int read = dmx.readPacket(buf);
-  if (read >= 0) {
+  if (read > CHANNEL) {
     lastValue = buf[CHANNEL];
 
     static elapsedMillis p = 1000;

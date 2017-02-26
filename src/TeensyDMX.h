@@ -101,11 +101,10 @@ class TeensyDMX {
    uint8_t buf2_[kMaxDMXPacketSize];
    uint8_t *activeBuf_;
    volatile uint8_t *inactiveBuf_;
-   int bufIndex_;
 
    volatile unsigned int packetCount_;
    volatile bool packetAvail_;
-   volatile bool packetSize_;
+   volatile int packetSize_;
 
    // The current read technique is to fill the buffer after a break is
    // detected, but the break indicates a packet start, not a packet end.

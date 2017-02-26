@@ -28,7 +28,6 @@ TeensyDMX::TeensyDMX(HardwareSerial &uart)
       buf2_{0},
       activeBuf_(buf1_),
       inactiveBuf_(buf2_),
-      bufIndex_(0),
       packetCount_(0),
       packetAvail_(false),
       packetSize_(0),
@@ -200,8 +199,8 @@ int TeensyDMX::readPacket(uint8_t *buf) {
   //{
     if (packetAvail_) {
       packetAvail_ = false;
-      memcpy(buf, const_cast<const uint8_t*>(inactiveBuf_), 513);
-      retval = 513;
+      memcpy(buf, const_cast<const uint8_t*>(inactiveBuf_), packetSize_);
+      retval = packetSize_;
       // TODO(shawn): Why is packetSize_ always zero??
     }
   //}
@@ -217,9 +216,10 @@ void TeensyDMX::completePacket() {
     int avail = uart_.available();
 
     if (!first_) {
-      int count = min(avail, kMaxDMXPacketSize - bufIndex_);
+      int count = min(avail, kMaxDMXPacketSize);
+      packetSize_ = 0;
       while (count-- > 0) {
-        activeBuf_[bufIndex_++] = static_cast<uint8_t>(uart_.read());
+        activeBuf_[packetSize_++] = static_cast<uint8_t>(uart_.read());
         avail--;
       }
     }
@@ -247,9 +247,6 @@ void TeensyDMX::completePacket() {
     activeBuf_ = buf1_;
     inactiveBuf_ = buf2_;
   }
-
-  packetSize_ = bufIndex_;
-  bufIndex_ = 0;
 
   packetCount_++;
   packetAvail_ = true;
