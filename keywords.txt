@@ -1,0 +1,8 @@
+TeensyDMX	KEYWORD1
+begin	KEYWORD2
+end	KEYWORD2
+packetAvailable	KEYWORD2
+packetSize 	KEYWORD2
+packet	KEYWORD2
+packetCount	KEYWORD2
+readPacket	KEYWORD2
