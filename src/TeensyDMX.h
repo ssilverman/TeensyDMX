@@ -22,6 +22,15 @@
 void uart0_error_isr();
 void uart1_error_isr();
 void uart2_error_isr();
+#ifdef HAS_KINETISK_UART3
+void uart3_error_isr();
+#endif
+#ifdef HAS_KINETISK_UART4
+void uart4_error_isr();
+#endif
+#ifdef HAS_KINETISK_UART5
+void uart5_error_isr();
+#endif
 
 namespace qindesign {
 namespace teensydmx {
@@ -130,6 +139,15 @@ class TeensyDMX {
    friend void ::uart0_error_isr();
    friend void ::uart1_error_isr();
    friend void ::uart2_error_isr();
+#ifdef HAS_KINETISK_UART3
+   friend void ::uart3_error_isr();
+#endif
+#ifdef HAS_KINETISK_UART4
+   friend void ::uart4_error_isr();
+#endif
+#ifdef HAS_KINETISK_UART5
+   friend void ::uart5_error_isr();
+#endif
 };
 
 }  // namespace teensydmx
