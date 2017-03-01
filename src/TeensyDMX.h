@@ -16,7 +16,7 @@
 #define QINDESIGN_TEENSYDMX_H_
 
 #include <Arduino.h>
-#include <inttypes.h>
+#include <cstdint>
 
 namespace qindesign {
 namespace teensydmx {
