@@ -18,22 +18,15 @@
 #include <Arduino.h>
 #include <inttypes.h>
 
-// Declare these outside of a namespace
-void uart0_error_isr();
-void uart1_error_isr();
-void uart2_error_isr();
-#ifdef HAS_KINETISK_UART3
-void uart3_error_isr();
-#endif
-#ifdef HAS_KINETISK_UART4
-void uart4_error_isr();
-#endif
-#ifdef HAS_KINETISK_UART5
-void uart5_error_isr();
-#endif
-
 namespace qindesign {
 namespace teensydmx {
+
+void uart0_status_isr();
+void uart0_error_isr();
+void uart1_status_isr();
+void uart1_error_isr();
+void uart2_status_isr();
+void uart2_error_isr();
 
 // The current incarnation of this class implements only a DMX receiver
 // on hardware serial ports 1-3. For whichever serial port is being used,
@@ -60,32 +53,6 @@ class TeensyDMX {
   // Tells the system to stop receiving DMX. Call this to clean up.
   void end();
 
-  // Returns whether a new packet was received and is available since the
-  // last time this was called. The packet can be retrieved via packet().
-  bool packetAvailable();
-
-  // This will return the number of bytes actually read in the last packet,
-  // usually 513, but possibly less. This will only return a valid number if
-  // packetAvailable() returned true.
-  //
-  // This method can be used to track buffer underruns, but isn't necessary
-  // for usual DMX operation.
-  int packetSize() const {
-    return packetSize_;
-  }
-
-  // Returns the last packet received, if packetAvailable() returned true.
-  // The contents should be used "soon", before it is overwritten.
-  //
-  // This returns up to a 513-byte buffer, with element 0 being the packet's
-  // start code, usually 0.
-  //
-  // Note that packet(), packetAvailable(), and packetSize() are not
-  // mutually atomic. See readPacket() for a more complete solution.
-  const volatile uint8_t *packet() const {
-    return inactiveBuf_;
-  }
-
   // Returns the total number of packets received since the reciever
   // was started.
   unsigned int packetCount() const {
@@ -102,25 +69,6 @@ class TeensyDMX {
   int readPacket(uint8_t *buf);
 
  private:
-   HardwareSerial &uart_;
-   uint8_t oldRWFIFO_;
-   bool began_;
-
-   uint8_t buf1_[kMaxDMXPacketSize];
-   uint8_t buf2_[kMaxDMXPacketSize];
-   uint8_t *activeBuf_;
-   volatile uint8_t *inactiveBuf_;
-
-   volatile unsigned int packetCount_;
-   volatile bool packetAvail_;
-   volatile int packetSize_;
-
-   // The current read technique is to fill the buffer after a break is
-   // detected, but the break indicates a packet start, not a packet end.
-   // Therefore, we're always one behind, and so the first break must not
-   // cause a valid packet collection.
-   bool first_;
-
    // Fills the buffer from the UART and then completes the packet from
    // immediately before the break. This reads up to a maximum of
    // kMaxDMXPacketSize bytes and ignores anything after that until
@@ -129,25 +77,42 @@ class TeensyDMX {
    // This will be called from an ISR.
    void completePacket();
 
-   // Flushes everything in the UART input buffers. This is used when a
-   // framing error is detected but isn't a break (data != 0).
-   //
+   // Resets the packet on a framing error.
    // This will be called from an ISR.
-   void flushInput() const;
+   void resetPacket();
 
-   // These error ISR's need to access completePacket().
-   friend void ::uart0_error_isr();
-   friend void ::uart1_error_isr();
-   friend void ::uart2_error_isr();
-#ifdef HAS_KINETISK_UART3
-   friend void ::uart3_error_isr();
-#endif
-#ifdef HAS_KINETISK_UART4
-   friend void ::uart4_error_isr();
-#endif
-#ifdef HAS_KINETISK_UART5
-   friend void ::uart5_error_isr();
-#endif
+   // Receives a byte.
+   // This will be called from an ISR.
+   void receiveByte(uint8_t b);
+
+   // These error ISR's need to access private functions
+   friend void uart0_status_isr();
+   friend void uart0_error_isr();
+   friend void uart1_status_isr();
+   friend void uart1_error_isr();
+   friend void uart2_status_isr();
+   friend void uart2_error_isr();
+
+   HardwareSerial &uart_;
+   bool began_;
+
+   // For disabling/enabling interrupts, for concurrency
+   int irqNumber_;
+
+   uint8_t buf1_[kMaxDMXPacketSize];
+   uint8_t buf2_[kMaxDMXPacketSize];
+   uint8_t *activeBuf_;
+   volatile uint8_t *inactiveBuf_;
+
+   int activeBufIndex_;
+   volatile unsigned int packetCount_;
+   volatile int packetSize_;
+
+   // The current read technique is to fill the buffer after a break is
+   // detected, but the break indicates a packet start, not a packet end.
+   // Therefore, we're always one behind, and so the first break must not
+   // cause a valid packet collection.
+   bool first_;
 };
 
 }  // namespace teensydmx

@@ -1,20 +1,7 @@
 #include "TeensyDMX.h"
 
-#if defined(HAS_KINETISK_UART3)
-#pragma message "Has UART3"
-#define INSTANCE_COUNT 4
-#elif defined(HAS_KINETISK_UART4)
-#pragma message "Has UART4"
-#define INSTANCE_COUNT 5
-#elif defined(HAS_KINETISK_UART5)
-#pragma message "Has UART5"
-#define INSTANCE_COUNT 6
-#else
-#define INSTANCE_COUNT 3
-#endif
-
 // Used by the UART error ISR's.
-static ::qindesign::teensydmx::TeensyDMX *instances[INSTANCE_COUNT] = {nullptr};
+static ::qindesign::teensydmx::TeensyDMX *instances[3]{nullptr};
 
 #undef INSTANCE_COUNT
 
@@ -28,8 +15,8 @@ TeensyDMX::TeensyDMX(HardwareSerial &uart)
       buf2_{0},
       activeBuf_(buf1_),
       inactiveBuf_(buf2_),
+      activeBufIndex_(0),
       packetCount_(0),
-      packetAvail_(false),
       packetSize_(0),
       first_(true) {
   int index = -1;
@@ -40,21 +27,6 @@ TeensyDMX::TeensyDMX(HardwareSerial &uart)
   } else if (&uart == &Serial3) {
     index = 2;
   }
-#ifdef HAS_KINETISK_UART3
-  else if (&uart == &Serial4) {
-    index = 3;
-  }
-#endif
-#ifdef HAS_KINETISK_UART3
-  else if (&uart == &Serial5) {
-    index = 4;
-  }
-#endif
-#ifdef HAS_KINETISK_UART3
-  else if (&uart == &Serial6) {
-    index = 5;
-  }
-#endif
   if (index >= 0) {
     if (instances[index] != nullptr && instances[index]->began_) {
       // Even if it's the same serial port, maybe some settings have
@@ -74,64 +46,33 @@ void TeensyDMX::begin() {
   uart_.begin(250000);
 
   if (&uart_ == &Serial1) {
-    // Fire UART0 receive interrupt immediately after each byte received
-    oldRWFIFO_ = UART0_RWFIFO;
-    UART0_RWFIFO = 1;
+    attachInterruptVector(IRQ_UART0_STATUS, uart0_status_isr);
+    attachInterruptVector(IRQ_UART0_ERROR, uart0_error_isr);
 
-    // Set error IRQ priority lower than that of the status IRQ,
-    // so that the status IRQ receives any leftover bytes before
-    // we detect and trigger a new packet.
-    NVIC_SET_PRIORITY(IRQ_UART0_ERROR,
-                      NVIC_GET_PRIORITY(IRQ_UART0_STATUS) + 1);
+    // // Set error IRQ priority lower than that of the status IRQ,
+    // // so that the status IRQ receives any leftover bytes before
+    // // we detect and trigger a new packet.
+    // NVIC_SET_PRIORITY(IRQ_UART0_ERROR,
+    //                   NVIC_GET_PRIORITY(IRQ_UART0_STATUS) + 1);
 
-    // Enable UART0 interrupt on frame error and enable IRQ
+    // Enable UART0 interrupt on frame error
     UART0_C3 |= UART_C3_FEIE;
     NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
   } else if (&uart_ == &Serial2) {
-    oldRWFIFO_ = UART1_RWFIFO;
-    UART1_RWFIFO = 1;
-    NVIC_SET_PRIORITY(IRQ_UART1_ERROR,
-                      NVIC_GET_PRIORITY(IRQ_UART1_STATUS) + 1);
+    attachInterruptVector(IRQ_UART1_STATUS, uart1_status_isr);
+    attachInterruptVector(IRQ_UART1_ERROR, uart1_error_isr);
+    // NVIC_SET_PRIORITY(IRQ_UART1_ERROR,
+    //                   NVIC_GET_PRIORITY(IRQ_UART1_STATUS) + 1);
     UART1_C3 |= UART_C3_FEIE;
     NVIC_ENABLE_IRQ(IRQ_UART1_ERROR);
   } else if (&uart_ == &Serial3) {
-    oldRWFIFO_ = UART2_RWFIFO;
-    UART2_RWFIFO = 1;
-    NVIC_SET_PRIORITY(IRQ_UART2_ERROR,
-                      NVIC_GET_PRIORITY(IRQ_UART2_STATUS) + 1);
+    attachInterruptVector(IRQ_UART2_STATUS, uart2_status_isr);
+    attachInterruptVector(IRQ_UART2_ERROR, uart2_error_isr);
+    // NVIC_SET_PRIORITY(IRQ_UART2_ERROR,
+    //                   NVIC_GET_PRIORITY(IRQ_UART2_STATUS) + 1);
     UART2_C3 |= UART_C3_FEIE;
     NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
   }
-#ifdef HAS_KINETISK_UART3
-  else if (&uart_ == &Serial4) {
-    oldRWFIFO_ = UART3_RWFIFO;
-    UART3_RWFIFO = 1;
-    NVIC_SET_PRIORITY(IRQ_UART3_ERROR,
-                      NVIC_GET_PRIORITY(IRQ_UART3_STATUS) + 1);
-    UART3_C3 |= UART_C3_FEIE;
-    NVIC_ENABLE_IRQ(IRQ_UART3_ERROR);
-  }
-#endif
-#ifdef HAS_KINETISK_UART4
-  else if (&uart_ == &Serial5) {
-    oldRWFIFO_ = UART4_RWFIFO;
-    UART4_RWFIFO = 1;
-    NVIC_SET_PRIORITY(IRQ_UART4_ERROR,
-                      NVIC_GET_PRIORITY(IRQ_UART4_STATUS) + 1);
-    UART4_C3 |= UART_C3_FEIE;
-    NVIC_ENABLE_IRQ(IRQ_UART4_ERROR);
-  }
-#endif
-#ifdef HAS_KINETISK_UART5
-  else if (&uart_ == &Serial6) {
-    oldRWFIFO_ = UART5_RWFIFO;
-    UART5_RWFIFO = 1;
-    NVIC_SET_PRIORITY(IRQ_UART5_ERROR,
-                      NVIC_GET_PRIORITY(IRQ_UART5_STATUS) + 1);
-    UART5_C3 |= UART_C3_FEIE;
-    NVIC_ENABLE_IRQ(IRQ_UART5_ERROR);
-  }
-#endif
 
   activeBuf_ = buf1_;
   inactiveBuf_ = buf2_;
@@ -144,64 +85,28 @@ void TeensyDMX::end() {
   began_ = false;
 
   uart_.end();
+
   if (&uart_ == &Serial1) {
-    UART0_RWFIFO = oldRWFIFO_;
+    // Enable UART0 interrupt on frame error
     UART0_C3 &= static_cast<uint8_t>(~UART_C3_FEIE);
     NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
   } else if (&uart_ == &Serial2) {
-    UART1_RWFIFO = oldRWFIFO_;
     UART1_C3 &= static_cast<uint8_t>(~UART_C3_FEIE);
     NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
   } else if (&uart_ == &Serial3) {
-    UART2_RWFIFO = oldRWFIFO_;
     UART2_C3 &= static_cast<uint8_t>(~UART_C3_FEIE);
     NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
   }
-#ifdef HAS_KINETISK_UART3
-  else if (&uart_ == &Serial4) {
-    UART3_RWFIFO = oldRWFIFO_;
-    UART3_C3 &= static_cast<uint8_t>(~UART_C3_FEIE);
-    NVIC_DISABLE_IRQ(IRQ_UART3_ERROR);
-  }
-#endif
-#ifdef HAS_KINETISK_UART4
-  else if (&uart_ == &Serial5) {
-    UART4_RWFIFO = oldRWFIFO_;
-    UART4_C3 &= static_cast<uint8_t>(~UART_C3_FEIE);
-    NVIC_DISABLE_IRQ(IRQ_UART4_ERROR);
-  }
-#endif
-#ifdef HAS_KINETISK_UART5
-  else if (&uart_ == &Serial6) {
-    UART5_RWFIFO = oldRWFIFO_;
-    UART5_C3 &= static_cast<uint8_t>(~UART_C3_FEIE);
-    NVIC_DISABLE_IRQ(IRQ_UART5_ERROR);
-  }
-#endif
-}
-
-bool TeensyDMX::packetAvailable() {
-  bool retval = false;
-  __disable_irq();
-  //{
-    if (packetAvail_) {
-      packetAvail_ = false;
-      retval = true;
-    }
-  //}
-  __enable_irq();
-  return retval;
 }
 
 int TeensyDMX::readPacket(uint8_t *buf) {
   int retval = -1;
   __disable_irq();
   //{
-    if (packetAvail_) {
-      packetAvail_ = false;
+    if (packetSize_ > 0) {
       memcpy(buf, const_cast<const uint8_t*>(inactiveBuf_), packetSize_);
       retval = packetSize_;
-      // TODO(shawn): Why is packetSize_ always zero??
+      packetSize_ = 0;
     }
   //}
   __enable_irq();
@@ -209,164 +114,289 @@ int TeensyDMX::readPacket(uint8_t *buf) {
 }
 
 void TeensyDMX::completePacket() {
-  // 1. Fill the buffer
-
-  __disable_irq();  // Prevents conflicts with the UART0 status ISR
-  //{
-    int avail = uart_.available();
-
-    if (!first_) {
-      int count = min(avail, kMaxDMXPacketSize);
-      packetSize_ = 0;
-      while (count-- > 0) {
-        activeBuf_[packetSize_++] = static_cast<uint8_t>(uart_.read());
-        avail--;
-      }
-    }
-
-    // Flush any remaining bytes
-    while (avail > 0) {
-      uart_.read();
-      avail--;
-    }
-  //}
-  __enable_irq();
-
-  // 2. Complete the packet
-
-  if (first_) {
-    first_ = false;
+  // An empty packet isn't valid
+  if (activeBufIndex_ <= 0) {
     return;
   }
 
-  // Reset the buffers
-  if (activeBuf_ == buf1_) {
-    activeBuf_ = buf2_;
-    inactiveBuf_ = buf1_;
+  if (first_) {
+    first_ = false;
   } else {
-    activeBuf_ = buf1_;
-    inactiveBuf_ = buf2_;
+    // Swap the buffers
+    if (activeBuf_ == buf1_) {
+      activeBuf_ = buf2_;
+      inactiveBuf_ = buf1_;
+    } else {
+      activeBuf_ = buf1_;
+      inactiveBuf_ = buf2_;
+    }
+
+    packetCount_++;
+    packetSize_ = activeBufIndex_;
+  }
+  activeBufIndex_ = 0;
+}
+
+void TeensyDMX::resetPacket() {
+  activeBufIndex_ = 0;
+}
+
+void TeensyDMX::receiveByte(uint8_t b) {
+  if (activeBufIndex_ < kMaxDMXPacketSize) {
+    activeBuf_[activeBufIndex_++] = b;
+  }
+}
+
+void uart0_status_isr() {
+  uint8_t status = UART0_S1;
+
+  uint8_t b;
+  uint8_t control;
+
+#ifdef HAS_KINETISK_UART0_FIFO
+  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
+    __disable_irq();
+    uint8_t avail = UART0_RCFIFO;
+    if (avail == 0) {
+      // Read the register to clear the interrupt, but since it's empty,
+      // this causes the FIFO to become misaligned, so send RXFLUSH to
+      // reinitialize its pointers.
+      // Do this inside no interrupts to avoid a potential race condition
+      // between reading RCFIFO and flushing the FIFO.
+      b = UART0_D;
+      UART0_CFIFO = UART_CFIFO_RXFLUSH;
+      __enable_irq();
+      return;
+    } else {
+      __enable_irq();
+      // Read all but the last available, then read S1 and the final value
+      // So says the chip docs,
+      // Section 47.3.5 UART Status Register 1 (UART_S1)
+      // In the NOTE part.
+      while (--avail > 0) {
+        b = UART0_D;
+        instances[0]->receiveByte(b);
+      }
+      status = UART0_S1;
+      b = UART0_D;
+      instances[0]->receiveByte(b);
+    }
   }
 
-  packetCount_++;
-  packetAvail_ = true;
-}
+  control = UART0_C2;
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    // Loop to send data
 
-// TODO(shawn): Is flushing the input the right approach for framing errors that aren't a break?
-void TeensyDMX::flushInput() const {
-  __disable_irq();
-  //{
-    int avail = uart_.available();
-    while (avail > 0) {
-      uart_.read();
-      avail--;
+    // Completing if no more data
+    if (status & UART_S1_TDRE) {
+      UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TCIE;
     }
-  //}
-  __enable_irq();
-}
+  }
+#else
+  if ((status & UART_S1_RDRF) != 0) {
+    b = UART0_D;
+    instances[0]->receiveByte(b);
+  }
 
-}  // namespace teensydmx
-}  // namespace qindesign
-
-// These error ISR routines need to be outside the namespace:
-
-#ifdef __cplusplus
-extern "C" {
+  control = UART0_C2;
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    // Completing if no more data
+    UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_TCIE;
+  }
 #endif
 
-// UART0 will throw a frame error on the DMX break pulse. That's our
-// cue to switch buffers and reset the index to zero.
-void uart0_error_isr() {
-  // On break, uart0_status_isr() will probably have already
-  // fired and read the data buffer, clearing the framing error.
-  // If for some reason it hasn't, make sure we consume the 0x00
-  // byte that was received.
-  uint8_t b = 0;
-  if ((UART0_S1 & UART_S1_FE) != 0) {
-    b = UART0_D;
+  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
+    // Set inactive
+    UART0_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
+  }
+}
+
+void uart1_status_isr() {
+  uint8_t status = UART1_S1;
+
+  uint8_t b;
+  uint8_t control;
+
+#ifdef HAS_KINETISK_UART1_FIFO
+  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
+    __disable_irq();
+    uint8_t avail = UART1_RCFIFO;
+    if (avail == 0) {
+      b = UART1_D;
+      UART1_CFIFO = UART_CFIFO_RXFLUSH;
+      __enable_irq();
+      return;
+    } else {
+      __enable_irq();
+      while (--avail > 0) {
+        b = UART1_D;
+        instances[1]->receiveByte(b);
+      }
+      status = UART1_S1;
+      b = UART1_D;
+      instances[1]->receiveByte(b);
+    }
   }
 
-  // Ensure we've processed all the data that may still be sitting
-  // in software buffers.
-  if (b == 0) {
-    instances[0]->completePacket();
-  } else {
-    // Not a break
-    instances[0]->flushInput();
+  control = UART1_C2;
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    // Loop to send data
+
+    // Completing if no more data
+    if (status & UART_S1_TDRE) {
+      UART1_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TCIE;
+    }
+  }
+#else
+  if ((status & UART_S1_RDRF) != 0) {
+    b = UART1_D;
+    instances[1]->receiveByte(b);
+  }
+
+  control = UART1_C2;
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    // Completing if no more data
+    UART1_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_TCIE;
+  }
+#endif
+
+  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
+    // Set inactive
+    UART1_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
+  }
+}
+
+void uart2_status_isr() {
+  uint8_t status = UART2_S1;
+
+  uint8_t b;
+  uint8_t control;
+
+#ifdef HAS_KINETISK_UART2_FIFO
+  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
+    __disable_irq();
+    uint8_t avail = UART2_RCFIFO;
+    if (avail == 0) {
+      b = UART2_D;
+      UART2_CFIFO = UART_CFIFO_RXFLUSH;
+      __enable_irq();
+      return;
+    } else {
+      __enable_irq();
+      while (--avail > 0) {
+        b = UART2_D;
+        instances[2]->receiveByte(b);
+      }
+      status = UART2_S1;
+      b = UART2_D;
+      instances[2]->receiveByte(b);
+    }
+  }
+
+  control = UART2_C2;
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    // Loop to send data
+
+    // Completing if no more data
+    if (status & UART_S1_TDRE) {
+      UART2_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TCIE;
+    }
+  }
+#else
+  if ((status & UART_S1_RDRF) != 0) {
+    b = UART2_D;
+    instances[2]->receiveByte(b);
+  }
+
+  control = UART2_C2;
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    // Completing if no more data
+    UART2_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE | UART_C2_TCIE;
+  }
+#endif
+
+  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
+    // Set inactive
+    UART2_C2 = UART_C2_TE | UART_C2_RE | UART_C2_RIE;
+  }
+}
+
+void uart0_error_isr() {
+  uint8_t b;
+
+  // A framing error indicates a break
+  if ((UART0_S1 & UART_S1_FE) != 0) {
+    // Only allow a packet whose framing error actually indicates a break.
+    // A value of zero indicates a true break and not some other
+    // framing error.
+    // Note: Reading a byte clears interrupt flags
+
+#ifdef HAS_KINETISK_UART0_FIFO
+    // Flush anything in the buffer
+    uint8_t avail = UART0_RCFIFO;
+    if (avail > 1) {
+      while (--avail > 0) {
+        b = UART0_D;
+        instances[0]->receiveByte(b);
+      }
+    }
+#endif
+
+    b = UART0_D;
+    if (b == 0) {
+      instances[0]->completePacket();
+    } else {
+      // Not a break
+      instances[0]->resetPacket();
+    }
   }
 }
 
 void uart1_error_isr() {
-  uint8_t b = 0;
+  uint8_t b;
+
   if ((UART1_S1 & UART_S1_FE) != 0) {
+#ifdef HAS_KINETISK_UART1_FIFO
+    uint8_t avail = UART1_RCFIFO;
+    if (avail > 1) {
+      while (--avail > 0) {
+        b = UART1_D;
+        instances[1]->receiveByte(b);
+      }
+    }
+#endif
+
     b = UART1_D;
-  }
-  if (b == 0) {
-    instances[1]->completePacket();
-  } else {
-    // Not a break
-    instances[1]->flushInput();
+    if (b == 0) {
+      instances[1]->completePacket();
+    } else {
+      instances[1]->resetPacket();
+    }
   }
 }
 
 void uart2_error_isr() {
-  uint8_t b = 0;
+  uint8_t b;
+
   if ((UART2_S1 & UART_S1_FE) != 0) {
+#ifdef HAS_KINETISK_UART2_FIFO
+    uint8_t avail = UART2_RCFIFO;
+    if (avail > 1) {
+      while (--avail > 0) {
+        b = UART2_D;
+        instances[2]->receiveByte(b);
+      }
+    }
+#endif
+
     b = UART2_D;
-  }
-  if (b == 0) {
-    instances[2]->completePacket();
-  } else {
-    // Not a break
-    instances[2]->flushInput();
+    if (b == 0) {
+      instances[2]->completePacket();
+    } else {
+      instances[2]->resetPacket();
+    }
   }
 }
 
-#ifdef HAS_KINETISK_UART3
-void uart3_error_isr() {
-  uint8_t b = 0;
-  if ((UART3_S1 & UART_S1_FE) != 0) {
-    b = UART3_D;
-  }
-  if (b == 0) {
-    instances[3]->completePacket();
-  } else {
-    // Not a break
-    instances[3]->flushInput();
-  }
-}
-#endif
-
-#ifdef HAS_KINETISK_UART4
-void uart4_error_isr() {
-  uint8_t b = 0;
-  if ((UART4_S1 & UART_S1_FE) != 0) {
-    b = UART4_D;
-  }
-  if (b == 0) {
-    instances[4]->completePacket();
-  } else {
-    // Not a break
-    instances[4]->flushInput();
-  }
-}
-#endif
-
-#ifdef HAS_KINETISK_UART5
-void uart5_error_isr() {
-  uint8_t b = 0;
-  if ((UART5_S1 & UART_S1_FE) != 0) {
-    b = UART5_D;
-  }
-  if (b == 0) {
-    instances[5]->completePacket();
-  } else {
-    // Not a break
-    instances[5]->flushInput();
-  }
-}
-#endif
-
-#ifdef __cplusplus
-}  // extern "C"
-#endif
+}  // namespace teensydmx
+}  // namespace qindesign
