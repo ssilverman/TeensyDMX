@@ -115,6 +115,7 @@ class Receiver final : public TeensyDMX {
         packetSize_(0),
         first_(true) {}
 
+  // Destructs Receiver. This calls end().
   ~Receiver() override {
     end();
   }
@@ -143,14 +144,6 @@ class Receiver final : public TeensyDMX {
   }
 
  private:
-   // These error ISR's need to access private functions
-  friend void uart0_rx_status_isr();
-  friend void uart0_rx_error_isr();
-  friend void uart1_rx_status_isr();
-  friend void uart1_rx_error_isr();
-  friend void uart2_rx_status_isr();
-  friend void uart2_rx_error_isr();
-
   // Fills the buffer from the UART and then completes the packet from
   // immediately before the break. This reads up to a maximum of
   // kMaxDMXPacketSize bytes and ignores anything after that until
@@ -181,6 +174,14 @@ class Receiver final : public TeensyDMX {
   // Therefore, we're always one behind, and so the first break must not
   // cause a valid packet collection.
   bool first_;
+
+  // These error ISR's need to access private functions
+  friend void uart0_rx_status_isr();
+  friend void uart0_rx_error_isr();
+  friend void uart1_rx_status_isr();
+  friend void uart1_rx_error_isr();
+  friend void uart2_rx_status_isr();
+  friend void uart2_rx_error_isr();
 };
 
 // ---------------------------------------------------------------------------
@@ -197,6 +198,7 @@ class Sender final : public TeensyDMX {
         outputBufIndex_(0),
         packetSize_(kMaxDMXPacketSize) {}
 
+  // Destructs Sender. This calls end().
   ~Sender() override {
     end();
   }
@@ -246,11 +248,6 @@ class Sender final : public TeensyDMX {
   // This will be called from an ISR.
   void completePacket();
 
-  // These error ISR's need to access private functions
-  friend void uart0_tx_status_isr();
-  friend void uart1_tx_status_isr();
-  friend void uart2_tx_status_isr();
-
   // Keeps track of what we're transmitting.
   volatile XmitStates state_;
 
@@ -259,6 +256,11 @@ class Sender final : public TeensyDMX {
 
   // The size of the packet to be sent.
   volatile int packetSize_;
+
+  // These error ISR's need to access private functions
+  friend void uart0_tx_status_isr();
+  friend void uart1_tx_status_isr();
+  friend void uart2_tx_status_isr();
 };
 
 }  // namespace teensydmx
