@@ -30,7 +30,7 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #define UART_C2_TX_INACTIVE   UART_C2_TX_ENABLE
 
 // Used by the TX ISR's.
-static Sender *txInstances[3]{nullptr};
+Sender *txInstances[3]{nullptr};
 
 void Sender::begin() {
   if (began_) {

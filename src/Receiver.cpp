@@ -27,7 +27,7 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #endif  // HAS_KINETISK_UART2_FIFO
 
 // Used by the TX ISR's.
-static Receiver *rxInstances[3]{nullptr};
+Receiver *rxInstances[3]{nullptr};
 
 void Receiver::begin() {
   if (began_) {
