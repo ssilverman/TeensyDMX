@@ -17,6 +17,8 @@
 #define QINDESIGN_TEENSYDMX_H_
 
 #include <Arduino.h>
+
+// C++ includes
 #include <cstdint>
 
 namespace qindesign {
@@ -95,6 +97,10 @@ class TeensyDMX {
   // The number of packets sent or received.
   volatile unsigned int packetCount_;
 };
+
+// ---------------------------------------------------------------------------
+//  TeensyDMXReceiver
+// ---------------------------------------------------------------------------
 
 // A DMX receiver.
 class TeensyDMXReceiver final : public TeensyDMX {
@@ -176,6 +182,10 @@ class TeensyDMXReceiver final : public TeensyDMX {
   // cause a valid packet collection.
   bool first_;
 };
+
+// ---------------------------------------------------------------------------
+//  TeensyDMXSender
+// ---------------------------------------------------------------------------
 
 // A DMX transmitter.
 class TeensyDMXSender final : public TeensyDMX {
