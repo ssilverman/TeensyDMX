@@ -22,7 +22,7 @@ constexpr unsigned long kPrintInterval = 500;
 namespace teensydmx = ::qindesign::teensydmx;
 
 // Create the DMX receiver on Serial1.
-teensydmx::TeensyDMXReceiver dmxRx{Serial1};
+teensydmx::Receiver dmxRx{Serial1};
 
 // Keeps track of when the last frame was received.
 elapsedMillis lastFrameTime;

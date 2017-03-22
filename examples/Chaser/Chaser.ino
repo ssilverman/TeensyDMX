@@ -14,7 +14,7 @@ constexpr unsigned long kChaseInterval = 20;
 namespace teensydmx = ::qindesign::teensydmx;
 
 // Create the DMX transmitter on Serial1.
-teensydmx::TeensyDMXSender dmxTx{Serial1};
+teensydmx::Sender dmxTx{Serial1};
 
 // The current channel outputting a value.
 int channel;

@@ -99,13 +99,13 @@ class TeensyDMX {
 };
 
 // ---------------------------------------------------------------------------
-//  TeensyDMXReceiver
+//  Receiver
 // ---------------------------------------------------------------------------
 
 // A DMX receiver.
-class TeensyDMXReceiver final : public TeensyDMX {
+class Receiver final : public TeensyDMX {
  public:
-  TeensyDMXReceiver(HardwareSerial &uart)
+  Receiver(HardwareSerial &uart)
       : TeensyDMX(uart),
         buf1_{0},
         buf2_{0},
@@ -115,7 +115,7 @@ class TeensyDMXReceiver final : public TeensyDMX {
         packetSize_(0),
         first_(true) {}
 
-  ~TeensyDMXReceiver() override {
+  ~Receiver() override {
     end();
   }
 
@@ -184,20 +184,20 @@ class TeensyDMXReceiver final : public TeensyDMX {
 };
 
 // ---------------------------------------------------------------------------
-//  TeensyDMXSender
+//  Sender
 // ---------------------------------------------------------------------------
 
 // A DMX transmitter.
-class TeensyDMXSender final : public TeensyDMX {
+class Sender final : public TeensyDMX {
  public:
-  TeensyDMXSender(HardwareSerial &uart)
+  Sender(HardwareSerial &uart)
       : TeensyDMX(uart),
         state_(XmitStates::kIdle),
         outputBuf_{0},
         outputBufIndex_(0),
         packetSize_(kMaxDMXPacketSize) {}
 
-  ~TeensyDMXSender() override {
+  ~Sender() override {
     end();
   }
 

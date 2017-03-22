@@ -30,9 +30,9 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #define UART_C2_TX_INACTIVE   UART_C2_TX_ENABLE
 
 // Used by the TX ISR's.
-static TeensyDMXSender *txInstances[3]{nullptr};
+static Sender *txInstances[3]{nullptr};
 
-void TeensyDMXSender::begin() {
+void Sender::begin() {
   if (began_) {
     return;
   }
@@ -68,7 +68,7 @@ void TeensyDMXSender::begin() {
   }
 }
 
-void TeensyDMXSender::end() {
+void Sender::end() {
   // Remove any chance that our TX ISR calls begin after end() is called
   NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
 
@@ -88,7 +88,7 @@ void TeensyDMXSender::end() {
   uart_.end();
 }
 
-void TeensyDMXSender::set(int startChannel, const uint8_t *values, int len) {
+void Sender::set(int startChannel, const uint8_t *values, int len) {
   if (len <= 0) {
     return;
   }
@@ -102,7 +102,7 @@ void TeensyDMXSender::set(int startChannel, const uint8_t *values, int len) {
   memcpy(const_cast<uint8_t*>(outputBuf_ + startChannel), values, len);
 }
 
-void TeensyDMXSender::completePacket() {
+void Sender::completePacket() {
   packetCount_++;
   outputBufIndex_ = 0;
   state_ = XmitStates::kIdle;
@@ -113,7 +113,7 @@ void TeensyDMXSender::completePacket() {
 // ---------------------------------------------------------------------------
 
 void uart0_tx_status_isr() {
-  TeensyDMXSender *instance = txInstances[0];
+  Sender *instance = txInstances[0];
 
   uint8_t status = UART0_S1;
   uint8_t control = UART0_C2;
@@ -122,12 +122,12 @@ void uart0_tx_status_isr() {
   // If the transmit buffer is empty
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kBreak:
+      case Sender::XmitStates::kBreak:
         UART0_D = 0;
         UART0_C2 = UART_C2_TX_COMPLETING;
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         do {
           if (instance->outputBufIndex_ >= instance->packetSize_) {
             instance->completePacket();
@@ -140,7 +140,7 @@ void uart0_tx_status_isr() {
 
         break;
 
-      case TeensyDMXSender::XmitStates::kIdle:
+      case Sender::XmitStates::kIdle:
         break;
     }
   }
@@ -148,12 +148,12 @@ void uart0_tx_status_isr() {
   // If the transmit buffer is empty
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kBreak:
+      case Sender::XmitStates::kBreak:
         UART0_D = 0;
         UART0_C2 = UART_C2_TX_COMPLETING;
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         if (instance->outputBufIndex_ >= instance->packetSize_) {
           instance->completePacket();
           UART0_C2 = UART_C2_TX_COMPLETING;
@@ -166,7 +166,7 @@ void uart0_tx_status_isr() {
         }
         break;
 
-      case TeensyDMXSender::XmitStates::kIdle:
+      case Sender::XmitStates::kIdle:
         break;
     }
   }
@@ -175,17 +175,17 @@ void uart0_tx_status_isr() {
   // If transmission is complete
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kIdle:
-        instance->state_ = TeensyDMXSender::XmitStates::kBreak;
+      case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         instance->uart_.begin(kBreakBaud, kBreakFormat);
         break;
 
-      case TeensyDMXSender::XmitStates::kBreak:
-        instance->state_ = TeensyDMXSender::XmitStates::kData;
+      case Sender::XmitStates::kBreak:
+        instance->state_ = Sender::XmitStates::kData;
         instance->uart_.begin(kSlotsBaud, kSlotsFormat);
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         break;
     }
     UART0_C2 = UART_C2_TX_ACTIVE;
@@ -197,7 +197,7 @@ void uart0_tx_status_isr() {
 // ---------------------------------------------------------------------------
 
 void uart1_tx_status_isr() {
-  TeensyDMXSender *instance = txInstances[1];
+  Sender *instance = txInstances[1];
 
   uint8_t status = UART1_S1;
   uint8_t control = UART1_C2;
@@ -206,12 +206,12 @@ void uart1_tx_status_isr() {
   // If the transmit buffer is empty
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kBreak:
+      case Sender::XmitStates::kBreak:
         UART1_D = 0;
         UART1_C2 = UART_C2_TX_COMPLETING;
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         do {
           if (instance->outputBufIndex_ >= instance->packetSize_) {
             instance->completePacket();
@@ -224,7 +224,7 @@ void uart1_tx_status_isr() {
 
         break;
 
-      case TeensyDMXSender::XmitStates::kIdle:
+      case Sender::XmitStates::kIdle:
         break;
     }
   }
@@ -232,12 +232,12 @@ void uart1_tx_status_isr() {
   // If the transmit buffer is empty
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kBreak:
+      case Sender::XmitStates::kBreak:
         UART1_D = 0;
         UART1_C2 = UART_C2_TX_COMPLETING;
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         if (instance->outputBufIndex_ >= instance->packetSize_) {
           instance->completePacket();
           UART1_C2 = UART_C2_TX_COMPLETING;
@@ -250,7 +250,7 @@ void uart1_tx_status_isr() {
         }
         break;
 
-      case TeensyDMXSender::XmitStates::kIdle:
+      case Sender::XmitStates::kIdle:
         break;
     }
   }
@@ -259,17 +259,17 @@ void uart1_tx_status_isr() {
   // If transmission is complete
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kIdle:
-        instance->state_ = TeensyDMXSender::XmitStates::kBreak;
+      case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         instance->uart_.begin(kBreakBaud, kBreakFormat);
         break;
 
-      case TeensyDMXSender::XmitStates::kBreak:
-        instance->state_ = TeensyDMXSender::XmitStates::kData;
+      case Sender::XmitStates::kBreak:
+        instance->state_ = Sender::XmitStates::kData;
         instance->uart_.begin(kSlotsBaud, kSlotsFormat);
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         break;
     }
     UART1_C2 = UART_C2_TX_ACTIVE;
@@ -281,7 +281,7 @@ void uart1_tx_status_isr() {
 // ---------------------------------------------------------------------------
 
 void uart2_tx_status_isr() {
-  TeensyDMXSender *instance = txInstances[2];
+  Sender *instance = txInstances[2];
 
   uint8_t status = UART2_S1;
   uint8_t control = UART2_C2;
@@ -290,12 +290,12 @@ void uart2_tx_status_isr() {
   // If the transmit buffer is empty
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kBreak:
+      case Sender::XmitStates::kBreak:
         UART2_D = 0;
         UART2_C2 = UART_C2_TX_COMPLETING;
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         do {
           if (instance->outputBufIndex_ >= instance->packetSize_) {
             instance->completePacket();
@@ -308,7 +308,7 @@ void uart2_tx_status_isr() {
 
         break;
 
-      case TeensyDMXSender::XmitStates::kIdle:
+      case Sender::XmitStates::kIdle:
         break;
     }
   }
@@ -316,12 +316,12 @@ void uart2_tx_status_isr() {
   // If the transmit buffer is empty
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kBreak:
+      case Sender::XmitStates::kBreak:
         UART2_D = 0;
         UART2_C2 = UART_C2_TX_COMPLETING;
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         if (instance->outputBufIndex_ >= instance->packetSize_) {
           instance->completePacket();
           UART2_C2 = UART_C2_TX_COMPLETING;
@@ -334,7 +334,7 @@ void uart2_tx_status_isr() {
         }
         break;
 
-      case TeensyDMXSender::XmitStates::kIdle:
+      case Sender::XmitStates::kIdle:
         break;
     }
   }
@@ -343,17 +343,17 @@ void uart2_tx_status_isr() {
   // If transmission is complete
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
-      case TeensyDMXSender::XmitStates::kIdle:
-        instance->state_ = TeensyDMXSender::XmitStates::kBreak;
+      case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         instance->uart_.begin(kBreakBaud, kBreakFormat);
         break;
 
-      case TeensyDMXSender::XmitStates::kBreak:
-        instance->state_ = TeensyDMXSender::XmitStates::kData;
+      case Sender::XmitStates::kBreak:
+        instance->state_ = Sender::XmitStates::kData;
         instance->uart_.begin(kSlotsBaud, kSlotsFormat);
         break;
 
-      case TeensyDMXSender::XmitStates::kData:
+      case Sender::XmitStates::kData:
         break;
     }
     UART2_C2 = UART_C2_TX_ACTIVE;

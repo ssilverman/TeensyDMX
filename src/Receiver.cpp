@@ -27,9 +27,9 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #endif  // HAS_KINETISK_UART2_FIFO
 
 // Used by the TX ISR's.
-static TeensyDMXReceiver *rxInstances[3]{nullptr};
+static Receiver *rxInstances[3]{nullptr};
 
-void TeensyDMXReceiver::begin() {
+void Receiver::begin() {
   if (began_) {
     return;
   }
@@ -88,7 +88,7 @@ void TeensyDMXReceiver::begin() {
   inactiveBuf_ = buf2_;
 }
 
-void TeensyDMXReceiver::end() {
+void Receiver::end() {
   if (!began_) {
     return;
   }
@@ -118,7 +118,7 @@ void TeensyDMXReceiver::end() {
   }
 }
 
-int TeensyDMXReceiver::readPacket(uint8_t *buf) {
+int Receiver::readPacket(uint8_t *buf) {
   if (packetSize_ <= 0) {
     return -1;
   }
@@ -136,7 +136,7 @@ int TeensyDMXReceiver::readPacket(uint8_t *buf) {
   return retval;
 }
 
-void TeensyDMXReceiver::completePacket() {
+void Receiver::completePacket() {
   // An empty packet isn't valid
   if (activeBufIndex_ <= 0) {
     return;
@@ -160,11 +160,11 @@ void TeensyDMXReceiver::completePacket() {
   activeBufIndex_ = 0;
 }
 
-void TeensyDMXReceiver::resetPacket() {
+void Receiver::resetPacket() {
   activeBufIndex_ = 0;
 }
 
-void TeensyDMXReceiver::receiveByte(uint8_t b) {
+void Receiver::receiveByte(uint8_t b) {
   if (activeBufIndex_ < kMaxDMXPacketSize) {
     activeBuf_[activeBufIndex_++] = b;
   }
@@ -176,7 +176,7 @@ void TeensyDMXReceiver::receiveByte(uint8_t b) {
 
 void uart0_rx_status_isr() {
   uint8_t b;
-  TeensyDMXReceiver *instance = rxInstances[0];
+  Receiver *instance = rxInstances[0];
 
   uint8_t status = UART0_S1;
 
@@ -221,7 +221,7 @@ void uart0_rx_status_isr() {
 
 void uart0_rx_error_isr() {
   uint8_t b;
-  TeensyDMXReceiver *instance = rxInstances[0];
+  Receiver *instance = rxInstances[0];
 
   // A framing error indicates a break
   if ((UART0_S1 & UART_S1_FE) != 0) {
@@ -257,7 +257,7 @@ void uart0_rx_error_isr() {
 
 void uart1_rx_status_isr() {
   uint8_t b;
-  TeensyDMXReceiver *instance = rxInstances[1];
+  Receiver *instance = rxInstances[1];
 
   uint8_t status = UART1_S1;
 
@@ -302,7 +302,7 @@ void uart1_rx_status_isr() {
 
 void uart1_rx_error_isr() {
   uint8_t b;
-  TeensyDMXReceiver *instance = rxInstances[1];
+  Receiver *instance = rxInstances[1];
 
   // A framing error indicates a break
   if ((UART1_S1 & UART_S1_FE) != 0) {
@@ -338,7 +338,7 @@ void uart1_rx_error_isr() {
 
 void uart2_rx_status_isr() {
   uint8_t b;
-  TeensyDMXReceiver *instance = rxInstances[2];
+  Receiver *instance = rxInstances[2];
 
   uint8_t status = UART2_S1;
 
@@ -383,7 +383,7 @@ void uart2_rx_status_isr() {
 
 void uart2_rx_error_isr() {
   uint8_t b;
-  TeensyDMXReceiver *instance = rxInstances[2];
+  Receiver *instance = rxInstances[2];
 
   // A framing error indicates a break
   if ((UART2_S1 & UART_S1_FE) != 0) {
