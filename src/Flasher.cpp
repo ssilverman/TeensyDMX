@@ -51,7 +51,11 @@ void loop() {
     // Print the data every so often
     static elapsedMillis p = kPrintInterval;
     if (p >= kPrintInterval) {
-      Serial.printf("%d: %d\n", dmxRx.packetCount(), lastValue);
+      Serial.printf("%d:", dmxRx.packetCount());
+      for (int i = 0; i < 20; i++) {
+        Serial.printf(" %d:%d", i, buf[kChannel + i]);
+      }
+      Serial.println();
       p = 0;
     }
   }
