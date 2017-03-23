@@ -118,17 +118,30 @@ void Receiver::end() {
   }
 }
 
-int Receiver::readPacket(uint8_t *buf) {
+int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   if (packetSize_ <= 0) {
     return -1;
+  }
+  if (len <= 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
+    return 0;
   }
 
   int retval = -1;
   __disable_irq();
   //{
     if (packetSize_ > 0) {
-      memcpy(buf, const_cast<const uint8_t*>(inactiveBuf_), packetSize_);
-      retval = packetSize_;
+      if (startChannel >= packetSize_) {
+        retval = 0;
+      } else {
+        if (startChannel + len > packetSize_) {
+          len = packetSize_ - startChannel;
+        }
+        memcpy(
+            buf,
+            const_cast<const uint8_t*>(inactiveBuf_ + startChannel),
+            len);
+        retval = len;
+      }
       packetSize_ = 0;
     }
   //}

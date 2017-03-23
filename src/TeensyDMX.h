@@ -124,13 +124,21 @@ class Receiver final : public TeensyDMX {
 
   void end() override;
 
-  // Reads a complete packet into buf. The number of bytes can be up to
-  // kMaxDMXPacketSize, so a buffer with at least this size must be given.
-  // This will return -1 if there is no packet available.
+  // Reads all or part of a packet into buf. This does nothing if len
+  // is negative or zero, or if startChannel is negative or beyond
+  // kMaxDMXPacketSize, and only reads up to the end of the packet
+  // if startChannel + len would go past the end.
   //
-  // This will reset the state of a packet being available. In other words,
-  // the next time this is called, this will return -1.
-  int readPacket(uint8_t *buf);
+  // This will return the number of bytes actually read into buf, -1 if there
+  // is no packet available since the last call to this function, or zero if
+  // len is negative or zero, or if the requested data is outside the range
+  // of the recieved packet. Differentiating between -1 and zero allows the
+  // caller to determine whether there was no packet received or a packet
+  // was received and did not contain the requested data.
+  //
+  // The values starting at startChannel will be stored starting at index
+  // zero in buf.
+  int readPacket(uint8_t *buf, int startChannel, int len);
 
   // Gets the value for one channel. The start code can be read at
   // channel zero.

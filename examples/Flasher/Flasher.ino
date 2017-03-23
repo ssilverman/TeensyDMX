@@ -42,10 +42,10 @@ void setup() {
 }
 
 void loop() {
-  static uint8_t buf[teensydmx::kMaxDMXPacketSize];
-  int read = dmxRx.readPacket(buf);
-  if (read > kChannel) {
-    lastValue = buf[kChannel];
+  static uint8_t buf[1];
+  int read = dmxRx.readPacket(buf, kChannel, 1);
+  if (read > 0) {
+    lastValue = buf[0];
     lastFrameTime = 0;
 
     // Print the data every so often
