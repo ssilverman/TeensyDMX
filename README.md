@@ -1,6 +1,6 @@
 # TeensyDMX
 
-This is a library for receiving and transmitting DMX on the Teensy.
+This is a library for receiving and transmitting DMX on Teensy 3.
 
 There is no support yet for processing RDM.
 
