@@ -37,10 +37,10 @@ void uart2_rx_error_isr();
 void uart2_tx_status_isr();
 
 // The maximum size of a DMX packet, including the start code.
-static constexpr int kMaxDMXPacketSize = 513;
+constexpr int kMaxDMXPacketSize = 513;
 
 // The minimnum size of a DMX packet, including the start code.
-static constexpr int kMinDMXPacketSize = 25;
+constexpr int kMinDMXPacketSize = 25;
 
 // TeensyDMX implements either a receiver or transmitter on one of
 // hardware serial ports 1-3.
