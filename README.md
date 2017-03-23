@@ -90,6 +90,7 @@ From a UART perspective, there are two parts to a DMX frame:
 The total frame time is:
 
 > 10 bits * 12 us + 513 slots * 11 bits * 4us = 22692us
+>
 > This is about 44Hz.
 
 ## Code style
