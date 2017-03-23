@@ -1,8 +1,11 @@
-TeensyDMX	KEYWORD1
+kMaxDMXPacketSize	LITERAL1
+kMinDMXPacketSize	LITERAL1
+Receiver	KEYWORD1
+Sender	KEYWORD1
 begin	KEYWORD2
 end	KEYWORD2
-packetAvailable	KEYWORD2
-packetSize 	KEYWORD2
-packet	KEYWORD2
 packetCount	KEYWORD2
 readPacket	KEYWORD2
+get	KEYWORD2
+setPacketSize	KEYWORD2
+set	KEYWORD2
