@@ -94,7 +94,7 @@ class TeensyDMX {
   // this state.
   bool began_;
 
-  // The number of packets sent or received.
+  // The number of packets sent or received. Subclasses must manage this.
   volatile unsigned int packetCount_;
 };
 
@@ -137,7 +137,7 @@ class Receiver final : public TeensyDMX {
   // was received and did not contain the requested data.
   //
   // The values starting at startChannel will be stored starting at index
-  // zero in buf.
+  // zero in buf. buf must have a size of at least len bytes.
   int readPacket(uint8_t *buf, int startChannel, int len);
 
   // Gets the value for one channel. The start code can be read at
