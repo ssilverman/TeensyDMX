@@ -26,7 +26,7 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
 #endif  // HAS_KINETISK_UART2_FIFO
 
-// Used by the TX ISR's.
+// Used by the RX ISR's.
 Receiver *rxInstances[3]{nullptr};
 
 void Receiver::begin() {
