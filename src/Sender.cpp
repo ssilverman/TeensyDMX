@@ -8,7 +8,7 @@ namespace teensydmx {
 
 // Notes on transmit timing:
 // According to https://en.wikipedia.org/wiki/DMX512,
-// the minimum break and Mark AfterBreak (MAB) times are
+// the minimum break and Mark After Break (MAB) times are
 // 92us and 12us, respectively.
 //
 // If we assume 12us is the length of a stop bit, then 1/12us ≈ 83333 baud.
@@ -17,17 +17,21 @@ namespace teensydmx {
 // Minimum accepted receive break-to-break time = 1196us.
 // This means that we must transmit at least 24 slots (25 including the
 // start code).
+//
+// Some other timing options:
+// 8N2: 1000000/11 (90909) baud, 99us break, 22us MAB
+// 8E2: 100000 baud, 100us break, 20us MAB
 
-constexpr uint32_t kBreakBaud = 1000000 / 12;
+constexpr uint32_t kBreakBaud   = 1000000 / 12;
 constexpr uint32_t kBreakFormat = SERIAL_8N1;
-constexpr uint32_t kSlotsBaud = 250000;
+constexpr uint32_t kSlotsBaud   = 250000;
 constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 
 // TX control states
-#define UART_C2_TX_ENABLE     UART_C2_TE
-#define UART_C2_TX_ACTIVE     UART_C2_TX_ENABLE | UART_C2_TIE
-#define UART_C2_TX_COMPLETING UART_C2_TX_ENABLE | UART_C2_TCIE
-#define UART_C2_TX_INACTIVE   UART_C2_TX_ENABLE
+#define UART_C2_TX_ENABLE     (UART_C2_TE)
+#define UART_C2_TX_ACTIVE     ((UART_C2_TX_ENABLE) | (UART_C2_TIE))
+#define UART_C2_TX_COMPLETING ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
+#define UART_C2_TX_INACTIVE   (UART_C2_TX_ENABLE)
 
 // Used by the TX ISR's.
 Sender *txInstances[3]{nullptr};
