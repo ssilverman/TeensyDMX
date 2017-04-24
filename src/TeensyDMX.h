@@ -162,6 +162,11 @@ class Receiver final : public TeensyDMX {
   // readPacket() being at least equal to the number of channels requested.
   // Use is only suggested in very simple use cases where a timestamp is
   // needed for *any* packet containing data, not necessarily desired data.
+  //
+  // Don't use this function to detect timeouts for data on specific channels.
+  // For example, unplugging a cable might result in a valid packet, but not
+  // containing the channels you need. Using this value to detect the last
+  // valid data received will give a value that's later than the true value.
   uint32_t lastPacketTimestamp() {
     return packetTimestamp_;
   }
