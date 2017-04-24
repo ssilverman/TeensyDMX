@@ -156,6 +156,12 @@ class Receiver final : public TeensyDMX {
   // indicate freshness of the channels you're interested in because they
   // may not have been a part of the last packet received. i.e. the last
   // packet received may have been smaller than required.
+  //
+  // Use of this function is discouraged in favor of making a note of the
+  // time inside the code that checks for the value returned from
+  // readPacket() being at least equal to the number of channels requested.
+  // Use is only suggested in very simple use cases where a timestamp is
+  // needed for *any* packet containing data, not necessarily desired data.
   uint32_t lastPacketTimestamp() {
     return packetTimestamp_;
   }
