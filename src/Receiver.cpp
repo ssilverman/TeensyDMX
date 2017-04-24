@@ -169,6 +169,7 @@ void Receiver::completePacket() {
 
     packetCount_++;
     packetSize_ = activeBufIndex_;
+    packetTimestamp_ = millis();
   }
   activeBufIndex_ = 0;
 }

@@ -151,6 +151,15 @@ class Receiver final : public TeensyDMX {
     return inactiveBuf_[channel];
   }
 
+  // Returns the timestamp of the last received packet. Under the covers,
+  // millis() is called when a packet is received. Note that this may not
+  // indicate freshness of the channels you're interested in because they
+  // may not have been a part of the last packet received. i.e. the last
+  // packet received may have been smaller than required.
+  uint32_t lastPacketTimestamp() {
+    return packetTimestamp_;
+  }
+
  private:
   // Fills the buffer from the UART and then completes the packet from
   // immediately before the break. This reads up to a maximum of
@@ -176,6 +185,9 @@ class Receiver final : public TeensyDMX {
 
   // The size of the last received packet.
   volatile int packetSize_;
+
+  // The timestamp of the last received packet.
+  volatile uint32_t packetTimestamp_;
 
   // The current read technique is to fill the buffer after a break is
   // detected, but the break indicates a packet start, not a packet end.
