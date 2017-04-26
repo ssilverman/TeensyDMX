@@ -166,7 +166,7 @@ class Receiver final : public TeensyDMX {
   // Don't use this function to detect timeouts for data on specific channels.
   // For example, unplugging a cable might result in a valid packet, but not
   // containing the channels you need. Using this value to detect the last
-  // valid data received will give a value that's later than the true value.
+  // valid data received would give a value that's later than the true value.
   uint32_t lastPacketTimestamp() {
     return packetTimestamp_;
   }
