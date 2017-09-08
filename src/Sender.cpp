@@ -73,18 +73,28 @@ void Sender::begin() {
 }
 
 void Sender::end() {
+  int index = serialIndex(uart_);
+  if (index < 0) {
+    return;
+  }
+
   // Remove any chance that our TX ISR calls begin after end() is called
-  NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
+  switch (index) {
+    case 0:
+      NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
+      break;
+    case 1:
+      NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
+      break;
+    case 2:
+      NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
+      break;
+  }
 
   if (!began_) {
     return;
   }
   began_ = false;
-
-  int index = serialIndex(uart_);
-  if (index < 0) {
-    return;
-  }
 
   // Remove the reference from the instances
   txInstances[index] = nullptr;
