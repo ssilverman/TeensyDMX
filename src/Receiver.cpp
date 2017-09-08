@@ -109,12 +109,15 @@ void Receiver::end() {
       // Disable UART0 interrupt on frame error
       UART0_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
+      break;
     case 1:
       UART1_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
+      break;
     case 2:
       UART2_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
+      break;
   }
 }
 
