@@ -105,7 +105,7 @@ void Receiver::begin() {
 #endif  // HAS_KINETISK_UART3
 
 #ifdef HAS_KINETISK_UART4
-    case 3:
+    case 4:
       UART4_C2 = UART4_C2_RX_ENABLE;
       attachInterruptVector(IRQ_UART4_STATUS, uart4_rx_status_isr);
       attachInterruptVector(IRQ_UART4_ERROR, uart4_rx_error_isr);
