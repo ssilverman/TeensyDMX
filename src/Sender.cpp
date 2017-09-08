@@ -34,7 +34,7 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #define UART_C2_TX_INACTIVE   (UART_C2_TX_ENABLE)
 
 // Used by the TX ISR's.
-Sender *txInstances[3]{nullptr};
+Sender *txInstances[6]{nullptr};
 
 void Sender::begin() {
   if (began_) {
@@ -69,6 +69,24 @@ void Sender::begin() {
       attachInterruptVector(IRQ_UART2_STATUS, uart2_tx_status_isr);
       UART2_C2 = UART_C2_TX_ACTIVE;
       break;
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      attachInterruptVector(IRQ_UART3_STATUS, uart3_tx_status_isr);
+      UART3_C2 = UART_C2_TX_ACTIVE;
+      break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    case 4:
+      attachInterruptVector(IRQ_UART4_STATUS, uart4_tx_status_isr);
+      UART4_C2 = UART_C2_TX_ACTIVE;
+      break;
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+    case 5:
+      attachInterruptVector(IRQ_UART5_STATUS, uart5_tx_status_isr);
+      UART5_C2 = UART_C2_TX_ACTIVE;
+      break;
+#endif  // HAS_KINETISK_UART5
   }
 }
 
@@ -363,6 +381,186 @@ void uart2_tx_status_isr() {
     UART2_C2 = UART_C2_TX_ACTIVE;
   }
 }
+
+// ---------------------------------------------------------------------------
+//  UART3 TX ISR
+// ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_UART3
+void uart3_tx_status_isr() {
+  Sender *instance = txInstances[3];
+
+  uint8_t status = UART3_S1;
+  uint8_t control = UART3_C2;
+
+  // No FIFO
+
+  // If the transmit buffer is empty
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    switch (instance->state_) {
+      case Sender::XmitStates::kBreak:
+        UART3_D = 0;
+        UART3_C2 = UART_C2_TX_COMPLETING;
+        break;
+
+      case Sender::XmitStates::kData:
+        if (instance->outputBufIndex_ >= instance->packetSize_) {
+          instance->completePacket();
+          UART3_C2 = UART_C2_TX_COMPLETING;
+        } else {
+          UART3_D = instance->outputBuf_[instance->outputBufIndex_++];
+          if (instance->outputBufIndex_ >= instance->packetSize_) {
+            instance->completePacket();
+            UART3_C2 = UART_C2_TX_COMPLETING;
+          }
+        }
+        break;
+
+      case Sender::XmitStates::kIdle:
+        break;
+    }
+  }
+
+  // If transmission is complete
+  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
+    switch (instance->state_) {
+      case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        break;
+
+      case Sender::XmitStates::kBreak:
+        instance->state_ = Sender::XmitStates::kData;
+        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
+        break;
+
+      case Sender::XmitStates::kData:
+        break;
+    }
+    UART3_C2 = UART_C2_TX_ACTIVE;
+  }
+}
+#endif // HAS_KINETISK_UART3
+
+// ---------------------------------------------------------------------------
+//  UART4 TX ISR
+// ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_UART4
+void uart4_tx_status_isr() {
+  Sender *instance = txInstances[4];
+
+  uint8_t status = UART4_S1;
+  uint8_t control = UART4_C2;
+
+  // No FIFO
+
+  // If the transmit buffer is empty
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    switch (instance->state_) {
+      case Sender::XmitStates::kBreak:
+        UART4_D = 0;
+        UART4_C2 = UART_C2_TX_COMPLETING;
+        break;
+
+      case Sender::XmitStates::kData:
+        if (instance->outputBufIndex_ >= instance->packetSize_) {
+          instance->completePacket();
+          UART4_C2 = UART_C2_TX_COMPLETING;
+        } else {
+          UART4_D = instance->outputBuf_[instance->outputBufIndex_++];
+          if (instance->outputBufIndex_ >= instance->packetSize_) {
+            instance->completePacket();
+            UART4_C2 = UART_C2_TX_COMPLETING;
+          }
+        }
+        break;
+
+      case Sender::XmitStates::kIdle:
+        break;
+    }
+  }
+
+  // If transmission is complete
+  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
+    switch (instance->state_) {
+      case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        break;
+
+      case Sender::XmitStates::kBreak:
+        instance->state_ = Sender::XmitStates::kData;
+        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
+        break;
+
+      case Sender::XmitStates::kData:
+        break;
+    }
+    UART4_C2 = UART_C2_TX_ACTIVE;
+  }
+}
+#endif // HAS_KINETISK_UART4
+
+// ---------------------------------------------------------------------------
+//  UART5 TX ISR
+// ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_UART5
+void uart5_tx_status_isr() {
+  Sender *instance = txInstances[5];
+
+  uint8_t status = UART5_S1;
+  uint8_t control = UART5_C2;
+
+  // No FIFO
+
+  // If the transmit buffer is empty
+  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
+    switch (instance->state_) {
+      case Sender::XmitStates::kBreak:
+        UART5_D = 0;
+        UART5_C2 = UART_C2_TX_COMPLETING;
+        break;
+
+      case Sender::XmitStates::kData:
+        if (instance->outputBufIndex_ >= instance->packetSize_) {
+          instance->completePacket();
+          UART5_C2 = UART_C2_TX_COMPLETING;
+        } else {
+          UART5_D = instance->outputBuf_[instance->outputBufIndex_++];
+          if (instance->outputBufIndex_ >= instance->packetSize_) {
+            instance->completePacket();
+            UART5_C2 = UART_C2_TX_COMPLETING;
+          }
+        }
+        break;
+
+      case Sender::XmitStates::kIdle:
+        break;
+    }
+  }
+
+  // If transmission is complete
+  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
+    switch (instance->state_) {
+      case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        break;
+
+      case Sender::XmitStates::kBreak:
+        instance->state_ = Sender::XmitStates::kData;
+        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
+        break;
+
+      case Sender::XmitStates::kData:
+        break;
+    }
+    UART5_C2 = UART_C2_TX_ACTIVE;
+  }
+}
+#endif // HAS_KINETISK_UART5
 
 }  // namespace teensydmx
 }  // namespace qindesign

@@ -26,8 +26,18 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
 #endif  // HAS_KINETISK_UART2_FIFO
 
+#ifdef HAS_KINETISK_UART3
+#define UART3_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+#define UART4_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+#define UART5_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
+#endif  // HAS_KINETISK_UART5
+
 // Used by the RX ISR's.
-Receiver *rxInstances[3]{nullptr};
+Receiver *rxInstances[6]{nullptr};
 
 void Receiver::begin() {
   if (began_) {
@@ -82,6 +92,39 @@ void Receiver::begin() {
       UART2_C3 |= UART_C3_FEIE;
       NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
       break;
+
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      UART3_C2 = UART3_C2_RX_ENABLE;
+      attachInterruptVector(IRQ_UART3_STATUS, uart3_rx_status_isr);
+      attachInterruptVector(IRQ_UART3_ERROR, uart3_rx_error_isr);
+      NVIC_SET_PRIORITY(IRQ_UART3_ERROR, NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
+      UART3_C3 |= UART_C3_FEIE;
+      NVIC_ENABLE_IRQ(IRQ_UART3_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART3
+
+#ifdef HAS_KINETISK_UART4
+    case 3:
+      UART4_C2 = UART4_C2_RX_ENABLE;
+      attachInterruptVector(IRQ_UART4_STATUS, uart4_rx_status_isr);
+      attachInterruptVector(IRQ_UART4_ERROR, uart4_rx_error_isr);
+      NVIC_SET_PRIORITY(IRQ_UART4_ERROR, NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
+      UART4_C3 |= UART_C3_FEIE;
+      NVIC_ENABLE_IRQ(IRQ_UART4_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART4
+
+#ifdef HAS_KINETISK_UART5
+    case 5:
+      UART5_C2 = UART5_C2_RX_ENABLE;
+      attachInterruptVector(IRQ_UART5_STATUS, uart5_rx_status_isr);
+      attachInterruptVector(IRQ_UART5_ERROR, uart5_rx_error_isr);
+      NVIC_SET_PRIORITY(IRQ_UART5_ERROR, NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
+      UART5_C3 |= UART_C3_FEIE;
+      NVIC_ENABLE_IRQ(IRQ_UART5_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART5
   }
 
   activeBuf_ = buf1_;
@@ -109,12 +152,34 @@ void Receiver::end() {
       // Disable UART0 interrupt on frame error
       UART0_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
+      break;
     case 1:
       UART1_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
+      break;
     case 2:
       UART2_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
+      break;
+
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      UART3_C3 &= ~UART_C3_FEIE;
+      NVIC_DISABLE_IRQ(IRQ_UART3_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    case 4:
+      UART4_C3 &= ~UART_C3_FEIE;
+      NVIC_DISABLE_IRQ(IRQ_UART4_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+    case 5:
+      UART5_C3 &= ~UART_C3_FEIE;
+      NVIC_DISABLE_IRQ(IRQ_UART5_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART5
   }
 }
 
@@ -426,6 +491,138 @@ void uart2_rx_error_isr() {
     }
   }
 }
+
+// ---------------------------------------------------------------------------
+//  UART3 RX ISRs
+// ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_UART3
+void uart3_rx_status_isr() {
+  uint8_t b;
+  Receiver *instance = rxInstances[3];
+
+  uint8_t status = UART3_S1;
+
+  // No FIFO
+
+  // If the receive buffer is full
+  if ((status & UART_S1_RDRF) != 0) {
+    b = UART3_D;
+    instance->receiveByte(b);
+  }
+}
+
+void uart3_rx_error_isr() {
+  uint8_t b;
+  Receiver *instance = rxInstances[3];
+
+  // A framing error indicates a break
+  if ((UART3_S1 & UART_S1_FE) != 0) {
+    // Only allow a packet whose framing error actually indicates a break.
+    // A value of zero indicates a true break and not some other
+    // framing error.
+    // Note: Reading a byte clears interrupt flags
+
+    // No FIFO
+
+    b = UART3_D;
+    if (b == 0) {
+      instance->completePacket();
+    } else {
+      // Not a break
+      instance->resetPacket();
+    }
+  }
+}
+#endif  // HAS_KINETISK_UART3
+
+// ---------------------------------------------------------------------------
+//  UART4 RX ISRs
+// ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_UART4
+void uart4_rx_status_isr() {
+  uint8_t b;
+  Receiver *instance = rxInstances[4];
+
+  uint8_t status = UART4_S1;
+
+  // No FIFO
+
+  // If the receive buffer is full
+  if ((status & UART_S1_RDRF) != 0) {
+    b = UART4_D;
+    instance->receiveByte(b);
+  }
+}
+
+void uart4_rx_error_isr() {
+  uint8_t b;
+  Receiver *instance = rxInstances[4];
+
+  // A framing error indicates a break
+  if ((UART4_S1 & UART_S1_FE) != 0) {
+    // Only allow a packet whose framing error actually indicates a break.
+    // A value of zero indicates a true break and not some other
+    // framing error.
+    // Note: Reading a byte clears interrupt flags
+
+    // No FIFO
+
+    b = UART4_D;
+    if (b == 0) {
+      instance->completePacket();
+    } else {
+      // Not a break
+      instance->resetPacket();
+    }
+  }
+}
+#endif  // HAS_KINETISK_UART4
+
+// ---------------------------------------------------------------------------
+//  UART5 RX ISRs
+// ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_UART5
+void uart5_rx_status_isr() {
+  uint8_t b;
+  Receiver *instance = rxInstances[5];
+
+  uint8_t status = UART5_S1;
+
+  // No FIFO
+
+  // If the receive buffer is full
+  if ((status & UART_S1_RDRF) != 0) {
+    b = UART5_D;
+    instance->receiveByte(b);
+  }
+}
+
+void uart5_rx_error_isr() {
+  uint8_t b;
+  Receiver *instance = rxInstances[5];
+
+  // A framing error indicates a break
+  if ((UART5_S1 & UART_S1_FE) != 0) {
+    // Only allow a packet whose framing error actually indicates a break.
+    // A value of zero indicates a true break and not some other
+    // framing error.
+    // Note: Reading a byte clears interrupt flags
+
+    // No FIFO
+
+    b = UART5_D;
+    if (b == 0) {
+      instance->completePacket();
+    } else {
+      // Not a break
+      instance->resetPacket();
+    }
+  }
+}
+#endif  // HAS_KINETISK_UART5
 
 }  // namespace teensydmx
 }  // namespace qindesign
