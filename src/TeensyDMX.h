@@ -36,6 +36,24 @@ void uart2_rx_status_isr();
 void uart2_rx_error_isr();
 void uart2_tx_status_isr();
 
+#ifdef HAS_KINETISK_UART3
+void uart3_rx_status_isr();
+void uart3_rx_error_isr();
+void uart3_tx_status_isr();
+#endif  // HAS_KINETISK_UART3
+
+#ifdef HAS_KINETISK_UART4
+void uart4_rx_status_isr();
+void uart4_rx_error_isr();
+void uart4_tx_status_isr();
+#endif  // HAS_KINETISK_UART4
+
+#ifdef HAS_KINETISK_UART5
+void uart5_rx_status_isr();
+void uart5_rx_error_isr();
+void uart5_tx_status_isr();
+#endif  // HAS_KINETISK_UART5
+
 // The maximum size of a DMX packet, including the start code.
 constexpr int kMaxDMXPacketSize = 513;
 
@@ -43,7 +61,7 @@ constexpr int kMaxDMXPacketSize = 513;
 constexpr int kMinDMXPacketSize = 25;
 
 // TeensyDMX implements either a receiver or transmitter on one of
-// hardware serial ports 1-3.
+// hardware serial ports 1-6.
 class TeensyDMX {
  public:
   // Creates a new DMX receiver or transmitter using the given hardware UART.
@@ -85,6 +103,21 @@ class TeensyDMX {
     if (&uart == &Serial3) {
       return 2;
     }
+#ifdef HAS_KINETISK_UART3
+    if (&uart == &Serial4) {
+      return 3;
+    }
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    if (&uart == &Serial5) {
+      return 4;
+    }
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+    if (&uart == &Serial6) {
+      return 5;
+    }
+#endif  // HAS_KINETISK_UART5
     return -1;
   }
 
@@ -213,6 +246,18 @@ class Receiver final : public TeensyDMX {
   friend void uart1_rx_error_isr();
   friend void uart2_rx_status_isr();
   friend void uart2_rx_error_isr();
+#ifdef HAS_KINETISK_UART3
+  friend void uart3_rx_status_isr();
+  friend void uart3_rx_error_isr();
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+  friend void uart4_rx_status_isr();
+  friend void uart4_rx_error_isr();
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+  friend void uart5_rx_status_isr();
+  friend void uart5_rx_error_isr();
+#endif  // HAS_KINETISK_UART5
 };
 
 // ---------------------------------------------------------------------------
@@ -292,6 +337,15 @@ class Sender final : public TeensyDMX {
   friend void uart0_tx_status_isr();
   friend void uart1_tx_status_isr();
   friend void uart2_tx_status_isr();
+#ifdef HAS_KINETISK_UART3
+  friend void uart3_tx_status_isr();
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+  friend void uart4_tx_status_isr();
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+  friend void uart5_tx_status_isr();
+#endif  // HAS_KINETISK_UART5
 };
 
 }  // namespace teensydmx
