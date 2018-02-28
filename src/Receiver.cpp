@@ -194,6 +194,14 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   int retval = -1;
   __disable_irq();
   //{
+    // Instead of using a timer, we can use this function to poll timeouts
+    if (inPacket_) {
+      if ((millis() - lastBreakTime_) > kMaxDMXPacketTime) {
+        packetTimeoutCount_++;
+        completePacket();
+      }
+    }
+
     if (packetSize_ > 0) {
       if (startChannel >= packetSize_) {
         retval = 0;
@@ -215,37 +223,66 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
 }
 
 void Receiver::completePacket() {
+  inPacket_ = false;
+
   // An empty packet isn't valid
   if (activeBufIndex_ <= 0) {
     return;
   }
 
-  if (first_) {
-    first_ = false;
+  // Swap the buffers
+  if (activeBuf_ == buf1_) {
+    activeBuf_ = buf2_;
+    inactiveBuf_ = buf1_;
   } else {
-    // Swap the buffers
-    if (activeBuf_ == buf1_) {
-      activeBuf_ = buf2_;
-      inactiveBuf_ = buf1_;
-    } else {
-      activeBuf_ = buf1_;
-      inactiveBuf_ = buf2_;
-    }
-
-    packetCount_++;
-    packetSize_ = activeBufIndex_;
-    packetTimestamp_ = millis();
+    activeBuf_ = buf1_;
+    inactiveBuf_ = buf2_;
   }
+
+  packetCount_++;
+  packetSize_ = activeBufIndex_;
+  packetTimestamp_ = millis();
+
   activeBufIndex_ = 0;
 }
 
-void Receiver::resetPacket() {
-  activeBufIndex_ = 0;
+void Receiver::receiveBreak() {
+  // Assume the actual BREAK start time is the current time, even though
+  // the current time is at the end or middle of the BREAK, because the
+  // difference is much smaller than a millisecond.
+  // A BREAK is detected when a stop bit is expected but not received, and
+  // this happens after the start bit and eight bits, about 36us.
+  lastBreakTime_ = millis();
+
+  if (inPacket_) {
+    // Complete any un-flushed bytes
+    // The timing can't be incorrect because, technically, the packet ended
+    // with the last byte, even if it's a short packet
+    completePacket();
+    // TODO: Figure out how to implement a timeout, so that a short packet isn't only processed when there's the next BREAK
+  } else {
+    inPacket_ = true;
+  }
 }
 
 void Receiver::receiveByte(uint8_t b) {
-  if (activeBufIndex_ < kMaxDMXPacketSize) {
-    activeBuf_[activeBufIndex_++] = b;
+  // Ignore any extra bytes in a packet or any bytes outside a packet
+  if (!inPacket_) {
+    return;
+  }
+
+  // Check the timing and if we are out of range then complete any bytes
+  // until, but not including, this one
+  // See the notes in receiveBreak() regarding completing any un-flushed bytes
+  if ((millis() - lastBreakTime_) > kMaxDMXPacketTime) {
+    packetTimeoutCount_++;
+    completePacket();
+    return;
+  }
+
+  activeBuf_[activeBufIndex_++] = b;
+  if (activeBufIndex_ == kMaxDMXPacketSize) {
+    completePacket();
   }
 }
 
@@ -302,7 +339,7 @@ void uart0_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[0];
 
-  // A framing error indicates a break
+  // A framing error likely indicates a break
   if ((UART0_S1 & UART_S1_FE) != 0) {
     // Only allow a packet whose framing error actually indicates a break.
     // A value of zero indicates a true break and not some other
@@ -322,10 +359,11 @@ void uart0_rx_error_isr() {
 
     b = UART0_D;
     if (b == 0) {
-      instance->completePacket();
+      instance->receiveBreak();
     } else {
       // Not a break
-      instance->resetPacket();
+      framingErrorCount_++;
+      instance->completePacket();
     }
   }
 }
@@ -383,7 +421,7 @@ void uart1_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[1];
 
-  // A framing error indicates a break
+  // A framing error likely indicates a break
   if ((UART1_S1 & UART_S1_FE) != 0) {
     // Only allow a packet whose framing error actually indicates a break.
     // A value of zero indicates a true break and not some other
@@ -403,10 +441,11 @@ void uart1_rx_error_isr() {
 
     b = UART1_D;
     if (b == 0) {
-      instance->completePacket();
+      instance->receiveBreak();
     } else {
       // Not a break
-      instance->resetPacket();
+      framingErrorCount_++;
+      instance->completePacket();
     }
   }
 }
@@ -464,7 +503,7 @@ void uart2_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[2];
 
-  // A framing error indicates a break
+  // A framing error likely indicates a break
   if ((UART2_S1 & UART_S1_FE) != 0) {
     // Only allow a packet whose framing error actually indicates a break.
     // A value of zero indicates a true break and not some other
@@ -484,10 +523,11 @@ void uart2_rx_error_isr() {
 
     b = UART2_D;
     if (b == 0) {
-      instance->completePacket();
+      instance->receiveBreak();
     } else {
       // Not a break
-      instance->resetPacket();
+      framingErrorCount_++;
+      instance->completePacket();
     }
   }
 }
@@ -516,7 +556,7 @@ void uart3_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[3];
 
-  // A framing error indicates a break
+  // A framing error likely indicates a break
   if ((UART3_S1 & UART_S1_FE) != 0) {
     // Only allow a packet whose framing error actually indicates a break.
     // A value of zero indicates a true break and not some other
@@ -527,10 +567,11 @@ void uart3_rx_error_isr() {
 
     b = UART3_D;
     if (b == 0) {
-      instance->completePacket();
+      instance->receiveBreak();
     } else {
       // Not a break
-      instance->resetPacket();
+      framingErrorCount_++;
+      instance->completePacket();
     }
   }
 }
@@ -560,7 +601,7 @@ void uart4_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[4];
 
-  // A framing error indicates a break
+  // A framing error likely indicates a break
   if ((UART4_S1 & UART_S1_FE) != 0) {
     // Only allow a packet whose framing error actually indicates a break.
     // A value of zero indicates a true break and not some other
@@ -571,10 +612,11 @@ void uart4_rx_error_isr() {
 
     b = UART4_D;
     if (b == 0) {
-      instance->completePacket();
+      instance->receiveBreak();
     } else {
       // Not a break
-      instance->resetPacket();
+      framingErrorCount_++;
+      instance->completePacket();
     }
   }
 }
@@ -604,7 +646,7 @@ void uart5_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[5];
 
-  // A framing error indicates a break
+  // A framing error likely indicates a break
   if ((UART5_S1 & UART_S1_FE) != 0) {
     // Only allow a packet whose framing error actually indicates a break.
     // A value of zero indicates a true break and not some other
@@ -615,10 +657,11 @@ void uart5_rx_error_isr() {
 
     b = UART5_D;
     if (b == 0) {
-      instance->completePacket();
+      instance->receiveBreak();
     } else {
       // Not a break
-      instance->resetPacket();
+      framingErrorCount_++;
+      instance->completePacket();
     }
   }
 }

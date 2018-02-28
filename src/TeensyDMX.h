@@ -16,10 +16,11 @@
 #ifndef QINDESIGN_TEENSYDMX_H_
 #define QINDESIGN_TEENSYDMX_H_
 
-#include <Arduino.h>
-
 // C++ includes
 #include <cstdint>
+
+// Other includes
+#include <Arduino.h>
 
 namespace qindesign {
 namespace teensydmx {
@@ -57,8 +58,14 @@ void uart5_tx_status_isr();
 // The maximum size of a DMX packet, including the start code.
 constexpr int kMaxDMXPacketSize = 513;
 
-// The minimnum size of a DMX packet, including the start code.
+// The minimum size of a DMX packet, including the start code.
+// This value is used for senders and is a guideline for how many
+// slots will fit in a packet, assuming full-speed transmission.
 constexpr int kMinDMXPacketSize = 25;
+
+// The maximum allowed packet time, either BREAK plus data, or BREAK to BREAK,
+// in milliseconds.
+constexpr uint32_t kMaxDMXPacketTime = 1250;
 
 // TeensyDMX implements either a receiver or transmitter on one of
 // hardware serial ports 1-6.
@@ -86,7 +93,7 @@ class TeensyDMX {
 
   // Returns the total number of packets received or transmitted since
   // the reciever was started.
-  unsigned int packetCount() const {
+  uint32_t packetCount() const {
     return packetCount_;
   }
 
@@ -128,7 +135,7 @@ class TeensyDMX {
   bool began_;
 
   // The number of packets sent or received. Subclasses must manage this.
-  volatile unsigned int packetCount_;
+  volatile uint32_t packetCount_;
 };
 
 // ---------------------------------------------------------------------------
@@ -146,7 +153,10 @@ class Receiver final : public TeensyDMX {
         inactiveBuf_(buf2_),
         activeBufIndex_(0),
         packetSize_(0),
-        first_(true) {}
+        inPacket_(false),
+        lastBreakTime_(0),
+        packetTimeoutCount_(0),
+        framingErrorCount_(0) {}
 
   // Destructs Receiver. This calls end().
   ~Receiver() override {
@@ -200,32 +210,39 @@ class Receiver final : public TeensyDMX {
   // For example, unplugging a cable might result in a valid packet, but not
   // containing the channels you need. Using this value to detect the last
   // valid data received would give a value that's later than the true value.
-  uint32_t lastPacketTimestamp() {
+  uint32_t lastPacketTimestamp() const {
     return packetTimestamp_;
   }
 
+  // Returns the total number of packets received or transmitted since
+  // the reciever was started.
+  uint32_t packetTimeoutCount() const {
+    return packetTimeoutCount_;
+  }
+
+  // Returns the total number of framing errors encountered.
+  uint32_t framingErrorCount() const {
+    return framingErrorCount_;
+  }
+
  private:
-  // Fills the buffer from the UART and then completes the packet from
-  // immediately before the break. This reads up to a maximum of
-  // kMaxDMXPacketSize bytes and ignores anything after that until
-  // the next break.
-  //
+  // Makes a new packet available.
   // This will be called from an ISR.
   void completePacket();
 
-  // Resets the packet on a framing error.
+  // A break has just been received.
   // This will be called from an ISR.
-  void resetPacket();
+  void receiveBreak();
 
   // Receives a byte.
   // This will be called from an ISR.
   void receiveByte(uint8_t b);
 
-  uint8_t buf1_[kMaxDMXPacketSize];
-  uint8_t buf2_[kMaxDMXPacketSize];
-  uint8_t *activeBuf_;
+  volatile uint8_t buf1_[kMaxDMXPacketSize];
+  volatile uint8_t buf2_[kMaxDMXPacketSize];
+  volatile uint8_t *activeBuf_;
   volatile uint8_t *inactiveBuf_;
-  int activeBufIndex_;
+  volatile int activeBufIndex_;
 
   // The size of the last received packet.
   volatile int packetSize_;
@@ -233,11 +250,16 @@ class Receiver final : public TeensyDMX {
   // The timestamp of the last received packet.
   volatile uint32_t packetTimestamp_;
 
-  // The current read technique is to fill the buffer after a break is
-  // detected, but the break indicates a packet start, not a packet end.
-  // Therefore, we're always one behind, and so the first break must not
-  // cause a valid packet collection.
-  bool first_;
+  // Indicates that we are inside a packet; a BREAK was received.
+  volatile bool inPacket_;
+
+  // For timing
+  volatile uint32_t lastBreakTime_;
+
+  // Counts
+  volatile uint32_t packetTimeoutCount_;
+  volatile uint32_t framingErrorCount_;
+  
 
   // These error ISR's need to access private functions
   friend void uart0_rx_status_isr();
