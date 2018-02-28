@@ -362,7 +362,7 @@ void uart0_rx_error_isr() {
       instance->receiveBreak();
     } else {
       // Not a break
-      framingErrorCount_++;
+      instance->framingErrorCount_++;
       instance->completePacket();
     }
   }
@@ -444,7 +444,7 @@ void uart1_rx_error_isr() {
       instance->receiveBreak();
     } else {
       // Not a break
-      framingErrorCount_++;
+      instance->framingErrorCount_++;
       instance->completePacket();
     }
   }
@@ -526,7 +526,7 @@ void uart2_rx_error_isr() {
       instance->receiveBreak();
     } else {
       // Not a break
-      framingErrorCount_++;
+      instance->framingErrorCount_++;
       instance->completePacket();
     }
   }
@@ -570,7 +570,7 @@ void uart3_rx_error_isr() {
       instance->receiveBreak();
     } else {
       // Not a break
-      framingErrorCount_++;
+      instance->framingErrorCount_++;
       instance->completePacket();
     }
   }
@@ -615,7 +615,7 @@ void uart4_rx_error_isr() {
       instance->receiveBreak();
     } else {
       // Not a break
-      framingErrorCount_++;
+      instance->framingErrorCount_++;
       instance->completePacket();
     }
   }
@@ -660,7 +660,7 @@ void uart5_rx_error_isr() {
       instance->receiveBreak();
     } else {
       // Not a break
-      framingErrorCount_++;
+      instance->framingErrorCount_++;
       instance->completePacket();
     }
   }
