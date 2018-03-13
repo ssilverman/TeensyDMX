@@ -183,6 +183,20 @@ void Receiver::end() {
   }
 }
 
+// memcpy implementation that accepts a const volatile source.
+// Derived from:
+// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/stdlib/mem.c
+static void *memcpy(void *dst, const volatile void *src, size_t len) {
+  const volatile uint8_t *s = reinterpret_cast<const volatile uint8_t *>(src);
+  uint8_t *d = reinterpret_cast<uint8_t *>(dst);
+
+  while (len-- != 0) {
+    *(d++) = *(s++);
+  }
+
+  return dst;
+}
+
 int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   if (packetSize_ <= 0) {
     return -1;
@@ -209,10 +223,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
         if (startChannel + len > packetSize_) {
           len = packetSize_ - startChannel;
         }
-        memcpy(
-            buf,
-            const_cast<const uint8_t*>(inactiveBuf_ + startChannel),
-            len);
+        memcpy(buf, &inactiveBuf_[startChannel], len);
         retval = len;
       }
       packetSize_ = 0;

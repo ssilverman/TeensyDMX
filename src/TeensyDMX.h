@@ -241,7 +241,9 @@ class Receiver final : public TeensyDMX {
   volatile uint8_t buf1_[kMaxDMXPacketSize];
   volatile uint8_t buf2_[kMaxDMXPacketSize];
   volatile uint8_t *activeBuf_;
-  volatile uint8_t *inactiveBuf_;
+  // Read-only shared memory buffer, make const volatile
+  // https://embeddedgurus.com/barr-code/2012/01/combining-cs-volatile-and-const-keywords/
+  const volatile uint8_t *inactiveBuf_;
   volatile int activeBufIndex_;
 
   // The size of the last received packet.
@@ -259,7 +261,6 @@ class Receiver final : public TeensyDMX {
   // Counts
   volatile uint32_t packetTimeoutCount_;
   volatile uint32_t framingErrorCount_;
-  
 
   // These error ISR's need to access private functions
   friend void uart0_rx_status_isr();
