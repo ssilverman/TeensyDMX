@@ -4,6 +4,9 @@ This document details the changes between each release.
 
 ## [2.3.1]
 
+### Added
+* Added a CHANGELOG.
+
 ### Changed
 * Updated the keywords.txt file.
 
