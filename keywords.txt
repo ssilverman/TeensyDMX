@@ -1,11 +1,36 @@
-kMaxDMXPacketSize	LITERAL1
-kMinDMXPacketSize	LITERAL1
+#######################################
+# Syntax Coloring Map for TeensyDMX
+#######################################
+
+#######################################
+# Datatypes (KEYWORD1)
+#######################################
+
 Receiver	KEYWORD1
 Sender	KEYWORD1
+
+#######################################
+# Methods and Functions (KEYWORD2)
+#######################################
+
 begin	KEYWORD2
 end	KEYWORD2
 packetCount	KEYWORD2
 readPacket	KEYWORD2
 get	KEYWORD2
+lastPacketTimestamp	KEYWORD2
+packetTimeoutCount	KEYWORD2
+framingErrorCount	KEYWORD2
 setPacketSize	KEYWORD2
 set	KEYWORD2
+
+#######################################
+# Instances (KEYWORD2)
+#######################################
+
+#######################################
+# Constants (LITERAL1)
+#######################################
+
+kMaxDMXPacketSize	LITERAL1
+kMinDMXPacketSize	LITERAL1
