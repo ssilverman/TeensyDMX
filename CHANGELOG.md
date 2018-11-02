@@ -2,6 +2,14 @@
 
 This document details the changes between each release.
 
+## [2.3.2]
+
+### Changed
+* Chaser.ino and Flasher.ino examples now properly wait for the serial monitor
+  at program start. The baud was also changed to 115200.
+* Changed print interval in Flasher.ino to 1000ms.
+* Slightly optimized the Flasher.ino wave calculation.
+
 ## [2.3.1]
 
 ### Added

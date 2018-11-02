@@ -20,8 +20,9 @@ teensydmx::Sender dmxTx{Serial1};
 int channel;
 
 void setup() {
-  Serial.begin(9600);
-  delay(2000);  // Instead of while (!Serial), doesn't seem to work on Teensy
+  Serial.begin(115200);
+  while (!Serial && millis() < 4000) {  // Wait for the serial monitor to come up
+  }
   Serial.println("Starting.");
 
   dmxTx.begin();

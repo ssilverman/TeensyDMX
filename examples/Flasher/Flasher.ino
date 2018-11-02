@@ -17,7 +17,7 @@ constexpr unsigned long kDMXTimeout = 1000;
 constexpr uint8_t kLEDPin = 13;
 
 // Interval between printing received values.
-constexpr unsigned long kPrintInterval = 500;
+constexpr unsigned long kPrintInterval = 1000;
 
 namespace teensydmx = ::qindesign::teensydmx;
 
@@ -31,8 +31,9 @@ elapsedMillis lastFrameTime;
 uint8_t lastValue;
 
 void setup() {
-  Serial.begin(9600);
-  delay(2000);  // Instead of while (!Serial), doesn't seem to work on Teensy
+  Serial.begin(115200);
+  while (!Serial && millis() < 4000) {  // Wait for the serial monitor to come up
+  }
   Serial.println("Starting.");
 
   pinMode(kLEDPin, OUTPUT);
@@ -59,13 +60,15 @@ void loop() {
   if (lastFrameTime < kDMXTimeout) {
     // Use a wave equation to make the speed-ups and slow-downs smoother
     // using the offset, phi
-    static int period = 1000;
-    static long phi = 0 * period;
-    int newPeriod = map(lastValue, 0, 255, 1000, 30);  // T range is 1s to 30ms
-    long t = static_cast<long>(millis());
-    phi = (t*period - newPeriod*(t - phi))/period;
-    period = newPeriod;
-    int v = static_cast<int>(-(phi - t)%period);
+    static int32_t period = 1000;
+    static int64_t phi = 0 * period;
+    int32_t newPeriod = map(lastValue, 0, 255, 1000, 30);  // T range is 1s to 30ms
+    int64_t t = millis();
+    if (newPeriod != period) {
+      phi = (t*(period - newPeriod) + newPeriod*phi)/period;
+      period = newPeriod;
+    }
+    int32_t v = -(phi - t)%period;
 
     if (v < period/2) {
       digitalWrite(kLEDPin, HIGH);
