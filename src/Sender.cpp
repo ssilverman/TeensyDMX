@@ -107,6 +107,21 @@ void Sender::end() {
     case 2:
       NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
       break;
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    case 4:
+      NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+    case 5:
+      NVIC_DISABLE_IRQ(IRQ_UART5_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART5
   }
 
   if (!began_) {
