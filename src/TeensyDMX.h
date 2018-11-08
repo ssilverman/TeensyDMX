@@ -17,10 +17,12 @@
 #define QINDESIGN_TEENSYDMX_H_
 
 // C++ includes
+#include <cstddef>
 #include <cstdint>
 
 // Other includes
 #include <Arduino.h>
+#include "Responder.h"
 
 namespace qindesign {
 namespace teensydmx {
@@ -55,6 +57,14 @@ void uart5_rx_error_isr();
 void uart5_tx_status_isr();
 #endif  // HAS_KINETISK_UART5
 
+// Routines that do raw transmit
+void uart0_tx(const uint8_t *b, int len);
+void uart1_tx(const uint8_t *b, int len);
+void uart2_tx(const uint8_t *b, int len);
+void uart3_tx(const uint8_t *b, int len);
+void uart4_tx(const uint8_t *b, int len);
+void uart5_tx(const uint8_t *b, int len);
+
 // The maximum size of a DMX packet, including the start code.
 constexpr int kMaxDMXPacketSize = 513;
 
@@ -75,7 +85,9 @@ class TeensyDMX {
   TeensyDMX(HardwareSerial &uart)
       : uart_(uart),
         began_(false),
-        packetCount_(0) {}
+        packetCount_(0) {
+    serialIndex_ = serialIndex(uart_);
+  }
 
   // TeensyDMX is neither copyable nor movable.
   TeensyDMX(const TeensyDMX&) = delete;
@@ -129,6 +141,7 @@ class TeensyDMX {
   }
 
   HardwareSerial &uart_;  // TODO(shawn): Should this be volatile?
+  int serialIndex_;
 
   // Tracks whether the system has been configured. Subclasses must manage
   // this state.
@@ -145,24 +158,14 @@ class TeensyDMX {
 // A DMX receiver.
 class Receiver final : public TeensyDMX {
  public:
-  Receiver(HardwareSerial &uart)
-      : TeensyDMX(uart),
-        buf1_{0},
-        buf2_{0},
-        activeBuf_(buf1_),
-        inactiveBuf_(buf2_),
-        activeBufIndex_(0),
-        packetSize_(0),
-        inPacket_(false),
-        lastBreakTime_(0),
-        packetTimeoutCount_(0),
-        framingErrorCount_(0) {}
+  // Creates a new receiver and uses the given UART for communication.
+  Receiver(HardwareSerial &uart);
 
   // Destructs Receiver. This calls end().
-  ~Receiver() override {
-    end();
-  }
+  ~Receiver() override;
 
+  // Call setSetRXNotTXFunc to set an appropriate pin toggle function
+  // before calling begin.
   void begin() override;
 
   void end() override;
@@ -214,6 +217,22 @@ class Receiver final : public TeensyDMX {
     return packetTimestamp_;
   }
 
+  // Adds a responder and uses r->getStartCode() to deterimine when to
+  // respond to a received packet. This holds on to the pointer, so callers
+  // should take care to not free the object before this Receiver is freed.
+  // This does nothing if r is nullptr.
+  //
+  // This will replace any responder having the same start code as the given
+  // responder and returns the replaced pointer. Note that this will return
+  // nullptr if no responder is replaced.
+  Responder *addResponder(Responder *r);
+
+  // Sets the setRXNotTX implementation function. This should be called
+  // before calling begin().
+  void setSetRXNotTXFunc(void (*f)(bool)) {
+    setRXNotTXFunc_ = f;
+  }
+
   // Returns the total number of packets received or transmitted since
   // the reciever was started.
   uint32_t packetTimeoutCount() const {
@@ -237,6 +256,16 @@ class Receiver final : public TeensyDMX {
   // Receives a byte.
   // This will be called from an ISR.
   void receiveByte(uint8_t b);
+
+  // Sets whether to enable or disable RX or TX through some external means.
+  // This is needed when responding to a received message and transmission
+  // needs to occur. This is also called at the end of begin().
+  void setRXNotTX(bool flag) {
+    if (setRXNotTXFunc_ == nullptr) {
+      return;
+    }
+    setRXNotTXFunc_(flag);
+  }
 
   volatile uint8_t buf1_[kMaxDMXPacketSize];
   volatile uint8_t buf2_[kMaxDMXPacketSize];
@@ -262,25 +291,20 @@ class Receiver final : public TeensyDMX {
   volatile uint32_t packetTimeoutCount_;
   volatile uint32_t framingErrorCount_;
 
+  // Responders state
+  Responder *responders_[256];
+  uint8_t *responderOutBuf_;
+  size_t responderOutBufLen_;
+
+  // Function for enabling/disabling RX and TX.
+  void (*setRXNotTXFunc_)(bool);
+
+  // Transmit function for the current UART.
+  void (*txFunc_)(const uint8_t *b, int len);
+
   // These error ISR's need to access private functions
   friend void uart0_rx_status_isr();
   friend void uart0_rx_error_isr();
-  friend void uart1_rx_status_isr();
-  friend void uart1_rx_error_isr();
-  friend void uart2_rx_status_isr();
-  friend void uart2_rx_error_isr();
-#ifdef HAS_KINETISK_UART3
-  friend void uart3_rx_status_isr();
-  friend void uart3_rx_error_isr();
-#endif  // HAS_KINETISK_UART3
-#ifdef HAS_KINETISK_UART4
-  friend void uart4_rx_status_isr();
-  friend void uart4_rx_error_isr();
-#endif  // HAS_KINETISK_UART4
-#ifdef HAS_KINETISK_UART5
-  friend void uart5_rx_status_isr();
-  friend void uart5_rx_error_isr();
-#endif  // HAS_KINETISK_UART5
 };
 
 // ---------------------------------------------------------------------------

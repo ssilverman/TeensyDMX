@@ -1,4 +1,5 @@
 #include "TeensyDMX.h"
+#include "Responder.h"
 
 // C++ includes
 #include <cstring>
@@ -15,29 +16,38 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #else
 #define UART0_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
 #endif  // HAS_KINETISK_UART0_FIFO
-#ifdef HAS_KINETISK_UART1_FIFO
-#define UART1_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
-#else
-#define UART1_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
-#endif  // HAS_KINETISK_UART1_FIFO
-#ifdef HAS_KINETISK_UART2_FIFO
-#define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
-#else
-#define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
-#endif  // HAS_KINETISK_UART2_FIFO
-
-#ifdef HAS_KINETISK_UART3
-#define UART3_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
-#endif  // HAS_KINETISK_UART3
-#ifdef HAS_KINETISK_UART4
-#define UART4_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
-#endif  // HAS_KINETISK_UART4
-#ifdef HAS_KINETISK_UART5
-#define UART5_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
-#endif  // HAS_KINETISK_UART5
 
 // Used by the RX ISR's.
 Receiver *rxInstances[6]{nullptr};
+
+Receiver::Receiver(HardwareSerial &uart)
+    : TeensyDMX(uart),
+      buf1_{0},
+      buf2_{0},
+      activeBuf_(buf1_),
+      inactiveBuf_(buf2_),
+      activeBufIndex_(0),
+      packetSize_(0),
+      inPacket_(false),
+      lastBreakTime_(0),
+      packetTimeoutCount_(0),
+      framingErrorCount_(0),
+      responders_{nullptr},
+      responderOutBuf_(nullptr),
+      responderOutBufLen_{0},
+      setRXNotTXFunc_(nullptr) {
+  switch(serialIndex_) {
+    case 0: txFunc_ = uart0_tx; break;
+    default: txFunc_ = nullptr;
+  }
+}
+
+Receiver::~Receiver() {
+  end();
+  if (responderOutBuf_ != nullptr) {
+    delete[] responderOutBuf_;
+  }
+}
 
 void Receiver::begin() {
   if (began_) {
@@ -45,20 +55,19 @@ void Receiver::begin() {
   }
   began_ = true;
 
-  int index = serialIndex(uart_);
-  if (index < 0) {
+  if (serialIndex_ < 0) {
     return;
   }
 
   // Set up the instance for the ISRs
-  if (rxInstances[index] != nullptr) {
-    rxInstances[index]->end();
+  if (rxInstances[serialIndex_] != nullptr) {
+    rxInstances[serialIndex_]->end();
   }
-  rxInstances[index] = this;
+  rxInstances[serialIndex_] = this;
 
   uart_.begin(kSlotsBaud, kSlotsFormat);
 
-  switch (index) {
+  switch (serialIndex_) {
     case 0:
       // Enable receive-only
       UART0_C2 = UART0_C2_RX_ENABLE;
@@ -74,61 +83,13 @@ void Receiver::begin() {
       UART0_C3 |= UART_C3_FEIE;
       NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
       break;
-
-    case 1:
-      UART1_C2 = UART1_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART1_STATUS, uart1_rx_status_isr);
-      attachInterruptVector(IRQ_UART1_ERROR, uart1_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART1_ERROR, NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
-      UART1_C3 |= UART_C3_FEIE;
-      NVIC_ENABLE_IRQ(IRQ_UART1_ERROR);
-      break;
-
-    case 2:
-      UART2_C2 = UART2_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART2_STATUS, uart2_rx_status_isr);
-      attachInterruptVector(IRQ_UART2_ERROR, uart2_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART2_ERROR, NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
-      UART2_C3 |= UART_C3_FEIE;
-      NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
-      break;
-
-#ifdef HAS_KINETISK_UART3
-    case 3:
-      UART3_C2 = UART3_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART3_STATUS, uart3_rx_status_isr);
-      attachInterruptVector(IRQ_UART3_ERROR, uart3_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART3_ERROR, NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
-      UART3_C3 |= UART_C3_FEIE;
-      NVIC_ENABLE_IRQ(IRQ_UART3_ERROR);
-      break;
-#endif  // HAS_KINETISK_UART3
-
-#ifdef HAS_KINETISK_UART4
-    case 4:
-      UART4_C2 = UART4_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART4_STATUS, uart4_rx_status_isr);
-      attachInterruptVector(IRQ_UART4_ERROR, uart4_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART4_ERROR, NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
-      UART4_C3 |= UART_C3_FEIE;
-      NVIC_ENABLE_IRQ(IRQ_UART4_ERROR);
-      break;
-#endif  // HAS_KINETISK_UART4
-
-#ifdef HAS_KINETISK_UART5
-    case 5:
-      UART5_C2 = UART5_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART5_STATUS, uart5_rx_status_isr);
-      attachInterruptVector(IRQ_UART5_ERROR, uart5_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART5_ERROR, NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
-      UART5_C3 |= UART_C3_FEIE;
-      NVIC_ENABLE_IRQ(IRQ_UART5_ERROR);
-      break;
-#endif  // HAS_KINETISK_UART5
   }
 
   activeBuf_ = buf1_;
   inactiveBuf_ = buf2_;
+
+  // Enable receive
+  setRXNotTX(true);
 }
 
 void Receiver::end() {
@@ -137,17 +98,16 @@ void Receiver::end() {
   }
   began_ = false;
 
-  int index = serialIndex(uart_);
-  if (index < 0) {
+  if (serialIndex_ < 0) {
     return;
   }
 
   // Remove the reference from the instances
-  rxInstances[index] = nullptr;
+  rxInstances[serialIndex_] = nullptr;
 
   uart_.end();
 
-  switch (index) {
+  switch (serialIndex_) {
     case 0:
       // Disable UART0 interrupt on frame error
       UART0_C3 &= ~UART_C3_FEIE;
@@ -183,20 +143,6 @@ void Receiver::end() {
   }
 }
 
-// memcpy implementation that accepts a const volatile source.
-// Derived from:
-// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/stdlib/mem.c
-static void *memcpy(void *dst, const volatile void *src, size_t len) {
-  const volatile uint8_t *s = reinterpret_cast<const volatile uint8_t *>(src);
-  uint8_t *d = reinterpret_cast<uint8_t *>(dst);
-
-  while (len-- != 0) {
-    *(d++) = *(s++);
-  }
-
-  return dst;
-}
-
 int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   if (packetSize_ <= 0) {
     return -1;
@@ -210,7 +156,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   //{
     // Instead of using a timer, we can use this function to poll timeouts
     if (inPacket_) {
-      if ((millis() - lastBreakTime_) > kMaxDMXPacketTime) {
+      if (millis() - lastBreakTime_ > kMaxDMXPacketTime) {
         packetTimeoutCount_++;
         completePacket();
       }
@@ -223,7 +169,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
         if (startChannel + len > packetSize_) {
           len = packetSize_ - startChannel;
         }
-        memcpy(buf, &inactiveBuf_[startChannel], len);
+        memcpy(buf, const_cast<const uint8_t*>(&inactiveBuf_[startChannel]), len);
         retval = len;
       }
       packetSize_ = 0;
@@ -231,6 +177,26 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   //}
   __enable_irq();
   return retval;
+}
+
+Responder *Receiver::addResponder(Responder *r) {
+  if (r == nullptr) {
+    return nullptr;
+  }
+
+  // First, initialize the output buffer
+  size_t outBufSize = r->getOutputBufferSize();
+  if (responderOutBuf_ == nullptr || responderOutBufLen_ < outBufSize) {
+    if (responderOutBuf_ != nullptr) {
+      delete[] responderOutBuf_;
+    }
+    responderOutBuf_ = new uint8_t[outBufSize];
+    responderOutBufLen_ = outBufSize;
+  }
+
+  Responder *old = responders_[r->getStartCode()];
+  responders_[r->getStartCode()] = r;
+  return old;
 }
 
 void Receiver::completePacket() {
@@ -253,6 +219,11 @@ void Receiver::completePacket() {
   packetCount_++;
   packetSize_ = activeBufIndex_;
   packetTimestamp_ = millis();
+
+  Responder *r = responders_[activeBuf_[0]];
+  if (r != nullptr) {
+    packetSize_ = 0;
+  }
 
   activeBufIndex_ = 0;
 }
@@ -277,6 +248,8 @@ void Receiver::receiveBreak() {
 }
 
 void Receiver::receiveByte(uint8_t b) {
+  uint32_t eopTime = micros();
+
   // Ignore any extra bytes in a packet or any bytes outside a packet
   if (!inPacket_) {
     return;
@@ -285,7 +258,7 @@ void Receiver::receiveByte(uint8_t b) {
   // Check the timing and if we are out of range then complete any bytes
   // until, but not including, this one
   // See the notes in receiveBreak() regarding completing any un-flushed bytes
-  if ((millis() - lastBreakTime_) > kMaxDMXPacketTime) {
+  if (millis() - lastBreakTime_ > kMaxDMXPacketTime) {
     packetTimeoutCount_++;
     completePacket();
     return;
@@ -295,6 +268,87 @@ void Receiver::receiveByte(uint8_t b) {
   if (activeBufIndex_ == kMaxDMXPacketSize) {
     completePacket();
   }
+
+  // See if a responder needs to process the byte and respond
+  Responder *r = responders_[activeBuf_[0]];
+  if (r == nullptr) {
+    return;
+  }
+
+  int respLen = r->processByte(const_cast<const uint8_t*>(activeBuf_),
+                               activeBufIndex_,
+                               responderOutBuf_);
+  if (respLen <= 0 || txFunc_ == nullptr) {
+    return;
+  }
+
+  end();
+  if (r->isSendBreakForLastPacket()) {
+    uart_.begin(r->getBreakBaud(), r->getBreakFormat());
+    // The following is commented out for testing purposes;
+    // Assume the required delay is 150us instead
+    // *****
+    // uint32_t delay = r->getPreBreakDelay();
+    // uint32_t dt = micros() - eopTime;
+    // if (dt < delay) {
+    //   delay -= dt;
+    //   delayMicroseconds(delay);
+    // }
+    // *****
+    // COMMENT OUT THE FOLLOWING LINE TO SEE THAT THERE'S NO EFFECT:
+    delayMicroseconds(150);
+
+    setRXNotTX(false);
+    constexpr uint8_t zero[1] = {0};
+    txFunc_(zero, 1);
+  } else {
+    uint32_t delay = r->getPreNoBreakDelay();
+    setRXNotTX(false);
+    if (delay > 0) {
+      delayMicroseconds(delay);
+    }
+  }
+  uart_.begin(r->getSlotsBaud(), r->getSlotsFormat());
+  txFunc_(responderOutBuf_, respLen);
+  begin();
+}
+
+// ---------------------------------------------------------------------------
+//  UART TX routines
+// ---------------------------------------------------------------------------
+
+void uart0_tx(const uint8_t *b, int len) {
+  if (len <= 0) {
+    return;
+  }
+
+  // Enable transmission
+  // UART0_C2 = 0;
+  // UART0_TWFIFO = 0;
+  // UART0_PFIFO &= ~UART_PFIFO_TXFE;
+  // UART0_CFIFO = UART_CFIFO_TXFLUSH | UART_CFIFO_RXFLUSH;
+  UART0_C2 = UART_C2_TE;
+
+  while (len > 0) {
+    // Wait for space to be available
+    while ((UART0_S1 & UART_S1_TDRE) == 0) ;
+    UART0_D = *(b++);
+    len--;
+#ifdef HAS_KINETISK_UART0_FIFO
+    while (len > 0 && UART0_TCFIFO < 8) {
+      uint8_t status = UART0_S1;
+      UART0_D = *(b++);
+      len--;
+    }
+#endif  // HAS_KINETISK_UART0_FIFO
+  }
+
+  // Wait for transmission complete
+  while ((UART0_S1 & UART_S1_TC) == 0);
+
+  // Don't need the following, plus it adds about 41us:
+  // // Disable transmission
+  // UART0_C2 &= ~UART_C2_TE;
 }
 
 // ---------------------------------------------------------------------------
@@ -378,305 +432,6 @@ void uart0_rx_error_isr() {
     }
   }
 }
-
-// ---------------------------------------------------------------------------
-//  UART1 RX ISRs
-// ---------------------------------------------------------------------------
-
-void uart1_rx_status_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[1];
-
-  uint8_t status = UART1_S1;
-
-#ifdef HAS_KINETISK_UART1_FIFO
-  // If the receive buffer is full or there's an idle condition
-  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
-    __disable_irq();
-    uint8_t avail = UART1_RCFIFO;
-    if (avail == 0) {
-      // Read the register to clear the interrupt, but since it's empty,
-      // this causes the FIFO to become misaligned, so send RXFLUSH to
-      // reinitialize its pointers.
-      // Do this inside no interrupts to avoid a potential race condition
-      // between reading RCFIFO and flushing the FIFO.
-      b = UART1_D;
-      UART1_CFIFO = UART_CFIFO_RXFLUSH;
-      __enable_irq();
-      return;
-    } else {
-      __enable_irq();
-      // Read all but the last available, then read S1 and the final value
-      // So says the chip docs,
-      // Section 47.3.5 UART Status Register 1 (UART_S1)
-      // In the NOTE part.
-      while (--avail > 0) {
-        b = UART1_D;
-        instance->receiveByte(b);
-      }
-      status = UART1_S1;
-      b = UART1_D;
-      instance->receiveByte(b);
-    }
-  }
-#else
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART1_D;
-    instance->receiveByte(b);
-  }
-#endif  // HAS_KINETISK_UART1_FIFO
-}
-
-void uart1_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[1];
-
-  // A framing error likely indicates a break
-  if ((UART1_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-#ifdef HAS_KINETISK_UART1_FIFO
-    // Flush anything in the buffer
-    uint8_t avail = UART1_RCFIFO;
-    if (avail > 1) {
-      while (--avail > 0) {
-        b = UART1_D;
-        instance->receiveByte(b);
-      }
-    }
-#endif  // HAS_KINETISK_UART1_FIFO
-
-    b = UART1_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-//  UART2 RX ISRs
-// ---------------------------------------------------------------------------
-
-void uart2_rx_status_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[2];
-
-  uint8_t status = UART2_S1;
-
-#ifdef HAS_KINETISK_UART2_FIFO
-  // If the receive buffer is full or there's an idle condition
-  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
-    __disable_irq();
-    uint8_t avail = UART2_RCFIFO;
-    if (avail == 0) {
-      // Read the register to clear the interrupt, but since it's empty,
-      // this causes the FIFO to become misaligned, so send RXFLUSH to
-      // reinitialize its pointers.
-      // Do this inside no interrupts to avoid a potential race condition
-      // between reading RCFIFO and flushing the FIFO.
-      b = UART2_D;
-      UART2_CFIFO = UART_CFIFO_RXFLUSH;
-      __enable_irq();
-      return;
-    } else {
-      __enable_irq();
-      // Read all but the last available, then read S1 and the final value
-      // So says the chip docs,
-      // Section 47.3.5 UART Status Register 1 (UART_S1)
-      // In the NOTE part.
-      while (--avail > 0) {
-        b = UART2_D;
-        instance->receiveByte(b);
-      }
-      status = UART2_S1;
-      b = UART2_D;
-      instance->receiveByte(b);
-    }
-  }
-#else
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART2_D;
-    instance->receiveByte(b);
-  }
-#endif  // HAS_KINETISK_UART2_FIFO
-}
-
-void uart2_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[2];
-
-  // A framing error likely indicates a break
-  if ((UART2_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-#ifdef HAS_KINETISK_UART2_FIFO
-    // Flush anything in the buffer
-    uint8_t avail = UART2_RCFIFO;
-    if (avail > 1) {
-      while (--avail > 0) {
-        b = UART2_D;
-        instance->receiveByte(b);
-      }
-    }
-#endif  // HAS_KINETISK_UART2_FIFO
-
-    b = UART2_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
-  }
-}
-
-// ---------------------------------------------------------------------------
-//  UART3 RX ISRs
-// ---------------------------------------------------------------------------
-
-#ifdef HAS_KINETISK_UART3
-void uart3_rx_status_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[3];
-
-  uint8_t status = UART3_S1;
-
-  // No FIFO
-
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART3_D;
-    instance->receiveByte(b);
-  }
-}
-
-void uart3_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[3];
-
-  // A framing error likely indicates a break
-  if ((UART3_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-    // No FIFO
-
-    b = UART3_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
-  }
-}
-#endif  // HAS_KINETISK_UART3
-
-// ---------------------------------------------------------------------------
-//  UART4 RX ISRs
-// ---------------------------------------------------------------------------
-
-#ifdef HAS_KINETISK_UART4
-void uart4_rx_status_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[4];
-
-  uint8_t status = UART4_S1;
-
-  // No FIFO
-
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART4_D;
-    instance->receiveByte(b);
-  }
-}
-
-void uart4_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[4];
-
-  // A framing error likely indicates a break
-  if ((UART4_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-    // No FIFO
-
-    b = UART4_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
-  }
-}
-#endif  // HAS_KINETISK_UART4
-
-// ---------------------------------------------------------------------------
-//  UART5 RX ISRs
-// ---------------------------------------------------------------------------
-
-#ifdef HAS_KINETISK_UART5
-void uart5_rx_status_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[5];
-
-  uint8_t status = UART5_S1;
-
-  // No FIFO
-
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART5_D;
-    instance->receiveByte(b);
-  }
-}
-
-void uart5_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[5];
-
-  // A framing error likely indicates a break
-  if ((UART5_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-    // No FIFO
-
-    b = UART5_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
-  }
-}
-#endif  // HAS_KINETISK_UART5
 
 }  // namespace teensydmx
 }  // namespace qindesign
