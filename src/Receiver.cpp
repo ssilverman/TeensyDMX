@@ -161,7 +161,6 @@ void Receiver::end() {
       UART2_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
       break;
-
 #ifdef HAS_KINETISK_UART3
     case 3:
       UART3_C3 &= ~UART_C3_FEIE;
@@ -206,7 +205,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   }
 
   int retval = -1;
-  __disable_irq();
+  disableIRQs();
   //{
     // Instead of using a timer, we can use this function to poll timeouts
     if (inPacket_) {
@@ -229,7 +228,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
       packetSize_ = 0;
     }
   //}
-  __enable_irq();
+  enableIRQs();
   return retval;
 }
 
@@ -294,6 +293,90 @@ void Receiver::receiveByte(uint8_t b) {
   activeBuf_[activeBufIndex_++] = b;
   if (activeBufIndex_ == kMaxDMXPacketSize) {
     completePacket();
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  IRQ management
+// ---------------------------------------------------------------------------
+
+void Receiver::disableIRQs() {
+  int index = serialIndex(uart_);
+  if (index < 0) {
+    return;
+  }
+
+  switch (index) {
+    case 0:
+      NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
+      NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
+      break;
+    case 1:
+      NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
+      NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
+      break;
+    case 2:
+      NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
+      NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
+      break;
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
+      NVIC_DISABLE_IRQ(IRQ_UART3_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    case 4:
+      NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
+      NVIC_DISABLE_IRQ(IRQ_UART4_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+    case 5:
+      NVIC_DISABLE_IRQ(IRQ_UART5_STATUS);
+      NVIC_DISABLE_IRQ(IRQ_UART5_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART5
+  }
+}
+
+void Receiver::enableIRQs() {
+  int index = serialIndex(uart_);
+  if (index < 0) {
+    return;
+  }
+
+  switch (index) {
+    case 0:
+      NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
+      NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
+      break;
+    case 1:
+      NVIC_ENABLE_IRQ(IRQ_UART1_STATUS);
+      NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
+      break;
+    case 2:
+      NVIC_ENABLE_IRQ(IRQ_UART2_STATUS);
+      NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
+      break;
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      NVIC_ENABLE_IRQ(IRQ_UART3_STATUS);
+      NVIC_ENABLE_IRQ(IRQ_UART3_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    case 4:
+      NVIC_ENABLE_IRQ(IRQ_UART4_STATUS);
+      NVIC_ENABLE_IRQ(IRQ_UART4_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+    case 5:
+      NVIC_ENSABLE_IRQ(IRQ_UART5_STATUS);
+      NVIC_ENABLE_IRQ(IRQ_UART5_ERROR);
+      break;
+#endif  // HAS_KINETISK_UART5
   }
 }
 

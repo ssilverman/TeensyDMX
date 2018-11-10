@@ -226,6 +226,12 @@ class Receiver final : public TeensyDMX {
   }
 
  private:
+  // Disables all the UART IRQ's so that variables can be accessed concurrently.
+  void disableIRQs();
+
+  // Enables all the UART IRQ's.
+  void enableIRQs();
+
   // Makes a new packet available.
   // This will be called from an ISR.
   void completePacket();
