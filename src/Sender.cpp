@@ -47,7 +47,7 @@ void Sender::begin() {
     return;
   }
 
-  // Set up the instance for the ISRs
+  // Set up the instance for the ISR's
   if (txInstances[index] != nullptr) {
     txInstances[index]->end();
   }
