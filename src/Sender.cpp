@@ -42,21 +42,20 @@ void Sender::begin() {
   }
   began_ = true;
 
-  int index = serialIndex(uart_);
-  if (index < 0) {
+  if (serialIndex_ < 0) {
     return;
   }
 
   // Set up the instance for the ISR's
-  if (txInstances[index] != nullptr) {
-    txInstances[index]->end();
+  if (txInstances[serialIndex_] != nullptr) {
+    txInstances[serialIndex_]->end();
   }
-  txInstances[index] = this;
+  txInstances[serialIndex_] = this;
 
   state_ = XmitStates::kBreak;
   uart_.begin(kBreakBaud, kBreakFormat);
 
-  switch (index) {
+  switch (serialIndex_) {
     case 0:
       attachInterruptVector(IRQ_UART0_STATUS, uart0_tx_status_isr);
       UART0_C2 = UART_C2_TX_ACTIVE;
@@ -91,13 +90,12 @@ void Sender::begin() {
 }
 
 void Sender::end() {
-  int index = serialIndex(uart_);
-  if (index < 0) {
+  if (serialIndex_ < 0) {
     return;
   }
 
   // Remove any chance that our TX ISR calls begin after end() is called
-  switch (index) {
+  switch (serialIndex_) {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
       break;
@@ -130,7 +128,7 @@ void Sender::end() {
   began_ = false;
 
   // Remove the reference from the instances
-  txInstances[index] = nullptr;
+  txInstances[serialIndex_] = nullptr;
 
   uart_.end();
 }

@@ -45,20 +45,19 @@ void Receiver::begin() {
   }
   began_ = true;
 
-  int index = serialIndex(uart_);
-  if (index < 0) {
+  if (serialIndex_ < 0) {
     return;
   }
 
   // Set up the instance for the ISR's
-  if (rxInstances[index] != nullptr) {
-    rxInstances[index]->end();
+  if (rxInstances[serialIndex_] != nullptr) {
+    rxInstances[serialIndex_]->end();
   }
-  rxInstances[index] = this;
+  rxInstances[serialIndex_] = this;
 
   uart_.begin(kSlotsBaud, kSlotsFormat);
 
-  switch (index) {
+  switch (serialIndex_) {
     case 0:
       // Enable receive-only
       UART0_C2 = UART0_C2_RX_ENABLE;
@@ -137,17 +136,16 @@ void Receiver::end() {
   }
   began_ = false;
 
-  int index = serialIndex(uart_);
-  if (index < 0) {
+  if (serialIndex_ < 0) {
     return;
   }
 
   // Remove the reference from the instances
-  rxInstances[index] = nullptr;
+  rxInstances[serialIndex_] = nullptr;
 
   uart_.end();
 
-  switch (index) {
+  switch (serialIndex_) {
     case 0:
       // Disable UART0 interrupt on frame error
       UART0_C3 &= ~UART_C3_FEIE;
@@ -301,12 +299,7 @@ void Receiver::receiveByte(uint8_t b) {
 // ---------------------------------------------------------------------------
 
 void Receiver::disableIRQs() {
-  int index = serialIndex(uart_);
-  if (index < 0) {
-    return;
-  }
-
-  switch (index) {
+  switch (serialIndex_) {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
@@ -341,12 +334,7 @@ void Receiver::disableIRQs() {
 }
 
 void Receiver::enableIRQs() {
-  int index = serialIndex(uart_);
-  if (index < 0) {
-    return;
-  }
-
-  switch (index) {
+  switch (serialIndex_) {
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
       NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);

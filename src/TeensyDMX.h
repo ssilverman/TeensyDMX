@@ -75,7 +75,9 @@ class TeensyDMX {
   TeensyDMX(HardwareSerial &uart)
       : uart_(uart),
         began_(false),
-        packetCount_(0) {}
+        packetCount_(0) {
+    serialIndex_ = serialIndex(uart_);
+  }
 
   // TeensyDMX is neither copyable nor movable.
   TeensyDMX(const TeensyDMX&) = delete;
@@ -128,7 +130,8 @@ class TeensyDMX {
     return -1;
   }
 
-  HardwareSerial &uart_;  // TODO(shawn): Should this be volatile?
+  HardwareSerial &uart_;  // TODO: Should this be volatile?
+  int serialIndex_;
 
   // Tracks whether the system has been configured. Subclasses must manage
   // this state.
