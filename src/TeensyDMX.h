@@ -71,6 +71,19 @@ constexpr uint32_t kMaxDMXPacketTime = 1250;
 // hardware serial ports 1-6.
 class TeensyDMX {
  public:
+  // Sets up the system for receiving or transmitting DMX on the specified
+  // serial port.
+  virtual void begin() = 0;
+
+  // Tells the system to stop receiving or transmitting DMX. Call this
+  // to clean up.
+  virtual void end() = 0;
+
+  // Returns the total number of packets received or transmitted since
+  // the reciever was started.
+  uint32_t packetCount() const { return packetCount_; }
+
+ protected:
   // Creates a new DMX receiver or transmitter using the given hardware UART.
   TeensyDMX(HardwareSerial &uart)
       : uart_(uart),
@@ -85,21 +98,6 @@ class TeensyDMX {
 
   virtual ~TeensyDMX() = default;
 
-  // Sets up the system for receiving or transmitting DMX on the specified
-  // serial port.
-  virtual void begin() = 0;
-
-  // Tells the system to stop receiving or transmitting DMX. Call this
-  // to clean up.
-  virtual void end() = 0;
-
-  // Returns the total number of packets received or transmitted since
-  // the reciever was started.
-  uint32_t packetCount() const {
-    return packetCount_;
-  }
-
- protected:
   // Returns the index given a serial port, or -1 if the serial port is
   // not supported.
   static int serialIndex(HardwareSerial &uart) {
