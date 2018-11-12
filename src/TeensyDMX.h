@@ -353,7 +353,7 @@ class Sender final : public TeensyDMX {
   // Sets the values for a range of channels.
   //
   // This does nothing if any part of the channel range is not in the
-  // range [0, kMaxDMXPacketSize-1].
+  // range 0-512. This limit is equal to kDMXMaxPacketSize-1.
   void set(int startChannel, const uint8_t *values, int len);
 
  private:
