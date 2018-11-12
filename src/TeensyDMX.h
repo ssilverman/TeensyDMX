@@ -143,6 +143,9 @@ class TeensyDMX {
 
   // The number of packets sent or received. Subclasses must manage this.
   volatile uint32_t packetCount_;
+
+  // Helps with timing.
+  IntervalTimer timer_;
 };
 
 // ---------------------------------------------------------------------------
@@ -273,7 +276,7 @@ class Receiver final : public TeensyDMX {
   volatile bool inPacket_;
 
   // For timing
-  volatile uint32_t lastBreakTime_;
+  volatile uint32_t lastBreakTime_;  // In milliseconds
 
   // Counts
   volatile uint32_t packetTimeoutCount_;
@@ -317,8 +320,7 @@ class Sender final : public TeensyDMX {
         outputBufIndex_(0),
         packetSize_(kMaxDMXPacketSize),
         refreshRate_(INFINITY),
-        breakToBreakTime_(0),
-        markBeforeBreakTime_(0) {}
+        breakToBreakTime_(0) {}
 
   // Destructs Sender. This calls end().
   ~Sender() override {
@@ -361,10 +363,24 @@ class Sender final : public TeensyDMX {
   void set(int startChannel, const uint8_t *values, int len);
 
   // Sets the packet refresh rate. Negative and NaN values are ignored.
+  // The default is INFINITY, indicating "as fast as possible".
   //
   // If the rate is too high then this will simply transmit as fast
   // as possible. Transmitting as fast as possible is also the default.
+  //
+  // If the rate is zero then no packets will be sent. However, the
+  // serial transmitter will still be enabled. A rate of zero is not
+  // equivalent to calling end().
+  //
+  // If the new rate is non-zero and the former rate is zero then this
+  // will call end() and then begin().
   void setRefreshRate(float rate);
+
+  // Returns the packet refresh rate. The default is INFINITY, indicating
+  // "as fast as possible".
+  float getRefreshRate() {
+    return refreshRate_;
+  }
 
  private:
    // State that tracks what to transmit and when.
@@ -400,14 +416,8 @@ class Sender final : public TeensyDMX {
   // specified in microseconds.
   uint32_t breakToBreakTime_;
 
-  // The time to wait before sending the next BREAK. This changes for
-  // each packet.
-  uint32_t markBeforeBreakTime_;
-
-  // Keeps track of when we should send the next break.
-  // In the Break and Data states, it means time since the break.
-  // In the Idle state, it means time since the end-of-packet.
-  elapsedMicros timeSince_;
+  // Keeps track of the time since the last break.
+  elapsedMicros timeSinceBreak_;
 
   // These error ISR's need to access private functions
   friend void uart0_tx_status_isr();
