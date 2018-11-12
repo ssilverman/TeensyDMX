@@ -21,8 +21,10 @@ namespace teensydmx {
 // Some other timing options:
 // 8N2: 1000000/11 (90909) baud, 99us break, 22us MAB
 // 8E2: 100000 baud, 100us break, 20us MAB
+// 8N1: 50000 baud, 180us break, 20us MAB <-- Closer to "typical" in ANSI E1.11
+// 8E1: 45500 baud, 220us break, 22us MAB
 
-constexpr uint32_t kBreakBaud   = 1000000 / 12;
+constexpr uint32_t kBreakBaud   = 50000;
 constexpr uint32_t kBreakFormat = SERIAL_8N1;
 constexpr uint32_t kSlotsBaud   = 250000;
 constexpr uint32_t kSlotsFormat = SERIAL_8N2;
