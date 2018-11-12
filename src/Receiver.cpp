@@ -64,35 +64,41 @@ void Receiver::begin() {
     case 0:
       // Enable receive-only
       UART0_C2 = UART0_C2_RX_ENABLE;
-
       attachInterruptVector(IRQ_UART0_STATUS, uart0_rx_status_isr);
+
+      // Enable UART0 interrupt on frame error
+      UART0_C3 |= UART_C3_FEIE;
+
+#ifndef HAS_KINETISL_UART0
       attachInterruptVector(IRQ_UART0_ERROR, uart0_rx_error_isr);
 
       // We fill bytes from the buffer in the framing error ISR, so we
       // can set to the same priority.
       NVIC_SET_PRIORITY(IRQ_UART0_ERROR, NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
-
-      // Enable UART0 interrupt on frame error
-      UART0_C3 |= UART_C3_FEIE;
       NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
+#endif
       break;
 
     case 1:
       UART1_C2 = UART1_C2_RX_ENABLE;
       attachInterruptVector(IRQ_UART1_STATUS, uart1_rx_status_isr);
+      UART1_C3 |= UART_C3_FEIE;
+#ifndef HAS_KINETISL_UART1
       attachInterruptVector(IRQ_UART1_ERROR, uart1_rx_error_isr);
       NVIC_SET_PRIORITY(IRQ_UART1_ERROR, NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
-      UART1_C3 |= UART_C3_FEIE;
       NVIC_ENABLE_IRQ(IRQ_UART1_ERROR);
+#endif
       break;
 
     case 2:
       UART2_C2 = UART2_C2_RX_ENABLE;
       attachInterruptVector(IRQ_UART2_STATUS, uart2_rx_status_isr);
+      UART2_C3 |= UART_C3_FEIE;
+#ifndef HAS_KINETISL_UART2
       attachInterruptVector(IRQ_UART2_ERROR, uart2_rx_error_isr);
       NVIC_SET_PRIORITY(IRQ_UART2_ERROR, NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
-      UART2_C3 |= UART_C3_FEIE;
       NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
+#endif
       break;
 
 #ifdef HAS_KINETISK_UART3
@@ -157,15 +163,21 @@ void Receiver::end() {
     case 0:
       // Disable UART0 interrupt on frame error
       UART0_C3 &= ~UART_C3_FEIE;
+#ifndef HAS_KINETISL_UART0
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
+#endif
       break;
     case 1:
       UART1_C3 &= ~UART_C3_FEIE;
+#ifndef HAS_KINETISL_UART1
       NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
+#endif
       break;
     case 2:
       UART2_C3 &= ~UART_C3_FEIE;
+#ifndef HAS_KINETISL_UART2
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
+#endif
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
@@ -311,15 +323,21 @@ void Receiver::disableIRQs() {
   switch (serialIndex_) {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
+#ifndef HAS_KINETISL_UART0
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
+#endif
       break;
     case 1:
       NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
-      NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
+#ifndef HAS_KINETISL_UART1
+      NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
+#endif
       break;
     case 2:
       NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
+#ifndef HAS_KINETISL_UART2
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
+#endif
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
@@ -350,15 +368,21 @@ void Receiver::enableIRQs() {
   switch (serialIndex_) {
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
+#ifndef HAS_KINETISL_UART0
       NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
+#endif
       break;
     case 1:
       NVIC_ENABLE_IRQ(IRQ_UART1_STATUS);
-      NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
+#ifndef HAS_KINETISL_UART1
+      NVIC_ENABLE_IRQ(IRQ_UART1_ERROR);
+#endif
       break;
     case 2:
       NVIC_ENABLE_IRQ(IRQ_UART2_STATUS);
+#ifndef HAS_KINETISL_UART2
       NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
+#endif
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
