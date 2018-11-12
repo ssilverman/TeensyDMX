@@ -456,6 +456,11 @@ void uart0_rx_status_isr() {
     instance->receiveByte(b);
   }
 #endif  // HAS_KINETISK_UART0_FIFO
+
+// The Teensy LC doesn't have a separate ERROR IRQ
+#ifdef HAS_KINETISL_UART0
+  uart0_rx_error_isr();
+#endif
 }
 
 void uart0_rx_error_isr() {
@@ -538,6 +543,11 @@ void uart1_rx_status_isr() {
     instance->receiveByte(b);
   }
 #endif  // HAS_KINETISK_UART1_FIFO
+
+// The Teensy LC doesn't have a separate ERROR IRQ
+#ifdef HAS_KINETISL_UART1
+  uart1_rx_error_isr();
+#endif
 }
 
 void uart1_rx_error_isr() {
@@ -620,6 +630,11 @@ void uart2_rx_status_isr() {
     instance->receiveByte(b);
   }
 #endif  // HAS_KINETISK_UART2_FIFO
+
+// The Teensy LC doesn't have a separate ERROR IRQ
+#ifdef HAS_KINETISL_UART2
+  uart2_rx_error_isr();
+#endif
 }
 
 void uart2_rx_error_isr() {
