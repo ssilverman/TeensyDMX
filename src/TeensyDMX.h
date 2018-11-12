@@ -55,6 +55,11 @@ void uart5_rx_error_isr();
 void uart5_tx_status_isr();
 #endif  // HAS_KINETISK_UART5
 
+#ifdef HAS_KINETISK_LPUART0
+void lpuart0_rx_isr();
+void lpuart0_tx_isr();
+#endif  // HAS_KINETISK_LPUART0
+
 // The maximum size of a DMX packet, including the start code.
 constexpr int kMaxDMXPacketSize = 513;
 
@@ -120,11 +125,15 @@ class TeensyDMX {
       return 4;
     }
 #endif  // HAS_KINETISK_UART4
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
     if (&uart == &Serial6) {
       return 5;
     }
-#endif  // HAS_KINETISK_UART5
+#elif defined(HAS_KINETISK_LPUART0)
+    if (&uart == &Serial6) {
+      return 5;
+    }
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
     return -1;
   }
 
@@ -288,6 +297,9 @@ class Receiver final : public TeensyDMX {
   friend void uart5_rx_status_isr();
   friend void uart5_rx_error_isr();
 #endif  // HAS_KINETISK_UART5
+#ifdef HAS_KINETISK_LPUART0
+friend void lpuart0_rx_isr();
+#endif  // HAS_KINETISK_LPUART0
 };
 
 // ---------------------------------------------------------------------------
@@ -376,6 +388,9 @@ class Sender final : public TeensyDMX {
 #ifdef HAS_KINETISK_UART5
   friend void uart5_tx_status_isr();
 #endif  // HAS_KINETISK_UART5
+#ifdef HAS_KINETISK_LPUART0
+  friend void lpuart0_tx_isr();
+#endif  // HAS_KINETISK_LPUART0
 };
 
 }  // namespace teensydmx

@@ -28,10 +28,13 @@ constexpr uint32_t kSlotsBaud   = 250000;
 constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 
 // TX control states
-#define UART_C2_TX_ENABLE     (UART_C2_TE)
-#define UART_C2_TX_ACTIVE     ((UART_C2_TX_ENABLE) | (UART_C2_TIE))
-#define UART_C2_TX_COMPLETING ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
-#define UART_C2_TX_INACTIVE   (UART_C2_TX_ENABLE)
+#define UART_C2_TX_ENABLE         (UART_C2_TE)
+#define UART_C2_TX_ACTIVE         ((UART_C2_TX_ENABLE) | (UART_C2_TIE))
+#define UART_C2_TX_COMPLETING     ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
+#define UART_C2_TX_INACTIVE       (UART_C2_TX_ENABLE)
+#define LPUART_CTRL_TX_ENABLE     (LPUART_CTRL_TE)
+#define LPUART_CTRL_TX_ACTIVE     ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TIE))
+#define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
 
 // Used by the TX ISR's.
 Sender *txInstances[6]{nullptr};
@@ -80,12 +83,17 @@ void Sender::begin() {
       UART4_C2 = UART_C2_TX_ACTIVE;
       break;
 #endif  // HAS_KINETISK_UART4
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
     case 5:
       attachInterruptVector(IRQ_UART5_STATUS, uart5_tx_status_isr);
       UART5_C2 = UART_C2_TX_ACTIVE;
       break;
-#endif  // HAS_KINETISK_UART5
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      attachInterruptVector(IRQ_LPUART0, lpuart0_tx_isr);
+      LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
+      break;
+#endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5
   }
 }
 
@@ -115,11 +123,15 @@ void Sender::end() {
       NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
       break;
 #endif  // HAS_KINETISK_UART4
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
     case 5:
       NVIC_DISABLE_IRQ(IRQ_UART5_STATUS);
       break;
-#endif  // HAS_KINETISK_UART5
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      NVIC_DISABLE_IRQ(IRQ_LPUART0);
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
   }
 
   if (!began_) {
@@ -463,7 +475,7 @@ void uart3_tx_status_isr() {
     UART3_C2 = UART_C2_TX_ACTIVE;
   }
 }
-#endif // HAS_KINETISK_UART3
+#endif  // HAS_KINETISK_UART3
 
 // ---------------------------------------------------------------------------
 //  UART4 TX ISR
@@ -523,7 +535,7 @@ void uart4_tx_status_isr() {
     UART4_C2 = UART_C2_TX_ACTIVE;
   }
 }
-#endif // HAS_KINETISK_UART4
+#endif  // HAS_KINETISK_UART4
 
 // ---------------------------------------------------------------------------
 //  UART5 TX ISR
@@ -583,7 +595,67 @@ void uart5_tx_status_isr() {
     UART5_C2 = UART_C2_TX_ACTIVE;
   }
 }
-#endif // HAS_KINETISK_UART5
+#endif  // HAS_KINETISK_UART5
+
+// ---------------------------------------------------------------------------
+//  LPUART0 TX ISR
+// ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_LPUART0
+void lpuart0_tx_isr() {
+  Sender *instance = txInstances[5];
+
+  uint32_t status = LPUART0_STAT;
+  uint32_t control = LPUART0_CTRL;
+
+  // No FIFO
+
+  // If the transmit buffer is empty
+  if ((control & LPUART_CTRL_TIE) != 0 && (status & LPUART_STAT_TDRE) != 0) {
+    switch (instance->state_) {
+      case Sender::XmitStates::kBreak:
+        LPUART0_DATA = 0;
+        LPUART0_CTRL = LPUART_CTRL_TX_COMPLETING;
+        break;
+
+      case Sender::XmitStates::kData:
+        if (instance->outputBufIndex_ >= instance->packetSize_) {
+          instance->completePacket();
+          LPUART0_CTRL = LPUART_CTRL_TX_COMPLETING;
+        } else {
+          LPUART0_DATA = instance->outputBuf_[instance->outputBufIndex_++];
+          if (instance->outputBufIndex_ >= instance->packetSize_) {
+            instance->completePacket();
+            LPUART0_CTRL = LPUART_CTRL_TX_COMPLETING;
+          }
+        }
+        break;
+
+      case Sender::XmitStates::kIdle:
+        break;
+    }
+  }
+
+  // If transmission is complete
+  if ((control & LPUART_CTRL_TCIE) != 0 && (status & LPUART_STAT_TC) != 0) {
+    switch (instance->state_) {
+      case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        break;
+
+      case Sender::XmitStates::kBreak:
+        instance->state_ = Sender::XmitStates::kData;
+        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
+        break;
+
+      case Sender::XmitStates::kData:
+        break;
+    }
+    LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
+  }
+}
+#endif  // HAS_KINETISK_LPUART0
 
 }  // namespace teensydmx
 }  // namespace qindesign

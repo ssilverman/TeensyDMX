@@ -35,6 +35,9 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #ifdef HAS_KINETISK_UART5
 #define UART5_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
 #endif  // HAS_KINETISK_UART5
+#ifdef HAS_KINETISK_LPUART0
+#define LPUART0_CTRL_RX_ENABLE LPUART_CTRL_RE | LPUART_CTRL_RIE
+#endif  // HAS_KINETISK_LPUART0
 
 // Used by the RX ISR's.
 Receiver *rxInstances[6]{nullptr};
@@ -114,7 +117,7 @@ void Receiver::begin() {
       break;
 #endif  // HAS_KINETISK_UART4
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
     case 5:
       UART5_C2 = UART5_C2_RX_ENABLE;
       attachInterruptVector(IRQ_UART5_STATUS, uart5_rx_status_isr);
@@ -123,7 +126,12 @@ void Receiver::begin() {
       UART5_C3 |= UART_C3_FEIE;
       NVIC_ENABLE_IRQ(IRQ_UART5_ERROR);
       break;
-#endif  // HAS_KINETISK_UART5
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      LPUART0_CTRL = LPUART0_CTRL_RX_ENABLE | LPUART_CTRL_FEIE;
+      attachInterruptVector(IRQ_LPUART0, lpuart0_rx_isr);
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
   }
 
   activeBuf_ = buf1_;
@@ -177,6 +185,7 @@ void Receiver::end() {
       NVIC_DISABLE_IRQ(IRQ_UART5_ERROR);
       break;
 #endif  // HAS_KINETISK_UART5
+// NOTE: Nothing needed for LPUART0
   }
 }
 
@@ -324,12 +333,16 @@ void Receiver::disableIRQs() {
       NVIC_DISABLE_IRQ(IRQ_UART4_ERROR);
       break;
 #endif  // HAS_KINETISK_UART4
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
     case 5:
       NVIC_DISABLE_IRQ(IRQ_UART5_STATUS);
       NVIC_DISABLE_IRQ(IRQ_UART5_ERROR);
       break;
-#endif  // HAS_KINETISK_UART5
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      NVIC_DISABLE_IRQ(IRQ_LPUART0);
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
   }
 }
 
@@ -359,12 +372,16 @@ void Receiver::enableIRQs() {
       NVIC_ENABLE_IRQ(IRQ_UART4_ERROR);
       break;
 #endif  // HAS_KINETISK_UART4
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
     case 5:
-      NVIC_ENSABLE_IRQ(IRQ_UART5_STATUS);
+      NVIC_ENABLE_IRQ(IRQ_UART5_STATUS);
       NVIC_ENABLE_IRQ(IRQ_UART5_ERROR);
       break;
-#endif  // HAS_KINETISK_UART5
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      NVIC_ENABLE_IRQ(IRQ_LPUART0);
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
   }
 }
 
@@ -748,6 +765,47 @@ void uart5_rx_error_isr() {
   }
 }
 #endif  // HAS_KINETISK_UART5
+
+// ---------------------------------------------------------------------------
+//  LPUART0 RX ISR
+// ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_LPUART0
+void lpuart0_rx_isr() {
+  uint8_t b;
+  Receiver *instance = rxInstances[5];
+
+  uint32_t status = LPUART0_STAT;
+
+  // No FIFO
+
+  // If the receive buffer is full
+  if ((status & LPUART_STAT_RDRF) != 0) {
+    b = LPUART0_DATA;
+    instance->receiveByte(b);
+  }
+
+  // A framing error likely indicates a break
+  if ((status & LPUART_STAT_FE) != 0) {
+    LPUART0_STAT |= LPUART_STAT_FE;  // Clear the status
+
+    // Only allow a packet whose framing error actually indicates a break.
+    // A value of zero indicates a true break and not some other
+    // framing error.
+
+    // No FIFO
+
+    b = LPUART0_DATA;
+    if (b == 0) {
+      instance->receiveBreak();
+    } else {
+      // Not a break
+      instance->framingErrorCount_++;
+      instance->completePacket();
+    }
+  }
+}
+#endif  // HAS_KINETISK_LPUART0
 
 }  // namespace teensydmx
 }  // namespace qindesign
