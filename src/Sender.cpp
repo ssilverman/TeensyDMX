@@ -146,6 +146,20 @@ void Sender::end() {
   uart_.end();
 }
 
+// memcpy implementation that accepts a volatile destination.
+// Derived from:
+// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/stdlib/mem.c
+static volatile void *memcpy(volatile void *dst, const void *src, size_t len) {
+  volatile uint8_t *d = reinterpret_cast<volatile uint8_t *>(dst);
+  const uint8_t *s = reinterpret_cast<const uint8_t *>(src);
+
+  while (len-- != 0) {
+    *(d++) = *(s++);
+  }
+
+  return dst;
+}
+
 void Sender::set(int startChannel, const uint8_t *values, int len) {
   if (len <= 0) {
     return;
@@ -157,7 +171,7 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
     return;
   }
 
-  memcpy(const_cast<uint8_t*>(outputBuf_ + startChannel), values, len);
+  memcpy(outputBuf_ + startChannel, values, len);
 }
 
 void Sender::completePacket() {
