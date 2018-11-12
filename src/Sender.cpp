@@ -174,6 +174,14 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
   memcpy(outputBuf_ + startChannel, values, len);
 }
 
+void Sender::setRefreshRate(float rate) {
+  if (std::isnan(rate) || rate < 0.0f) {
+    return;
+  }
+  breakToBreakTime_ = 1000000 / rate;
+  refreshRate_ = rate;
+}
+
 void Sender::completePacket() {
   packetCount_++;
   outputBufIndex_ = 0;
@@ -196,6 +204,7 @@ void uart0_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART0_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART0_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -214,6 +223,8 @@ void uart0_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART0_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -223,6 +234,7 @@ void uart0_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART0_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART0_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -241,6 +253,8 @@ void uart0_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART0_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -249,10 +263,16 @@ void uart0_tx_status_isr() {
   // If transmission is complete
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
-      case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
+      case Sender::XmitStates::kIdle: {
+        uint32_t timeSince = instance->timeSince_;
+        instance->timeSince_ = 0;  // Time since end-of-packet
+        if (timeSince >= instance->breakToBreakTime_) {
+          instance->markBeforeBreakTime_ = 0;
+        } else {
+          instance->markBeforeBreakTime_ = instance->breakToBreakTime_ - timeSince;
+        }
         break;
+      }
 
       case Sender::XmitStates::kBreak:
         instance->state_ = Sender::XmitStates::kData;
@@ -282,6 +302,7 @@ void uart1_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART1_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART1_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -300,6 +321,8 @@ void uart1_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART1_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -309,6 +332,7 @@ void uart1_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART1_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART1_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -327,6 +351,8 @@ void uart1_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART1_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -336,8 +362,7 @@ void uart1_tx_status_isr() {
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
       case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        instance->timeSince_ = 0;  // Time since end-of-packet
         break;
 
       case Sender::XmitStates::kBreak:
@@ -368,6 +393,7 @@ void uart2_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART2_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART2_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -386,6 +412,8 @@ void uart2_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART2_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -395,6 +423,7 @@ void uart2_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART2_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART2_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -413,6 +442,8 @@ void uart2_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART2_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -422,8 +453,7 @@ void uart2_tx_status_isr() {
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
       case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        instance->timeSince_ = 0;  // Time since end-of-packet
         break;
 
       case Sender::XmitStates::kBreak:
@@ -456,6 +486,7 @@ void uart3_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART3_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART3_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -474,6 +505,8 @@ void uart3_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART3_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -482,8 +515,7 @@ void uart3_tx_status_isr() {
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
       case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        instance->timeSince_ = 0;  // Time since end-of-packet
         break;
 
       case Sender::XmitStates::kBreak:
@@ -517,6 +549,7 @@ void uart4_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART4_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART4_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -535,6 +568,8 @@ void uart4_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART4_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -543,8 +578,7 @@ void uart4_tx_status_isr() {
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
       case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        instance->timeSince_ = 0;  // Time since end-of-packet
         break;
 
       case Sender::XmitStates::kBreak:
@@ -578,6 +612,7 @@ void uart5_tx_status_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         UART5_D = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         UART5_C2 = UART_C2_TX_COMPLETING;
         break;
 
@@ -596,6 +631,8 @@ void uart5_tx_status_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        UART5_C2 = UART_C2_TX_ACTIVE;
         break;
     }
   }
@@ -604,8 +641,7 @@ void uart5_tx_status_isr() {
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
     switch (instance->state_) {
       case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        instance->timeSince_ = 0;  // Time since end-of-packet
         break;
 
       case Sender::XmitStates::kBreak:
@@ -639,6 +675,7 @@ void lpuart0_tx_isr() {
     switch (instance->state_) {
       case Sender::XmitStates::kBreak:
         LPUART0_DATA = 0;
+        instance->timeSince_ = 0;  // Time since BREAK
         LPUART0_CTRL = LPUART_CTRL_TX_COMPLETING;
         break;
 
@@ -657,6 +694,8 @@ void lpuart0_tx_isr() {
 
       case Sender::XmitStates::kIdle:
         instance->state_ = Sender::XmitStates::kBreak;
+        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        LPUART0_CTRL_C2 = LPUART_CTRL_TX_ACTIVE;
         break;
     }
   }
@@ -665,8 +704,7 @@ void lpuart0_tx_isr() {
   if ((control & LPUART_CTRL_TCIE) != 0 && (status & LPUART_STAT_TC) != 0) {
     switch (instance->state_) {
       case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
+        instance->timeSince_ = 0;  // Time since end-of-packet
         break;
 
       case Sender::XmitStates::kBreak:

@@ -17,6 +17,7 @@
 #define QINDESIGN_TEENSYDMX_H_
 
 // C++ includes
+#include <cmath>
 #include <cstdint>
 
 // Other includes
@@ -67,10 +68,6 @@ constexpr int kMaxDMXPacketSize = 513;
 // This value is used for senders and is a guideline for how many
 // slots will fit in a packet, assuming full-speed transmission.
 constexpr int kMinDMXPacketSize = 25;
-
-// The maximum allowed packet time, either BREAK plus data, or BREAK to BREAK,
-// in milliseconds.
-constexpr uint32_t kMaxDMXPacketTime = 1250;
 
 // TeensyDMX implements either a receiver or transmitter on one of
 // hardware serial ports 1-6.
@@ -172,6 +169,10 @@ class Receiver final : public TeensyDMX {
   ~Receiver() override {
     end();
   }
+
+  // The maximum allowed packet time for receivers, either BREAK plus data,
+  // or BREAK to BREAK, in milliseconds.
+  static constexpr uint32_t kMaxDMXPacketTime = 1250;
 
   void begin() override;
 
@@ -314,7 +315,10 @@ class Sender final : public TeensyDMX {
         state_(XmitStates::kIdle),
         outputBuf_{0},
         outputBufIndex_(0),
-        packetSize_(kMaxDMXPacketSize) {}
+        packetSize_(kMaxDMXPacketSize),
+        refreshRate_(INFINITY),
+        breakToBreakTime_(0),
+        markBeforeBreakTime_(0) {}
 
   // Destructs Sender. This calls end().
   ~Sender() override {
@@ -356,6 +360,12 @@ class Sender final : public TeensyDMX {
   // range 0-512. This limit is equal to kDMXMaxPacketSize-1.
   void set(int startChannel, const uint8_t *values, int len);
 
+  // Sets the packet refresh rate. Negative and NaN values are ignored.
+  //
+  // If the rate is too high then this will simply transmit as fast
+  // as possible. Transmitting as fast as possible is also the default.
+  void setRefreshRate(float rate);
+
  private:
    // State that tracks what to transmit and when.
    enum XmitStates {
@@ -363,6 +373,10 @@ class Sender final : public TeensyDMX {
      kData,   // Need to transmit data
      kIdle,   // The end of data for one packet has been reached
    };
+
+  // The minimum allowed packet time for senders, either BREAK plus data,
+  // or BREAK to BREAK, in microseconds.
+  static constexpr uint32_t kMinDMXPacketTime = 1204;
 
   // Completes a sent packet. This increments the packet count, resets the
   // output buffer index, and sets the state to Idle.
@@ -378,6 +392,22 @@ class Sender final : public TeensyDMX {
 
   // The size of the packet to be sent.
   volatile int packetSize_;
+
+  // The packet refresh rate, in Hz.
+  float refreshRate_;
+
+  // The BREAK-to-BREAK timing, matching the refresh rate. This is
+  // specified in microseconds.
+  uint32_t breakToBreakTime_;
+
+  // The time to wait before sending the next BREAK. This changes for
+  // each packet.
+  uint32_t markBeforeBreakTime_;
+
+  // Keeps track of when we should send the next break.
+  // In the Break and Data states, it means time since the break.
+  // In the Idle state, it means time since the end-of-packet.
+  elapsedMicros timeSince_;
 
   // These error ISR's need to access private functions
   friend void uart0_tx_status_isr();
