@@ -326,10 +326,14 @@ class Sender final : public TeensyDMX {
   void end() override;
 
   // Sets the transmit packet size, in number of channels plus the start code.
-  // This does nothing if the size is outside the range,
-  // [kMinDMXPacketSize, kMaxDMXPacketSize].
+  // This does nothing if the size is outside the range 25-513. These limits
+  // are contained in kMinDMXPacketSize and kMaxDMXPacketSize, respectively.
   //
-  // The default is kMaxDMXPacketSize.
+  // The default is 513.
+  //
+  // The reason for the lower bound is so that, under conditions where minimum
+  // timings are used, the total packet time does not fall below 1204us, per
+  // the ANSI E1.11 DMX specification.
   void setPacketSize(int size) {
     if (kMinDMXPacketSize <= size && size <= kMaxDMXPacketSize) {
       packetSize_ = size;
