@@ -55,7 +55,6 @@ void Sender::begin() {
   }
   txInstances[serialIndex_] = this;
 
-  state_ = XmitStates::kBreak;
   uart_.begin(kBreakBaud, kBreakFormat);
 
   switch (serialIndex_) {
@@ -198,6 +197,7 @@ void uart0_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -224,6 +224,7 @@ void uart0_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -282,6 +283,7 @@ void uart1_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -308,6 +310,7 @@ void uart1_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -366,6 +369,7 @@ void uart2_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -392,6 +396,7 @@ void uart2_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -452,6 +457,7 @@ void uart3_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -512,6 +518,7 @@ void uart4_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -572,6 +579,7 @@ void uart5_tx_status_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
@@ -632,6 +640,7 @@ void lpuart0_tx_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        instance->state_ = Sender::XmitStates::kBreak;
         break;
     }
   }
