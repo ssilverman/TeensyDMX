@@ -20,8 +20,9 @@ teensydmx::Sender dmxTx{Serial1};
 int channel;
 
 void setup() {
+  // Initialize the serial port and wait for initialization to complete
   Serial.begin(115200);
-  while (!Serial && millis() < 4000) {  // Wait for the serial monitor to come up
+  while (!Serial && millis() < 4000) {
   }
   Serial.println("Starting.");
 
