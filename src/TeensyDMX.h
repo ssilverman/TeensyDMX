@@ -374,6 +374,8 @@ class Sender final : public TeensyDMX {
   //
   // If the new rate is non-zero and the former rate is zero then this
   // will call end() and then begin().
+  //
+  // For rates slower than the maximum, this uses an IntervalTimer internally.
   void setRefreshRate(float rate);
 
   // Returns the packet refresh rate. The default is INFINITY, indicating
