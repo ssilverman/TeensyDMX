@@ -302,7 +302,7 @@ class Receiver final : public TeensyDMX {
   friend void uart5_rx_error_isr();
 #endif  // HAS_KINETISK_UART5
 #ifdef HAS_KINETISK_LPUART0
-friend void lpuart0_rx_isr();
+  friend void lpuart0_rx_isr();
 #endif  // HAS_KINETISK_LPUART0
 };
 
