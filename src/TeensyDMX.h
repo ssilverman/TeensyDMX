@@ -95,8 +95,8 @@ class TeensyDMX {
   }
 
   // TeensyDMX is neither copyable nor movable.
-  TeensyDMX(const TeensyDMX&) = delete;
-  TeensyDMX& operator=(const TeensyDMX&) = delete;
+  TeensyDMX(const TeensyDMX &) = delete;
+  TeensyDMX& operator=(const TeensyDMX &) = delete;
 
   virtual ~TeensyDMX() = default;
 
