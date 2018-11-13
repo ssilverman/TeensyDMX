@@ -70,27 +70,27 @@ void Sender::begin() {
 
   switch (serialIndex_) {
     case 0:
-      ACTIVATE_SERIAL(0);
+      ACTIVATE_SERIAL(0)
       break;
     case 1:
-      ACTIVATE_SERIAL(1);
+      ACTIVATE_SERIAL(1)
       break;
     case 2:
-      ACTIVATE_SERIAL(2);
+      ACTIVATE_SERIAL(2)
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
-      ACTIVATE_SERIAL(3);
+      ACTIVATE_SERIAL(3)
       break;
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
     case 4:
-      ACTIVATE_SERIAL(4);
+      ACTIVATE_SERIAL(4)
       break;
 #endif  // HAS_KINETISK_UART4
 #if defined(HAS_KINETISK_UART5)
     case 5:
-      ACTIVATE_SERIAL(5);
+      ACTIVATE_SERIAL(5)
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
@@ -100,6 +100,9 @@ void Sender::begin() {
 #endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5
   }
 }
+
+// Undefine this macro
+#undef ACTIVATE_SERIAL
 
 void Sender::end() {
   if (serialIndex_ < 0) {
