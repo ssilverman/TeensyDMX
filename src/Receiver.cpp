@@ -45,6 +45,19 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 // Used by the RX ISR's.
 Receiver *rxInstances[6]{nullptr};
 
+#define ACTIVATE_RX_SERIAL(N)                                           \
+  /* Enable receive-only */                                             \
+  UART##N##_C2 = UART##N##_C2_RX_ENABLE;                                \
+  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_rx_status_isr); \
+  attachInterruptVector(IRQ_UART##N##_ERROR, uart##N##_rx_error_isr);   \
+  /* We fill bytes from the buffer in the framing error ISR, so we      \
+   * can set to the same priority. */                                   \
+  NVIC_SET_PRIORITY(IRQ_UART##N##_ERROR,                                \
+                    NVIC_GET_PRIORITY(IRQ_UART##N##_STATUS));           \
+  /* Enable interrupt on frame error */                                 \
+  UART##N##_C3 |= UART_C3_FEIE;                                         \
+  NVIC_ENABLE_IRQ(IRQ_UART##N##_ERROR);
+
 void Receiver::begin() {
   if (began_) {
     return;
@@ -106,34 +119,19 @@ void Receiver::begin() {
 
 #ifdef HAS_KINETISK_UART3
     case 3:
-      UART3_C2 = UART3_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART3_STATUS, uart3_rx_status_isr);
-      attachInterruptVector(IRQ_UART3_ERROR, uart3_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART3_ERROR, NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
-      UART3_C3 |= UART_C3_FEIE;
-      NVIC_ENABLE_IRQ(IRQ_UART3_ERROR);
+      ACTIVATE_RX_SERIAL(3)
       break;
 #endif  // HAS_KINETISK_UART3
 
 #ifdef HAS_KINETISK_UART4
     case 4:
-      UART4_C2 = UART4_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART4_STATUS, uart4_rx_status_isr);
-      attachInterruptVector(IRQ_UART4_ERROR, uart4_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART4_ERROR, NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
-      UART4_C3 |= UART_C3_FEIE;
-      NVIC_ENABLE_IRQ(IRQ_UART4_ERROR);
+      ACTIVATE_RX_SERIAL(4)
       break;
 #endif  // HAS_KINETISK_UART4
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
-      UART5_C2 = UART5_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART5_STATUS, uart5_rx_status_isr);
-      attachInterruptVector(IRQ_UART5_ERROR, uart5_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART5_ERROR, NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
-      UART5_C3 |= UART_C3_FEIE;
-      NVIC_ENABLE_IRQ(IRQ_UART5_ERROR);
+      ACTIVATE_RX_SERIAL(5)
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
@@ -146,6 +144,9 @@ void Receiver::begin() {
   activeBuf_ = buf1_;
   inactiveBuf_ = buf2_;
 }
+
+// Undefine this macro
+#undef ACTIVATE_RX_SERIAL
 
 void Receiver::end() {
   if (!began_) {
