@@ -1,18 +1,23 @@
 # TeensyDMX
 
-This is a library for receiving and transmitting DMX on Teensy 3.
+This is a library for receiving and transmitting DMX on Teensy 3 and Teensy LC.
+It follows the
+[ANSI E1.11 DMX512-A specification](http://tsp.esta.org/tsp/documents/docs/ANSI-ESTA_E1-11_2008R2018.pdf).
 
-There is no support yet for processing RDM.
+There is no specific support yet for processing RDM or responding to other
+alternate start codes.
 
 ## Features
 
 Some notable features of this library:
 
 1. Teensy's default serial buffer isn't used; the data goes directly to/from
-   the DMX buffers from/to the ISR's.
+   the DMX buffers from/to the UART ISR's.
 2. Simple API: After setup, there's only one read call (`readPacket`) and two
    forms of one write call (`set` for single and multiple channels).
 3. The library properly handles DMX packets containing less than 513 slots.
+4. The transmitter refresh rate can be changed to something less than
+   "maximum rate".
 
 ## How to use
 
@@ -103,17 +108,17 @@ Use `qindesign::teensydmx::Receiver` to receive and
 
 From a UART perspective, there are two parts to a DMX frame:
 
-1. Break, 83333 (1000000/12) baud, 8N1
-2. 513 slots, 250000 baud, 8N2
+1. Break, 50000 baud, 8N1
+2. Up to 513 slots, 250000 baud, 8N2
 
 The total frame time is:
 
-10 bits * 12 us + 513 slots * 11 bits * 4us = 22692us, or a rate of about
-44Hz.
+10 bits * 20 us + 513 slots * 11 bits * 4us = 22772us, or a rate of about
+43.91Hz.
 
 ## Code style
 
-Code style for this project follows the
+Code style for this project mostly follows the
 [Google C++ Style Guide](https://google.github.io/styleguide/cppguide.html).
 
 ## References
@@ -127,3 +132,7 @@ Inspirations for this library:
    and
    Paul Stoffregen's [DmxSimple](https://github.com/PaulStoffregen/DmxSimple).
 2. Claude Heintz's [LXTeensy3DMX_Library](https://github.com/claudeheintz/LXTeensy3DMX_Library).
+
+---
+
+Copyright (c) 2017-2018 Shawn Silverman

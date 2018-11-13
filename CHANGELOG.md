@@ -2,6 +2,28 @@
 
 This document details the changes between each release.
 
+## [2.4.0]
+
+### Added
+* A basic _main_ program so that it's easy to compile the project.
+* Support for Teensy 3.6's LPUART0 (Serial6).
+* Support for Teensy LC.
+* The ability to change the transmit refresh rate, via
+  `Sender::setRefreshRate`.
+
+### Changed
+* Reading from a packet via `Receiver::readPacket` no longer disables
+  all interrupts. Only the serial interrupts are disabled.
+* The `TeensyDMX` constructor and destructor are now `protected`.
+* BREAK/Mark-After-Break timing changed from 108us/12us to 180us/20us. This
+  more closely matches the "typical" DMX BREAK timing specified in the
+  DMX specification (ANSI E1.11).
+* Some function and README documentation updates.
+* Moved the `kMaxDMXPacketTime` constant into `Receiver`.
+
+### Fixed
+* Added some missing disable-interrupt cases to `Sender::end()`.
+
 ## [2.3.2]
 
 ### Changed
