@@ -3,6 +3,9 @@
 // C++ includes
 #include <cstring>
 
+// Project includes
+#include "uart_routines.h"
+
 namespace qindesign {
 namespace teensydmx {
 
@@ -42,6 +45,10 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 // Used by the TX ISR's.
 Sender *txInstances[6]{nullptr};
 
+#define ACTIVATE_SERIAL(N)\
+  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_status_isr);\
+  UART##N##_C2 = UART_C2_TX_ACTIVE;
+
 void Sender::begin() {
   if (began_) {
     return;
@@ -63,33 +70,27 @@ void Sender::begin() {
 
   switch (serialIndex_) {
     case 0:
-      attachInterruptVector(IRQ_UART0_STATUS, uart0_tx_status_isr);
-      UART0_C2 = UART_C2_TX_ACTIVE;
+      ACTIVATE_SERIAL(0);
       break;
     case 1:
-      attachInterruptVector(IRQ_UART1_STATUS, uart1_tx_status_isr);
-      UART1_C2 = UART_C2_TX_ACTIVE;
+      ACTIVATE_SERIAL(1);
       break;
     case 2:
-      attachInterruptVector(IRQ_UART2_STATUS, uart2_tx_status_isr);
-      UART2_C2 = UART_C2_TX_ACTIVE;
+      ACTIVATE_SERIAL(2);
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
-      attachInterruptVector(IRQ_UART3_STATUS, uart3_tx_status_isr);
-      UART3_C2 = UART_C2_TX_ACTIVE;
+      ACTIVATE_SERIAL(3);
       break;
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
     case 4:
-      attachInterruptVector(IRQ_UART4_STATUS, uart4_tx_status_isr);
-      UART4_C2 = UART_C2_TX_ACTIVE;
+      ACTIVATE_SERIAL(4);
       break;
 #endif  // HAS_KINETISK_UART4
 #if defined(HAS_KINETISK_UART5)
     case 5:
-      attachInterruptVector(IRQ_UART5_STATUS, uart5_tx_status_isr);
-      UART5_C2 = UART_C2_TX_ACTIVE;
+      ACTIVATE_SERIAL(5);
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
@@ -209,123 +210,12 @@ void uart0_tx_status_isr() {
   uint8_t control = UART0_C2;
 
 #ifdef HAS_KINETISK_UART0_FIFO
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART0_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART0_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        do {
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART0_C2 = UART_C2_TX_COMPLETING;
-            break;
-          }
-          status = UART0_S1;
-          UART0_D = instance->outputBuf_[instance->outputBufIndex_++];
-        } while (UART0_TCFIFO < 8);
-
-        break;
-
-      case Sender::XmitStates::kIdle: {
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART0_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[0]->timer_.end();
-                      UART0_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART0_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART0_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-      }
-    }
-  }
+  UART_TX_WITH_FIFO(0)
 #else
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART0_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART0_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        if (instance->outputBufIndex_ >= instance->packetSize_) {
-          instance->completePacket();
-          UART0_C2 = UART_C2_TX_COMPLETING;
-        } else {
-          UART0_D = instance->outputBuf_[instance->outputBufIndex_++];
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART0_C2 = UART_C2_TX_COMPLETING;
-          }
-        }
-        break;
-
-      case Sender::XmitStates::kIdle: {
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART0_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[0]->timer_.end();
-                      UART0_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART0_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART0_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-      }
-    }
-  }
+  UART_TX_NO_FIFO(0)
 #endif  // HAS_KINETISK_UART0_FIFO
 
-  // If transmission is complete
-  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        instance->state_ = Sender::XmitStates::kData;
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
-        break;
-
-      case Sender::XmitStates::kData:
-      case Sender::XmitStates::kIdle:
-        break;
-    }
-    UART0_C2 = UART_C2_TX_ACTIVE;
-  }
+  UART_TX_COMPLETE(0)
 }
 
 // ---------------------------------------------------------------------------
@@ -339,121 +229,12 @@ void uart1_tx_status_isr() {
   uint8_t control = UART1_C2;
 
 #ifdef HAS_KINETISK_UART1_FIFO
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART1_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART1_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        do {
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART1_C2 = UART_C2_TX_COMPLETING;
-            break;
-          }
-          status = UART1_S1;
-          UART1_D = instance->outputBuf_[instance->outputBufIndex_++];
-        } while (UART1_TCFIFO < 8);
-
-        break;
-
-      case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART1_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[1]->timer_.end();
-                      UART1_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART1_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART1_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-    }
-  }
+  UART_TX_WITH_FIFO(1)
 #else
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART1_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART1_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        if (instance->outputBufIndex_ >= instance->packetSize_) {
-          instance->completePacket();
-          UART1_C2 = UART_C2_TX_COMPLETING;
-        } else {
-          UART1_D = instance->outputBuf_[instance->outputBufIndex_++];
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART1_C2 = UART_C2_TX_COMPLETING;
-          }
-        }
-        break;
-
-      case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART1_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[1]->timer_.end();
-                      UART1_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART1_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART1_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-    }
-  }
+  UART_TX_NO_FIFO(1)
 #endif  // HAS_KINETISK_UART1_FIFO
 
-  // If transmission is complete
-  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        instance->state_ = Sender::XmitStates::kData;
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
-        break;
-
-      case Sender::XmitStates::kData:
-      case Sender::XmitStates::kIdle:
-        break;
-    }
-    UART1_C2 = UART_C2_TX_ACTIVE;
-  }
+  UART_TX_COMPLETE(1)
 }
 
 // ---------------------------------------------------------------------------
@@ -467,121 +248,12 @@ void uart2_tx_status_isr() {
   uint8_t control = UART2_C2;
 
 #ifdef HAS_KINETISK_UART2_FIFO
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART2_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART2_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        do {
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART2_C2 = UART_C2_TX_COMPLETING;
-            break;
-          }
-          status = UART2_S1;
-          UART2_D = instance->outputBuf_[instance->outputBufIndex_++];
-        } while (UART2_TCFIFO < 8);
-
-        break;
-
-      case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART2_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[2]->timer_.end();
-                      UART2_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART2_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART2_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-    }
-  }
+  UART_TX_WITH_FIFO(2)
 #else
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART2_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART2_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        if (instance->outputBufIndex_ >= instance->packetSize_) {
-          instance->completePacket();
-          UART2_C2 = UART_C2_TX_COMPLETING;
-        } else {
-          UART2_D = instance->outputBuf_[instance->outputBufIndex_++];
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART2_C2 = UART_C2_TX_COMPLETING;
-          }
-        }
-        break;
-
-      case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART2_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[2]->timer_.end();
-                      UART2_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART2_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART2_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-    }
-  }
+  UART_TX_NO_FIFO(2)
 #endif  // HAS_KINETISK_UART2_FIFO
 
-  // If transmission is complete
-  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        instance->state_ = Sender::XmitStates::kData;
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
-        break;
-
-      case Sender::XmitStates::kData:
-      case Sender::XmitStates::kIdle:
-        break;
-    }
-    UART2_C2 = UART_C2_TX_ACTIVE;
-  }
+  UART_TX_COMPLETE(2)
 }
 
 // ---------------------------------------------------------------------------
@@ -596,71 +268,9 @@ void uart3_tx_status_isr() {
   uint8_t control = UART3_C2;
 
   // No FIFO
+  UART_TX_NO_FIFO(3)
 
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART3_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART3_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        if (instance->outputBufIndex_ >= instance->packetSize_) {
-          instance->completePacket();
-          UART3_C2 = UART_C2_TX_COMPLETING;
-        } else {
-          UART3_D = instance->outputBuf_[instance->outputBufIndex_++];
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART3_C2 = UART_C2_TX_COMPLETING;
-          }
-        }
-        break;
-
-      case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART3_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[3]->timer_.end();
-                      UART3_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART3_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART3_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-    }
-  }
-
-  // If transmission is complete
-  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        instance->state_ = Sender::XmitStates::kData;
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
-        break;
-
-      case Sender::XmitStates::kData:
-      case Sender::XmitStates::kIdle:
-        break;
-    }
-    UART3_C2 = UART_C2_TX_ACTIVE;
-  }
+  UART_TX_COMPLETE(3)
 }
 #endif  // HAS_KINETISK_UART3
 
@@ -676,71 +286,9 @@ void uart4_tx_status_isr() {
   uint8_t control = UART4_C2;
 
   // No FIFO
+  UART_TX_NO_FIFO(4)
 
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART4_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART4_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        if (instance->outputBufIndex_ >= instance->packetSize_) {
-          instance->completePacket();
-          UART4_C2 = UART_C2_TX_COMPLETING;
-        } else {
-          UART4_D = instance->outputBuf_[instance->outputBufIndex_++];
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART4_C2 = UART_C2_TX_COMPLETING;
-          }
-        }
-        break;
-
-      case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART4_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[4]->timer_.end();
-                      UART4_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART4_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART4_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-    }
-  }
-
-  // If transmission is complete
-  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        instance->state_ = Sender::XmitStates::kData;
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
-        break;
-
-      case Sender::XmitStates::kData:
-      case Sender::XmitStates::kIdle:
-        break;
-    }
-    UART4_C2 = UART_C2_TX_ACTIVE;
-  }
+  UART_TX_COMPLETE(4)
 }
 #endif  // HAS_KINETISK_UART4
 
@@ -756,71 +304,9 @@ void uart5_tx_status_isr() {
   uint8_t control = UART5_C2;
 
   // No FIFO
+  UART_TX_NO_FIFO(5)
 
-  // If the transmit buffer is empty
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        UART5_D = 0;
-        instance->timeSinceBreak_ = 0;
-        UART5_C2 = UART_C2_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        if (instance->outputBufIndex_ >= instance->packetSize_) {
-          instance->completePacket();
-          UART5_C2 = UART_C2_TX_COMPLETING;
-        } else {
-          UART5_D = instance->outputBuf_[instance->outputBufIndex_++];
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            UART5_C2 = UART_C2_TX_COMPLETING;
-          }
-        }
-        break;
-
-      case Sender::XmitStates::kIdle:
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          UART5_C2 = UART_C2_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->timer_.begin(
-                    []() {
-                      txInstances[5]->timer_.end();
-                      UART5_C2 = UART_C2_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              UART5_C2 = UART_C2_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          UART5_C2 = UART_C2_TX_ACTIVE;
-        }
-        break;
-    }
-  }
-
-  // If transmission is complete
-  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        instance->state_ = Sender::XmitStates::kData;
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
-        break;
-
-      case Sender::XmitStates::kData:
-      case Sender::XmitStates::kIdle:
-        break;
-    }
-    UART5_C2 = UART_C2_TX_ACTIVE;
-  }
+  UART_TX_COMPLETE(5)
 }
 #endif  // HAS_KINETISK_UART5
 
