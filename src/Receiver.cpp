@@ -3,6 +3,9 @@
 // C++ includes
 #include <cstring>
 
+// Project includes
+#include "uart_routines.h"
+
 namespace qindesign {
 namespace teensydmx {
 
@@ -420,41 +423,9 @@ void uart0_rx_status_isr() {
   uint8_t status = UART0_S1;
 
 #ifdef HAS_KINETISK_UART0_FIFO
-  // If the receive buffer is full or there's an idle condition
-  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
-    __disable_irq();
-    uint8_t avail = UART0_RCFIFO;
-    if (avail == 0) {
-      // Read the register to clear the interrupt, but since it's empty,
-      // this causes the FIFO to become misaligned, so send RXFLUSH to
-      // reinitialize its pointers.
-      // Do this inside no interrupts to avoid a potential race condition
-      // between reading RCFIFO and flushing the FIFO.
-      b = UART0_D;
-      UART0_CFIFO = UART_CFIFO_RXFLUSH;
-      __enable_irq();
-      return;
-    } else {
-      __enable_irq();
-      // Read all but the last available, then read S1 and the final value
-      // So says the chip docs,
-      // Section 47.3.5 UART Status Register 1 (UART_S1)
-      // In the NOTE part.
-      while (--avail > 0) {
-        b = UART0_D;
-        instance->receiveByte(b);
-      }
-      status = UART0_S1;
-      b = UART0_D;
-      instance->receiveByte(b);
-    }
-  }
+  UART_RX_WITH_FIFO(0)
 #else
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART0_D;
-    instance->receiveByte(b);
-  }
+  UART_RX_NO_FIFO(0)
 #endif  // HAS_KINETISK_UART0_FIFO
 
 // The Teensy LC doesn't have a separate ERROR IRQ
@@ -475,24 +446,10 @@ void uart0_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
 #ifdef HAS_KINETISK_UART0_FIFO
-    // Flush anything in the buffer
-    uint8_t avail = UART0_RCFIFO;
-    if (avail > 1) {
-      while (--avail > 0) {
-        b = UART0_D;
-        instance->receiveByte(b);
-      }
-    }
+    UART_RX_ERROR_FLUSH_FIFO(0)
 #endif  // HAS_KINETISK_UART0_FIFO
 
-    b = UART0_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
+    UART_RX_ERROR_PROCESS(0)
   }
 }
 
@@ -507,41 +464,9 @@ void uart1_rx_status_isr() {
   uint8_t status = UART1_S1;
 
 #ifdef HAS_KINETISK_UART1_FIFO
-  // If the receive buffer is full or there's an idle condition
-  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
-    __disable_irq();
-    uint8_t avail = UART1_RCFIFO;
-    if (avail == 0) {
-      // Read the register to clear the interrupt, but since it's empty,
-      // this causes the FIFO to become misaligned, so send RXFLUSH to
-      // reinitialize its pointers.
-      // Do this inside no interrupts to avoid a potential race condition
-      // between reading RCFIFO and flushing the FIFO.
-      b = UART1_D;
-      UART1_CFIFO = UART_CFIFO_RXFLUSH;
-      __enable_irq();
-      return;
-    } else {
-      __enable_irq();
-      // Read all but the last available, then read S1 and the final value
-      // So says the chip docs,
-      // Section 47.3.5 UART Status Register 1 (UART_S1)
-      // In the NOTE part.
-      while (--avail > 0) {
-        b = UART1_D;
-        instance->receiveByte(b);
-      }
-      status = UART1_S1;
-      b = UART1_D;
-      instance->receiveByte(b);
-    }
-  }
+  UART_RX_WITH_FIFO(1)
 #else
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART1_D;
-    instance->receiveByte(b);
-  }
+  UART_RX_NO_FIFO(1)
 #endif  // HAS_KINETISK_UART1_FIFO
 
 // The Teensy LC doesn't have a separate ERROR IRQ
@@ -562,24 +487,10 @@ void uart1_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
 #ifdef HAS_KINETISK_UART1_FIFO
-    // Flush anything in the buffer
-    uint8_t avail = UART1_RCFIFO;
-    if (avail > 1) {
-      while (--avail > 0) {
-        b = UART1_D;
-        instance->receiveByte(b);
-      }
-    }
+    UART_RX_ERROR_FLUSH_FIFO(1)
 #endif  // HAS_KINETISK_UART1_FIFO
 
-    b = UART1_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
+    UART_RX_ERROR_PROCESS(1)
   }
 }
 
@@ -594,41 +505,9 @@ void uart2_rx_status_isr() {
   uint8_t status = UART2_S1;
 
 #ifdef HAS_KINETISK_UART2_FIFO
-  // If the receive buffer is full or there's an idle condition
-  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
-    __disable_irq();
-    uint8_t avail = UART2_RCFIFO;
-    if (avail == 0) {
-      // Read the register to clear the interrupt, but since it's empty,
-      // this causes the FIFO to become misaligned, so send RXFLUSH to
-      // reinitialize its pointers.
-      // Do this inside no interrupts to avoid a potential race condition
-      // between reading RCFIFO and flushing the FIFO.
-      b = UART2_D;
-      UART2_CFIFO = UART_CFIFO_RXFLUSH;
-      __enable_irq();
-      return;
-    } else {
-      __enable_irq();
-      // Read all but the last available, then read S1 and the final value
-      // So says the chip docs,
-      // Section 47.3.5 UART Status Register 1 (UART_S1)
-      // In the NOTE part.
-      while (--avail > 0) {
-        b = UART2_D;
-        instance->receiveByte(b);
-      }
-      status = UART2_S1;
-      b = UART2_D;
-      instance->receiveByte(b);
-    }
-  }
+  UART_RX_WITH_FIFO(2)
 #else
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART2_D;
-    instance->receiveByte(b);
-  }
+  UART_RX_NO_FIFO(2)
 #endif  // HAS_KINETISK_UART2_FIFO
 
 // The Teensy LC doesn't have a separate ERROR IRQ
@@ -649,24 +528,10 @@ void uart2_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
 #ifdef HAS_KINETISK_UART2_FIFO
-    // Flush anything in the buffer
-    uint8_t avail = UART2_RCFIFO;
-    if (avail > 1) {
-      while (--avail > 0) {
-        b = UART2_D;
-        instance->receiveByte(b);
-      }
-    }
+    UART_RX_ERROR_FLUSH_FIFO(2)
 #endif  // HAS_KINETISK_UART2_FIFO
 
-    b = UART2_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
+    UART_RX_ERROR_PROCESS(2)
   }
 }
 
@@ -682,12 +547,7 @@ void uart3_rx_status_isr() {
   uint8_t status = UART3_S1;
 
   // No FIFO
-
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART3_D;
-    instance->receiveByte(b);
-  }
+  UART_RX_NO_FIFO(3)
 }
 
 void uart3_rx_error_isr() {
@@ -702,15 +562,7 @@ void uart3_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
     // No FIFO
-
-    b = UART3_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
+    UART_RX_ERROR_PROCESS(3)
   }
 }
 #endif  // HAS_KINETISK_UART3
@@ -727,12 +579,7 @@ void uart4_rx_status_isr() {
   uint8_t status = UART4_S1;
 
   // No FIFO
-
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART4_D;
-    instance->receiveByte(b);
-  }
+  UART_RX_NO_FIFO(4)
 }
 
 void uart4_rx_error_isr() {
@@ -747,15 +594,7 @@ void uart4_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
     // No FIFO
-
-    b = UART4_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
+    UART_RX_ERROR_PROCESS(4)
   }
 }
 #endif  // HAS_KINETISK_UART4
@@ -772,12 +611,7 @@ void uart5_rx_status_isr() {
   uint8_t status = UART5_S1;
 
   // No FIFO
-
-  // If the receive buffer is full
-  if ((status & UART_S1_RDRF) != 0) {
-    b = UART5_D;
-    instance->receiveByte(b);
-  }
+  UART_RX_NO_FIFO(5)
 }
 
 void uart5_rx_error_isr() {
@@ -792,15 +626,7 @@ void uart5_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
     // No FIFO
-
-    b = UART5_D;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      instance->completePacket();
-    }
+    UART_RX_ERROR_PROCESS(5)
   }
 }
 #endif  // HAS_KINETISK_UART5

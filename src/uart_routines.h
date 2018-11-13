@@ -118,4 +118,62 @@
     UART##N##_C2 = UART_C2_TX_ACTIVE;                                \
   }
 
+#define UART_RX_WITH_FIFO(N)                                               \
+  /* If the receive buffer is full or there's an idle condition */         \
+  if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {                     \
+    __disable_irq();                                                       \
+    uint8_t avail = UART##N##_RCFIFO;                                      \
+    if (avail == 0) {                                                      \
+      /* Read the register to clear the interrupt, but since it's empty,   \
+       * this causes the FIFO to become misaligned, so send RXFLUSH to     \
+       * reinitialize its pointers.                                        \
+       * Do this inside no interrupts to avoid a potential race condition  \
+       * between reading RCFIFO and flushing the FIFO. */                  \
+      b = UART##N##_D;                                                     \
+      UART##N##_CFIFO = UART_CFIFO_RXFLUSH;                                \
+      __enable_irq();                                                      \
+      return;                                                              \
+    } else {                                                               \
+      __enable_irq();                                                      \
+      /* Read all but the last available, then read S1 and the final value \
+       * So says the chip docs,                                            \
+       * Section 47.3.5 UART Status Register 1 (UART_S1)                   \
+       * In the NOTE part. */                                              \
+      while (--avail > 0) {                                                \
+        b = UART##N##_D;                                                   \
+        instance->receiveByte(b);                                          \
+      }                                                                    \
+      status = UART##N##_S1;                                               \
+      b = UART##N##_D;                                                     \
+      instance->receiveByte(b);                                            \
+    }                                                                      \
+  }
+
+#define UART_RX_NO_FIFO(N)            \
+  /* If the receive buffer is full */ \
+  if ((status & UART_S1_RDRF) != 0) { \
+    b = UART##N##_D;                  \
+    instance->receiveByte(b);         \
+  }
+
+#define UART_RX_ERROR_FLUSH_FIFO(N)   \
+  /* Flush anything in the buffer */ \
+  uint8_t avail = UART##N##_RCFIFO;  \
+  if (avail > 1) {                   \
+    while (--avail > 0) {            \
+      b = UART##N##_D;               \
+      instance->receiveByte(b);      \
+    }                                \
+  }
+
+#define UART_RX_ERROR_PROCESS(N)    \
+  b = UART##N##_D;                  \
+  if (b == 0) {                     \
+    instance->receiveBreak();       \
+  } else {                          \
+    /* Not a break */               \
+    instance->framingErrorCount_++; \
+    instance->completePacket();     \
+  }
+
 #endif  // UART_ROUTINES_H_
