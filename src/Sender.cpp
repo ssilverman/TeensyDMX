@@ -45,7 +45,7 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 // Used by the TX ISR's.
 Sender *txInstances[6]{nullptr};
 
-#define ACTIVATE_SERIAL(N)\
+#define ACTIVATE_TX_SERIAL(N)\
   attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_status_isr);\
   UART##N##_C2 = UART_C2_TX_ACTIVE;
 
@@ -70,27 +70,27 @@ void Sender::begin() {
 
   switch (serialIndex_) {
     case 0:
-      ACTIVATE_SERIAL(0)
+      ACTIVATE_TX_SERIAL(0)
       break;
     case 1:
-      ACTIVATE_SERIAL(1)
+      ACTIVATE_TX_SERIAL(1)
       break;
     case 2:
-      ACTIVATE_SERIAL(2)
+      ACTIVATE_TX_SERIAL(2)
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
-      ACTIVATE_SERIAL(3)
+      ACTIVATE_TX_SERIAL(3)
       break;
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
     case 4:
-      ACTIVATE_SERIAL(4)
+      ACTIVATE_TX_SERIAL(4)
       break;
 #endif  // HAS_KINETISK_UART4
 #if defined(HAS_KINETISK_UART5)
     case 5:
-      ACTIVATE_SERIAL(5)
+      ACTIVATE_TX_SERIAL(5)
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
@@ -102,7 +102,7 @@ void Sender::begin() {
 }
 
 // Undefine this macro
-#undef ACTIVATE_SERIAL
+#undef ACTIVATE_TX_SERIAL
 
 void Sender::end() {
   if (serialIndex_ < 0) {
