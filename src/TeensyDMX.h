@@ -335,6 +335,10 @@ class Sender final : public TeensyDMX {
   // This does nothing if the size is outside the range 25-513. These limits
   // are contained in kMinDMXPacketSize and kMaxDMXPacketSize, respectively.
   //
+  // For example, if the packet size is set to 25, then the channels can range
+  // from 0 to 24, inclusive, with channel zero containing the start code and
+  // slots 1-24 containing the remainder of the packet data.
+  //
   // The default is 513.
   //
   // The reason for the lower bound is so that, under conditions where minimum
@@ -349,7 +353,13 @@ class Sender final : public TeensyDMX {
   // Sets a channel's value. Channel zero represents the start code.
   // The start code should really be zero, but it can be changed here.
   //
-  // If the channel is out of range then the call is ignored.
+  // If the channel is not in the range 0-512 then the call is ignored.
+  // Note that it is possible to set channels outside the range of the
+  // packet size, but these values will not be sent.
+  //
+  // For example, if the packet size is 25 and the channel is anywhere
+  // in the range 25-512, then the value will be set internally but will
+  // not be transmitted until the packet size changes via setPacketSize.
   void set(int channel, uint8_t value) {
     if (0 <= channel && channel < kMaxDMXPacketSize) {
       outputBuf_[channel] = value;
@@ -360,6 +370,10 @@ class Sender final : public TeensyDMX {
   //
   // This does nothing if any part of the channel range is not in the
   // range 0-512. This limit is equal to kDMXMaxPacketSize-1.
+  //
+  // See the other 'set' function for more information about setting
+  // values outside the range of the current packet size (if the size
+  // is less than 513).
   void set(int startChannel, const uint8_t *values, int len);
 
   // Sets the packet refresh rate. Negative and NaN values are ignored.
