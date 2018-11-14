@@ -134,12 +134,12 @@ class TeensyDMX {
     return -1;
   }
 
-  HardwareSerial &uart_;  // TODO: Should this be volatile?
+  HardwareSerial &uart_;
   int serialIndex_;
 
   // Tracks whether the system has been configured. Subclasses must manage
   // this state.
-  bool began_;
+  volatile bool began_;
 
   // The number of packets sent or received. Subclasses must manage this.
   volatile uint32_t packetCount_;

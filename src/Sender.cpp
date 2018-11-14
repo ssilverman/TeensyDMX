@@ -4,6 +4,7 @@
 #include <cstring>
 
 // Project includes
+#include "lock_routines.h"
 #include "uart_routines.h"
 
 namespace qindesign {
@@ -43,7 +44,8 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
 // Used by the TX ISR's.
-Sender *txInstances[6]{nullptr};
+static Sender *volatile txInstances[6]{nullptr};
+static volatile bool txInstancesMutex{false};
 
 #define ACTIVATE_TX_SERIAL(N)\
   attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_status_isr);\
@@ -60,10 +62,13 @@ void Sender::begin() {
   }
 
   // Set up the instance for the ISR's
-  if (txInstances[serialIndex_] != nullptr) {
-    txInstances[serialIndex_]->end();
-  }
+  grabMutex(&txInstancesMutex);
+  Sender *s = txInstances[serialIndex_];
   txInstances[serialIndex_] = this;
+  releaseMutex(&txInstancesMutex);
+  if (s != nullptr && s != this) {  // NOTE: Shouldn't be able to be 'this'
+    s->end();
+  }
 
   state_ = XmitStates::kIdle;
   uart_.begin(kBreakBaud, kBreakFormat);
@@ -105,51 +110,27 @@ void Sender::begin() {
 #undef ACTIVATE_TX_SERIAL
 
 void Sender::end() {
-  if (serialIndex_ < 0) {
-    return;
-  }
-
-  // Remove any chance that our TX ISR calls begin after end() is called
-  switch (serialIndex_) {
-    case 0:
-      NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
-      break;
-    case 1:
-      NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
-      break;
-    case 2:
-      NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
-      break;
-#ifdef HAS_KINETISK_UART3
-    case 3:
-      NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
-      break;
-#endif  // HAS_KINETISK_UART3
-#ifdef HAS_KINETISK_UART4
-    case 4:
-      NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
-      break;
-#endif  // HAS_KINETISK_UART4
-#if defined(HAS_KINETISK_UART5)
-    case 5:
-      NVIC_DISABLE_IRQ(IRQ_UART5_STATUS);
-      break;
-#elif defined(HAS_KINETISK_LPUART0)
-    case 5:
-      NVIC_DISABLE_IRQ(IRQ_LPUART0);
-      break;
-#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
-  }
-
   if (!began_) {
     return;
   }
   began_ = false;
 
-  // Remove the reference from the instances
-  txInstances[serialIndex_] = nullptr;
+  if (serialIndex_ < 0) {
+    return;
+  }
+
+  // Remove any chance that our TX ISR's start after end() is called,
+  // so disable the IRQ's first
 
   uart_.end();
+
+  // Remove the reference from the instances,
+  // but only if we're the ones who added it
+  grabMutex(&txInstancesMutex);
+  if (txInstances[serialIndex_] == this) {
+    txInstances[serialIndex_] = nullptr;
+  }
+  releaseMutex(&txInstancesMutex);
 }
 
 // memcpy implementation that accepts a volatile destination.

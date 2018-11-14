@@ -4,6 +4,7 @@
 #include <cstring>
 
 // Project includes
+#include "lock_routines.h"
 #include "uart_routines.h"
 
 namespace qindesign {
@@ -43,7 +44,8 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #endif  // HAS_KINETISK_LPUART0
 
 // Used by the RX ISR's.
-Receiver *rxInstances[6]{nullptr};
+static Receiver *volatile rxInstances[6]{nullptr};
+static volatile bool rxInstancesMutex{false};
 
 #define ACTIVATE_RX_SERIAL(N)                                           \
   /* Enable receive-only */                                             \
@@ -69,10 +71,13 @@ void Receiver::begin() {
   }
 
   // Set up the instance for the ISR's
-  if (rxInstances[serialIndex_] != nullptr) {
-    rxInstances[serialIndex_]->end();
-  }
+  grabMutex(&rxInstancesMutex);
+  Receiver *r = rxInstances[serialIndex_];
   rxInstances[serialIndex_] = this;
+  releaseMutex(&rxInstancesMutex);
+  if (r != nullptr && r != this) {  // NOTE: Shouldn't be able to be 'this'
+    r->end();
+  }
 
   uart_.begin(kSlotsBaud, kSlotsFormat);
 
@@ -158,8 +163,8 @@ void Receiver::end() {
     return;
   }
 
-  // Remove the reference from the instances
-  rxInstances[serialIndex_] = nullptr;
+  // Remove any chance that our RX ISR's start after end() is called,
+  // so disable the IRQ's first
 
   uart_.end();
 
@@ -203,6 +208,14 @@ void Receiver::end() {
 #endif  // HAS_KINETISK_UART5
 // NOTE: Nothing needed for LPUART0
   }
+
+  // Remove the reference from the instances,
+  // but only if we're the ones who added it
+  grabMutex(&rxInstancesMutex);
+  if (rxInstances[serialIndex_] == this) {
+    rxInstances[serialIndex_] = nullptr;
+  }
+  releaseMutex(&rxInstancesMutex);
 }
 
 // memcpy implementation that accepts a const volatile source.
