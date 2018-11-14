@@ -10,8 +10,8 @@
 namespace qindesign {
 namespace teensydmx {
 
-constexpr uint32_t kSlotsBaud = 250000;
-constexpr uint32_t kSlotsFormat = SERIAL_8N2;
+static constexpr uint32_t kSlotsBaud = 250000;
+static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 
 // RX control states
 #ifdef HAS_KINETISK_UART0_FIFO

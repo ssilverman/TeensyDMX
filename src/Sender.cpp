@@ -28,10 +28,10 @@ namespace teensydmx {
 // 8N1: 50000 baud, 180us break, 20us MAB <-- Closer to "typical" in ANSI E1.11
 // 8E1: 45500 baud, 220us break, 22us MAB
 
-constexpr uint32_t kBreakBaud   = 50000;
-constexpr uint32_t kBreakFormat = SERIAL_8N1;
-constexpr uint32_t kSlotsBaud   = 250000;
-constexpr uint32_t kSlotsFormat = SERIAL_8N2;
+static constexpr uint32_t kBreakBaud   = 50000;
+static constexpr uint32_t kBreakFormat = SERIAL_8N1;
+static constexpr uint32_t kSlotsBaud   = 250000;
+static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 
 // TX control states
 #define UART_C2_TX_ENABLE         (UART_C2_TE)
