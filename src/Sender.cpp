@@ -5,7 +5,7 @@
 
 // Project includes
 #include "lock_routines.h"
-#include "uart_routines.h"
+#include "uart_routine_defines.h"
 
 namespace qindesign {
 namespace teensydmx {
