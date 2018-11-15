@@ -173,7 +173,7 @@
   } else {                          \
     /* Not a break */               \
     instance->framingErrorCount_++; \
-    /* TODO: Keep the packet? */    \
+    /* TODO: Keep the packet?       \
      * See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292) */ \
     instance->completePacket();     \
   }
