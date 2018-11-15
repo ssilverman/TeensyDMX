@@ -680,6 +680,7 @@ void lpuart0_rx_isr() {
     } else {
       // Not a break
       instance->framingErrorCount_++;
+      // TODO: Keep the packet?
       instance->completePacket();
     }
   }
