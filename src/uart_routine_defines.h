@@ -1,5 +1,5 @@
-#ifndef UART_ROUTINES_H_
-#define UART_ROUTINES_H_
+#ifndef UART_ROUTINE_DEFINES_H_
+#define UART_ROUTINE_DEFINES_H_
 
 // Assumes status = UARTx_S1 and control = UARTx_C2
 #define UART_TX_WITH_FIFO(N)                                               \
@@ -184,4 +184,4 @@
     instance->completePacket();     \
   }
 
-#endif  // UART_ROUTINES_H_
+#endif  // UART_ROUTINE_DEFINES_H_
