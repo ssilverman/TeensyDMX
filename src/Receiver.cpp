@@ -299,6 +299,7 @@ void Receiver::receiveBreak() {
   // A BREAK is detected when a stop bit is expected but not received, and
   // this happens after the start bit, nine bits, and the missing stop bit,
   // about 44us.
+  // TODO: Disallow BREAKs shorter than 88us
   lastBreakTime_ = millis();
 
   if (inPacket_) {
