@@ -339,9 +339,9 @@ void lpuart0_tx_isr() {
           LPUART0_CTRL = LPUART_CTRL_TX_INACTIVE;
           if (instance->breakToBreakTime_ != UINT32_MAX) {
             // Non-infinite break time
-            if (!instance->timer_.begin(
+            if (!instance->refreshRateTimer_.begin(
                     []() {
-                      txInstances[5]->timer_.end();
+                      txInstances[5]->refreshRateTimer_.end();
                       LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
                     },
                     instance->breakToBreakTime_ - timeSinceBreak)) {

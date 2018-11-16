@@ -143,9 +143,6 @@ class TeensyDMX {
 
   // The number of packets sent or received. Subclasses must manage this.
   volatile uint32_t packetCount_;
-
-  // Helps with timing.
-  IntervalTimer timer_;
 };
 
 // ---------------------------------------------------------------------------
@@ -427,6 +424,7 @@ class Sender final : public TeensyDMX {
 
   // The packet refresh rate, in Hz.
   float refreshRate_;
+  IntervalTimer refreshRateTimer_;  // Accompanying timer
 
   // The BREAK-to-BREAK timing, matching the refresh rate. This is
   // specified in microseconds.

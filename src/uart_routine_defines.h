@@ -34,9 +34,9 @@
           UART##N##_C2 = UART_C2_TX_INACTIVE;                              \
           if (instance->breakToBreakTime_ != UINT32_MAX) {                 \
             /* Non-infinite break time */                                  \
-            if (!instance->timer_.begin(                                   \
+            if (!instance->refreshRateTimer_.begin(                        \
                     []() {                                                 \
-                      txInstances[N]->timer_.end();                        \
+                      txInstances[N]->refreshRateTimer_.end();             \
                       UART##N##_C2 = UART_C2_TX_ACTIVE;                    \
                     },                                                     \
                     instance->breakToBreakTime_ - timeSinceBreak)) {       \
@@ -86,9 +86,9 @@
           UART##N##_C2 = UART_C2_TX_INACTIVE;                              \
           if (instance->breakToBreakTime_ != UINT32_MAX) {                 \
             /* Non-infinite break time */                                  \
-            if (!instance->timer_.begin(                                   \
+            if (!instance->refreshRateTimer_.begin(                        \
                     []() {                                                 \
-                      txInstances[N]->timer_.end();                        \
+                      txInstances[N]->refreshRateTimer_.end();             \
                       UART##N##_C2 = UART_C2_TX_ACTIVE;                    \
                     },                                                     \
                     instance->breakToBreakTime_ - timeSinceBreak)) {       \
