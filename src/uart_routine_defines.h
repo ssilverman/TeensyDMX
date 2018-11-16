@@ -1,6 +1,7 @@
 #ifndef UART_ROUTINES_H_
 #define UART_ROUTINES_H_
 
+// Assumes status = UARTx_S1 and control = UARTx_C2
 #define UART_TX_WITH_FIFO(N)                                               \
   /* If the transmit buffer is empty */                                    \
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {      \
@@ -51,6 +52,7 @@
     }                                                                      \
   }
 
+// Assumes status = UARTx_S1 and control = UARTx_C2
 #define UART_TX_NO_FIFO(N)                                                 \
   /* If the transmit buffer is empty */                                    \
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {      \
@@ -102,6 +104,7 @@
     }                                                                      \
   }
 
+// Assumes status = UARTx_S1 and control = UARTx_C2
 #define UART_TX_COMPLETE(N)                                          \
   /* If transmission is complete */                                  \
   if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) { \
@@ -118,6 +121,7 @@
     UART##N##_C2 = UART_C2_TX_ACTIVE;                                \
   }
 
+// Assumes status = UARTx_S1
 #define UART_RX_WITH_FIFO(N)                                               \
   /* If the receive buffer is full or there's an idle condition */         \
   if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {                     \
@@ -149,6 +153,7 @@
     }                                                                      \
   }
 
+// Assumes status = UARTx_S1
 #define UART_RX_NO_FIFO(N)            \
   /* If the receive buffer is full */ \
   if ((status & UART_S1_RDRF) != 0) { \
@@ -166,15 +171,16 @@
     }                                \
   }
 
-#define UART_RX_ERROR_PROCESS(N)    \
-  b = UART##N##_D;                  \
+// Assumes b = UARTx_D or b = LPUARTx_DATA
+#define UART_RX_ERROR_PROCESS       \
   if (b == 0) {                     \
     instance->receiveBreak();       \
   } else {                          \
     /* Not a break */               \
     instance->framingErrorCount_++; \
-    /* TODO: Keep the packet?       \
+    /* Don't keep the packet        \
      * See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292) */ \
+    instance->activeBufIndex_ = 0;  \
     instance->completePacket();     \
   }
 

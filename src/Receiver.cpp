@@ -297,7 +297,8 @@ void Receiver::receiveBreak() {
   // the current time is at the end or middle of the BREAK, because the
   // difference is much smaller than a millisecond.
   // A BREAK is detected when a stop bit is expected but not received, and
-  // this happens after the start bit and eight bits, about 36us.
+  // this happens after the start bit, nine bits, and the missing stop bit,
+  // about 44us.
   lastBreakTime_ = millis();
 
   if (inPacket_) {
@@ -463,7 +464,8 @@ void uart0_rx_error_isr() {
     UART_RX_ERROR_FLUSH_FIFO(0)
 #endif  // HAS_KINETISK_UART0_FIFO
 
-    UART_RX_ERROR_PROCESS(0)
+    b = UART0_D;
+    UART_RX_ERROR_PROCESS
   }
 }
 
@@ -504,7 +506,8 @@ void uart1_rx_error_isr() {
     UART_RX_ERROR_FLUSH_FIFO(1)
 #endif  // HAS_KINETISK_UART1_FIFO
 
-    UART_RX_ERROR_PROCESS(1)
+    b = UART1_D;
+    UART_RX_ERROR_PROCESS
   }
 }
 
@@ -545,7 +548,8 @@ void uart2_rx_error_isr() {
     UART_RX_ERROR_FLUSH_FIFO(2)
 #endif  // HAS_KINETISK_UART2_FIFO
 
-    UART_RX_ERROR_PROCESS(2)
+    b = UART2_D;
+    UART_RX_ERROR_PROCESS
   }
 }
 
@@ -576,7 +580,8 @@ void uart3_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
     // No FIFO
-    UART_RX_ERROR_PROCESS(3)
+    b = UART3_D;
+    UART_RX_ERROR_PROCESS
   }
 }
 #endif  // HAS_KINETISK_UART3
@@ -608,7 +613,8 @@ void uart4_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
     // No FIFO
-    UART_RX_ERROR_PROCESS(4)
+    b = UART4_D;
+    UART_RX_ERROR_PROCESS
   }
 }
 #endif  // HAS_KINETISK_UART4
@@ -640,7 +646,8 @@ void uart5_rx_error_isr() {
     // Note: Reading a byte clears interrupt flags
 
     // No FIFO
-    UART_RX_ERROR_PROCESS(5)
+    b = UART5_D;
+    UART_RX_ERROR_PROCESS
   }
 }
 #endif  // HAS_KINETISK_UART5
@@ -675,14 +682,7 @@ void lpuart0_rx_isr() {
     // No FIFO
 
     b = LPUART0_DATA;
-    if (b == 0) {
-      instance->receiveBreak();
-    } else {
-      // Not a break
-      instance->framingErrorCount_++;
-      // TODO: Keep the packet?
-      instance->completePacket();
-    }
+    UART_RX_ERROR_PROCESS
   }
 }
 #endif  // HAS_KINETISK_LPUART0
