@@ -65,17 +65,17 @@ Receiver::~Receiver() {
   end();
 }
 
-#define ACTIVATE_RX_SERIAL(N)                                           \
-  /* Enable receive-only */                                             \
-  UART##N##_C2 = UART##N##_C2_RX_ENABLE;                                \
-  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_rx_status_isr); \
-  attachInterruptVector(IRQ_UART##N##_ERROR, uart##N##_rx_error_isr);   \
-  /* We fill bytes from the buffer in the framing error ISR, so we      \
-   * can set to the same priority. */                                   \
-  NVIC_SET_PRIORITY(IRQ_UART##N##_ERROR,                                \
-                    NVIC_GET_PRIORITY(IRQ_UART##N##_STATUS));           \
-  /* Enable interrupt on frame error */                                 \
-  UART##N##_C3 |= UART_C3_FEIE;                                         \
+#define ACTIVATE_RX_SERIAL(N)                                             \
+  /* Enable receive-only */                                               \
+  UART##N##_C2 = UART##N##_C2_RX_ENABLE;                                  \
+  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_rx_status_isr);   \
+  attachInterruptVector(IRQ_UART##N##_ERROR, uart##N##_rx_error_isr);     \
+  /* We fill bytes from the buffer in the framing error ISR, so we        \
+   * can set to the same priority. */                                     \
+  NVIC_SET_PRIORITY(IRQ_UART##N##_ERROR,                                  \
+                    max(NVIC_GET_PRIORITY(IRQ_UART##N##_STATUS), 1) - 1); \
+  /* Enable interrupt on frame error */                                   \
+  UART##N##_C3 |= UART_C3_FEIE;                                           \
   NVIC_ENABLE_IRQ(IRQ_UART##N##_ERROR);
 
 void Receiver::begin() {
@@ -113,7 +113,8 @@ void Receiver::begin() {
 
       // We fill bytes from the buffer in the framing error ISR, so we
       // can set to the same priority.
-      NVIC_SET_PRIORITY(IRQ_UART0_ERROR, NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
+      NVIC_SET_PRIORITY(IRQ_UART0_ERROR,
+                        max(NVIC_GET_PRIORITY(IRQ_UART0_STATUS), 1) - 1);
       NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
 #endif
       break;
@@ -124,7 +125,8 @@ void Receiver::begin() {
       UART1_C3 |= UART_C3_FEIE;
 #ifndef HAS_KINETISL_UART1
       attachInterruptVector(IRQ_UART1_ERROR, uart1_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART1_ERROR, NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
+      NVIC_SET_PRIORITY(IRQ_UART1_ERROR,
+                        max(NVIC_GET_PRIORITY(IRQ_UART1_STATUS), 1) - 1);
       NVIC_ENABLE_IRQ(IRQ_UART1_ERROR);
 #endif
       break;
@@ -135,7 +137,8 @@ void Receiver::begin() {
       UART2_C3 |= UART_C3_FEIE;
 #ifndef HAS_KINETISL_UART2
       attachInterruptVector(IRQ_UART2_ERROR, uart2_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART2_ERROR, NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
+      NVIC_SET_PRIORITY(IRQ_UART2_ERROR,
+                        max(NVIC_GET_PRIORITY(IRQ_UART2_STATUS), 1) - 1);
       NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
 #endif
       break;
@@ -457,17 +460,17 @@ void Receiver::enableIRQs() {
 #endif  // HAS_KINETISK_UART0_FIFO
 
 void uart0_rx_status_isr() {
+// The Teensy LC doesn't have a separate ERROR IRQ
+#ifdef HAS_KINETISL_UART0
+  uart0_rx_error_isr();
+#endif
+
   uint8_t b;
   Receiver *instance = rxInstances[0];
 
   uint8_t status = UART0_S1;
 
   UART_RX(0)
-
-// The Teensy LC doesn't have a separate ERROR IRQ
-#ifdef HAS_KINETISL_UART0
-  uart0_rx_error_isr();
-#endif
 }
 
 #undef UART_RX_0
@@ -498,17 +501,17 @@ void uart0_rx_error_isr() {
 #endif  // HAS_KINETISK_UART1_FIFO
 
 void uart1_rx_status_isr() {
+// The Teensy LC doesn't have a separate ERROR IRQ
+#ifdef HAS_KINETISL_UART1
+  uart1_rx_error_isr();
+#endif
+
   uint8_t b;
   Receiver *instance = rxInstances[1];
 
   uint8_t status = UART1_S1;
 
   UART_RX(1)
-
-// The Teensy LC doesn't have a separate ERROR IRQ
-#ifdef HAS_KINETISL_UART1
-  uart1_rx_error_isr();
-#endif
 }
 
 #undef UART_RX_1
@@ -539,17 +542,17 @@ void uart1_rx_error_isr() {
 #endif  // HAS_KINETISK_UART2_FIFO
 
 void uart2_rx_status_isr() {
+// The Teensy LC doesn't have a separate ERROR IRQ
+#ifdef HAS_KINETISL_UART2
+  uart2_rx_error_isr();
+#endif
+
   uint8_t b;
   Receiver *instance = rxInstances[2];
 
   uint8_t status = UART2_S1;
 
   UART_RX(2)
-
-// The Teensy LC doesn't have a separate ERROR IRQ
-#ifdef HAS_KINETISL_UART2
-  uart2_rx_error_isr();
-#endif
 }
 
 #undef UART_RX_2
@@ -676,8 +679,6 @@ void lpuart0_rx_isr() {
 
   uint32_t status = LPUART0_STAT;
 
-  UART_RX_NO_FIFO(LPUART_STAT, LPUART0_DATA)
-
   // A framing error likely indicates a break
   if ((status & LPUART_STAT_FE) != 0) {
     LPUART0_STAT |= LPUART_STAT_FE;  // Clear the status
@@ -689,7 +690,10 @@ void lpuart0_rx_isr() {
     // No FIFO
 
     UART_RX_ERROR_PROCESS(LPUART0_DATA)
+    return;
   }
+
+  UART_RX_NO_FIFO(LPUART_STAT, LPUART0_DATA)
 }
 #endif  // HAS_KINETISK_LPUART0
 
