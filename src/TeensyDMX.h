@@ -224,10 +224,10 @@ class Receiver final : public TeensyDMX {
   }
 
  private:
-  // Disables all the UART IRQ's so that variables can be accessed concurrently.
+  // Disables all the UART IRQs so that variables can be accessed concurrently.
   void disableIRQs();
 
-  // Enables all the UART IRQ's.
+  // Enables all the UART IRQs.
   void enableIRQs();
 
   // Makes a new packet available.
@@ -266,7 +266,7 @@ class Receiver final : public TeensyDMX {
   volatile uint32_t packetTimeoutCount_;
   volatile uint32_t framingErrorCount_;
 
-  // These error ISR's need to access private functions
+  // These error ISRs need to access private functions
   friend void uart0_rx_status_isr();
   friend void uart0_rx_error_isr();
   friend void uart1_rx_status_isr();
@@ -482,7 +482,7 @@ class Sender final : public TeensyDMX {
   volatile bool transmitting_;  // Indicates whether we are currently
                                 // transmitting a packet
 
-  // These error ISR's need to access private functions
+  // These error ISRs need to access private functions
   friend void uart0_tx_status_isr();
   friend void uart1_tx_status_isr();
   friend void uart2_tx_status_isr();

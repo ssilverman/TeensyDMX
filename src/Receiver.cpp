@@ -43,7 +43,7 @@ static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #define LPUART0_CTRL_RX_ENABLE LPUART_CTRL_RE | LPUART_CTRL_RIE
 #endif  // HAS_KINETISK_LPUART0
 
-// Used by the RX ISR's.
+// Used by the RX ISRs.
 static Receiver *volatile rxInstances[6]{nullptr};
 static volatile bool rxInstancesMutex{false};
 
@@ -88,7 +88,7 @@ void Receiver::begin() {
     return;
   }
 
-  // Set up the instance for the ISR's
+  // Set up the instance for the ISRs
   grabMutex(&rxInstancesMutex);
   Receiver *r = rxInstances[serialIndex_];
   rxInstances[serialIndex_] = this;
@@ -184,8 +184,8 @@ void Receiver::end() {
     return;
   }
 
-  // Remove any chance that our RX ISR's start after end() is called,
-  // so disable the IRQ's first
+  // Remove any chance that our RX ISRs start after end() is called,
+  // so disable the IRQs first
 
   uart_.end();
 
@@ -450,7 +450,7 @@ void Receiver::enableIRQs() {
 }
 
 // ---------------------------------------------------------------------------
-//  UART0 RX ISR's
+//  UART0 RX ISRs
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART0_FIFO
@@ -491,7 +491,7 @@ void uart0_rx_error_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_0
 
 // ---------------------------------------------------------------------------
-//  UART1 RX ISR's
+//  UART1 RX ISRs
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART1_FIFO
@@ -532,7 +532,7 @@ void uart1_rx_error_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_1
 
 // ---------------------------------------------------------------------------
-//  UART2 RX ISR's
+//  UART2 RX ISRs
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART2_FIFO
@@ -573,7 +573,7 @@ void uart2_rx_error_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_2
 
 // ---------------------------------------------------------------------------
-//  UART3 RX ISR's
+//  UART3 RX ISRs
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART3
@@ -605,7 +605,7 @@ void uart3_rx_error_isr() {
 #endif  // HAS_KINETISK_UART3
 
 // ---------------------------------------------------------------------------
-//  UART4 RX ISR's
+//  UART4 RX ISRs
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART4
@@ -637,7 +637,7 @@ void uart4_rx_error_isr() {
 #endif  // HAS_KINETISK_UART4
 
 // ---------------------------------------------------------------------------
-//  UART5 RX ISR's
+//  UART5 RX ISRs
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART5

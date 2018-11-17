@@ -12,7 +12,7 @@ alternate start codes.
 Some notable features of this library:
 
 1. Teensy's default serial buffer isn't used; the data goes directly to/from
-   the DMX buffers from/to the UART ISR's.
+   the DMX buffers from/to the UART ISRs.
 2. Simple API: After setup, there's only one read call (`readPacket`) and two
    forms of one write call (`set` for single and multiple channels).
 3. The library properly handles DMX packets containing less than 513 slots.

@@ -43,7 +43,7 @@ static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 #define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
 #define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
-// Used by the TX ISR's.
+// Used by the TX ISRs
 static Sender *volatile txInstances[6]{nullptr};
 static volatile bool txInstancesMutex{false};
 
@@ -77,7 +77,7 @@ void Sender::begin() {
     return;
   }
 
-  // Set up the instance for the ISR's
+  // Set up the instance for the ISRs
   grabMutex(&txInstancesMutex);
   Sender *s = txInstances[serialIndex_];
   txInstances[serialIndex_] = this;
@@ -136,7 +136,7 @@ void Sender::end() {
     return;
   }
 
-  // Remove any chance that our TX ISR's start after end() is called,
+  // Remove any chance that our TX ISRs start after end() is called,
   // so disable the IRQ's first
 
   uart_.end();
