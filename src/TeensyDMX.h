@@ -149,7 +149,7 @@ class TeensyDMX {
 //  Receiver
 // ---------------------------------------------------------------------------
 
-// A DMX receiver.
+// A DMX receiver. This receives packets asynchronously.
 class Receiver final : public TeensyDMX {
  public:
   Receiver(HardwareSerial &uart)
@@ -307,7 +307,7 @@ class Receiver final : public TeensyDMX {
 //  Sender
 // ---------------------------------------------------------------------------
 
-// A DMX transmitter.
+// A DMX transmitter. This sends packets asynchronously.
 class Sender final : public TeensyDMX {
  public:
   Sender(HardwareSerial &uart)
@@ -317,7 +317,10 @@ class Sender final : public TeensyDMX {
         outputBufIndex_(0),
         packetSize_(kMaxDMXPacketSize),
         refreshRate_(INFINITY),
-        breakToBreakTime_(0) {}
+        breakToBreakTime_(0),
+        paused_(false),
+        resumeCounter_(0),
+        transmitting_(false) {}
 
   // Destructs Sender. This calls end().
   ~Sender() override {
@@ -326,6 +329,9 @@ class Sender final : public TeensyDMX {
 
   void begin() override;
 
+  // Ends sending. Note that this does not wait for the current packet
+  // to finish. To complete the current packet, pause and then check
+  // if transmission is still active. See pause() and isTransmitting().
   void end() override;
 
   // Sets the transmit packet size, in number of channels plus the start code.
@@ -357,6 +363,11 @@ class Sender final : public TeensyDMX {
   // For example, if the packet size is 25 and the channel is anywhere
   // in the range 25-512, then the value will be set internally but will
   // not be transmitted until the packet size changes via setPacketSize.
+  //
+  // Note that setting any values can affect the packet currently being
+  // transmitted. After pausing with pause(), it's useful to wait until
+  // transmission is actually finished before setting channel values after
+  // pausing. isTransmitting() can be used to check this condition.
   void set(int channel, uint8_t value) {
     if (0 <= channel && channel < kMaxDMXPacketSize) {
       outputBuf_[channel] = value;
@@ -371,6 +382,11 @@ class Sender final : public TeensyDMX {
   // See the other 'set' function for more information about setting
   // values outside the range of the current packet size (if the size
   // is less than 513).
+  //
+  // Note that setting any values can affect the packet currently being
+  // transmitted. After pausing with pause(), it's useful to wait until
+  // transmission is actually finished before setting channel values after
+  // pausing. isTransmitting() can be used to check this condition.
   void set(int startChannel, const uint8_t *values, int len);
 
   // Sets the packet refresh rate. Negative and NaN values are ignored.
@@ -394,6 +410,58 @@ class Sender final : public TeensyDMX {
   float getRefreshRate() {
     return refreshRate_;
   }
+
+  // Pauses the ansynchronous packet sending. This allows information
+  // to be inserted at a specific point. This pauses after finishing
+  // any current packet.
+  //
+  // An example where this is useful is for System Information (SIP)
+  // packets, where checksum data needs to be applied to the preceding
+  // packet.
+  //
+  // Note that the current packet needs to complete before setting channel
+  // data with one of the 'set' functions. isTransmitting() can be used to
+  // check this condition.
+  //
+  // Also note that this does not change the number of resumed packets
+  // remaining.
+  void pause() {
+    paused_ = true;
+  }
+
+  // Returns whether we are currently paused. This will occur after pause()
+  // is called and after any "resumed" messages are sent. Note that it is
+  // possible that a packet is still in the middle of being transmitted.
+  bool isPaused() {
+    return paused_;
+  }
+
+  // Resumes continuous asynchronous packet sending.
+  void resume();
+
+  // Resumes sending, but pauses again after the specified number of packets
+  // are sent. Values < 0 will be ignored and a value of zero will resume.
+  //
+  // If sending is not already paused, only the next n packets will be sent,
+  // not including any already in transmission.
+  //
+  // isTransmitting() can be used to determine when the requested number of
+  // packets are done being sent.
+  void resumeFor(int n);
+
+  // Returns the number of packets remaining to be sent before being paused.
+  // This will return zero if there are no packets remaining.
+  int getResumedRemaining() {
+    return resumeCounter_;
+  }
+
+  // Returns if we are currently transmitting a packet or we are not
+  // currently paused. To wait until transmission is complete after pausing,
+  // the following bit of code is useful:
+  //     while (isTransmitting()) { yield(); }
+  //
+  // Note that this will always return true if we are not paused.
+  bool isTransmitting();
 
  private:
    // State that tracks what to transmit and when.
@@ -432,6 +500,12 @@ class Sender final : public TeensyDMX {
 
   // Keeps track of the time since the last break.
   elapsedMicros timeSinceBreak_;
+
+  // For pausing
+  volatile bool paused_;
+  volatile int resumeCounter_;
+  volatile bool transmitting_;  // Indicates whether we are currently
+                                // transmitting a packet
 
   // These error ISR's need to access private functions
   friend void uart0_tx_status_isr();

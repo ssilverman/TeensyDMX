@@ -70,6 +70,7 @@ void Sender::begin() {
     s->end();
   }
 
+  transmitting_ = false;
   state_ = XmitStates::kIdle;
   uart_.begin(kBreakBaud, kBreakFormat);
 
@@ -177,9 +178,51 @@ void Sender::setRefreshRate(float rate) {
   refreshRate_ = rate;
 }
 
+void Sender::resume() {
+  resumeFor(0);
+}
+
+void Sender::resumeFor(int n) {
+  if (n < 0) {
+    return;
+  }
+
+  // Pausing made transmission INACTIVE
+  __disable_irq();
+  resumeCounter_ = n;
+  if (paused_ && !transmitting_) {
+    switch (serialIndex_) {
+      case 0: UART0_C2 = UART_C2_TX_ACTIVE; break;
+      case 1: UART1_C2 = UART_C2_TX_ACTIVE; break;
+      case 2: UART2_C2 = UART_C2_TX_ACTIVE; break;
+#ifdef HAS_KINETISK_UART3
+      case 3: UART3_C2 = UART_C2_TX_ACTIVE; break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+      case 4: UART4_C2 = UART_C2_TX_ACTIVE; break;
+#endif  // HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART5)
+      case 5: UART5_C2 = UART_C2_TX_ACTIVE; break;
+#elif defined(HAS_KINETISK_LPUART0)
+      case 5: LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE; break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+    }
+  }
+  paused_ = false;
+  __enable_irq();
+}
+
+bool Sender::isTransmitting() {
+  // Check these both atomically
+  __disable_irq();
+  bool state = !paused_ || transmitting_;
+  __enable_irq();
+}
+
 void Sender::completePacket() {
   packetCount_++;
   outputBufIndex_ = 0;
+  transmitting_ = false;
   state_ = XmitStates::kIdle;
 }
 
@@ -330,6 +373,18 @@ void lpuart0_tx_isr() {
         break;
 
       case Sender::XmitStates::kIdle:
+        // Pause management
+        if (instance->paused_) {
+          LPUART0_CTRL = LPUART_CTRL_TX_INACTIVE;
+          return;
+        }
+        if (instance->resumeCounter_ > 0) {
+          if (--instance->resumeCounter_ == 0) {
+            instance->paused_ = true;
+          }
+        }
+
+        transmitting_ = true;
         instance->state_ = Sender::XmitStates::kBreak;
         instance->uart_.begin(kBreakBaud, kBreakFormat);
 

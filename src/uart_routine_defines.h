@@ -25,6 +25,18 @@
         break;                                                             \
                                                                            \
       case Sender::XmitStates::kIdle:                                      \
+        /* Pause management */                                             \
+        if (instance->paused_) {                                           \
+          UART##N##_C2 = UART_C2_TX_INACTIVE;                              \
+          return;                                                          \
+        }                                                                  \
+        if (instance->resumeCounter_ > 0) {                                \
+          if (--instance->resumeCounter_ == 0) {                           \
+            instance->paused_ = true;                                      \
+          }                                                                \
+        }                                                                  \
+                                                                           \
+        instance->transmitting_ = true;                                    \
         instance->state_ = Sender::XmitStates::kBreak;                     \
         instance->uart_.begin(kBreakBaud, kBreakFormat);                   \
                                                                            \
@@ -77,6 +89,18 @@
         break;                                                             \
                                                                            \
       case Sender::XmitStates::kIdle:                                      \
+        /* Pause management */                                             \
+        if (instance->paused_) {                                           \
+          UART##N##_C2 = UART_C2_TX_INACTIVE;                              \
+          return;                                                          \
+        }                                                                  \
+        if (instance->resumeCounter_ > 0) {                                \
+          if (--instance->resumeCounter_ == 0) {                           \
+            instance->paused_ = true;                                      \
+          }                                                                \
+        }                                                                  \
+                                                                           \
+        instance->transmitting_ = true;                                    \
         instance->state_ = Sender::XmitStates::kBreak;                     \
         instance->uart_.begin(kBreakBaud, kBreakFormat);                   \
                                                                            \
