@@ -450,17 +450,19 @@ void Receiver::enableIRQs() {
 //  UART0 RX ISR's
 // ---------------------------------------------------------------------------
 
+#ifdef HAS_KINETISK_UART0_FIFO
+#define UART_RX_0 UART_RX_WITH_FIFO(0)
+#else
+#define UART_RX_0 UART_RX_NO_FIFO(UART_S1, UART0_D)
+#endif  // HAS_KINETISK_UART0_FIFO
+
 void uart0_rx_status_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[0];
 
   uint8_t status = UART0_S1;
 
-#ifdef HAS_KINETISK_UART0_FIFO
-  UART_RX_WITH_FIFO(0)
-#else
-  UART_RX_NO_FIFO(0)
-#endif  // HAS_KINETISK_UART0_FIFO
+  UART_RX(0)
 
 // The Teensy LC doesn't have a separate ERROR IRQ
 #ifdef HAS_KINETISL_UART0
@@ -468,29 +470,32 @@ void uart0_rx_status_isr() {
 #endif
 }
 
+#undef UART_RX_0
+
+#ifdef HAS_KINETISK_UART0_FIFO
+#define UART_RX_ERROR_FLUSH_FIFO_0 UART_RX_ERROR_FLUSH_FIFO(0)
+#else
+#define UART_RX_ERROR_FLUSH_FIFO_0
+#endif  // HAS_KINETISK_UART0_FIFO
+
 void uart0_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[0];
 
-  // A framing error likely indicates a break
-  if ((UART0_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-#ifdef HAS_KINETISK_UART0_FIFO
-    UART_RX_ERROR_FLUSH_FIFO(0)
-#endif  // HAS_KINETISK_UART0_FIFO
-
-    b = UART0_D;
-    UART_RX_ERROR_PROCESS
-  }
+  UART_RX_ERROR(0, UART0_S1, UART_S1, UART0_D)
 }
+
+#undef UART_RX_ERROR_FLUSH_FIFO_0
 
 // ---------------------------------------------------------------------------
 //  UART1 RX ISR's
 // ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_UART1_FIFO
+#define UART_RX_1 UART_RX_WITH_FIFO(1)
+#else
+#define UART_RX_1 UART_RX_NO_FIFO(UART_S1, UART1_D)
+#endif  // HAS_KINETISK_UART1_FIFO
 
 void uart1_rx_status_isr() {
   uint8_t b;
@@ -498,11 +503,7 @@ void uart1_rx_status_isr() {
 
   uint8_t status = UART1_S1;
 
-#ifdef HAS_KINETISK_UART1_FIFO
-  UART_RX_WITH_FIFO(1)
-#else
-  UART_RX_NO_FIFO(1)
-#endif  // HAS_KINETISK_UART1_FIFO
+  UART_RX(1)
 
 // The Teensy LC doesn't have a separate ERROR IRQ
 #ifdef HAS_KINETISL_UART1
@@ -510,29 +511,32 @@ void uart1_rx_status_isr() {
 #endif
 }
 
+#undef UART_RX_1
+
+#ifdef HAS_KINETISK_UART1_FIFO
+#define UART_RX_ERROR_FLUSH_FIFO_1 UART_RX_ERROR_FLUSH_FIFO(1)
+#else
+#define UART_RX_ERROR_FLUSH_FIFO_1
+#endif  // HAS_KINETISK_UART1_FIFO
+
 void uart1_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[1];
 
-  // A framing error likely indicates a break
-  if ((UART1_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-#ifdef HAS_KINETISK_UART1_FIFO
-    UART_RX_ERROR_FLUSH_FIFO(1)
-#endif  // HAS_KINETISK_UART1_FIFO
-
-    b = UART1_D;
-    UART_RX_ERROR_PROCESS
-  }
+  UART_RX_ERROR(1, UART1_S1, UART_S1, UART1_D)
 }
+
+#undef UART_RX_ERROR_FLUSH_FIFO_1
 
 // ---------------------------------------------------------------------------
 //  UART2 RX ISR's
 // ---------------------------------------------------------------------------
+
+#ifdef HAS_KINETISK_UART2_FIFO
+#define UART_RX_2 UART_RX_WITH_FIFO(2)
+#else
+#define UART_RX_2 UART_RX_NO_FIFO(UART_S1, UART2_D)
+#endif  // HAS_KINETISK_UART2_FIFO
 
 void uart2_rx_status_isr() {
   uint8_t b;
@@ -540,11 +544,7 @@ void uart2_rx_status_isr() {
 
   uint8_t status = UART2_S1;
 
-#ifdef HAS_KINETISK_UART2_FIFO
-  UART_RX_WITH_FIFO(2)
-#else
-  UART_RX_NO_FIFO(2)
-#endif  // HAS_KINETISK_UART2_FIFO
+  UART_RX(2)
 
 // The Teensy LC doesn't have a separate ERROR IRQ
 #ifdef HAS_KINETISL_UART2
@@ -552,57 +552,53 @@ void uart2_rx_status_isr() {
 #endif
 }
 
+#undef UART_RX_2
+
+#ifdef HAS_KINETISK_UART2_FIFO
+#define UART_RX_ERROR_FLUSH_FIFO_2 UART_RX_ERROR_FLUSH_FIFO(2)
+#else
+#define UART_RX_ERROR_FLUSH_FIFO_2
+#endif  // HAS_KINETISK_UART2_FIFO
+
 void uart2_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[2];
 
-  // A framing error likely indicates a break
-  if ((UART2_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-#ifdef HAS_KINETISK_UART2_FIFO
-    UART_RX_ERROR_FLUSH_FIFO(2)
-#endif  // HAS_KINETISK_UART2_FIFO
-
-    b = UART2_D;
-    UART_RX_ERROR_PROCESS
-  }
+  UART_RX_ERROR(2, UART2_S1, UART_S1, UART2_D)
 }
+
+#undef UART_RX_ERROR_FLUSH_FIFO_2
 
 // ---------------------------------------------------------------------------
 //  UART3 RX ISR's
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART3
+
+#define UART_RX_3 UART_RX_NO_FIFO(UART_S1, UART3_D)
+
 void uart3_rx_status_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[3];
 
   uint8_t status = UART3_S1;
 
-  // No FIFO
-  UART_RX_NO_FIFO(3)
+  UART_RX(3)
 }
+
+#undef UART_RX_3
+
+#define UART_RX_ERROR_FLUSH_FIFO_3
 
 void uart3_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[3];
 
-  // A framing error likely indicates a break
-  if ((UART3_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-    // No FIFO
-    b = UART3_D;
-    UART_RX_ERROR_PROCESS
-  }
+  UART_RX_ERROR(3, UART3_S1, UART_S1, UART3_D)
 }
+
+#undef UART_RX_ERROR_FLUSH_FIFO_3
+
 #endif  // HAS_KINETISK_UART3
 
 // ---------------------------------------------------------------------------
@@ -610,32 +606,31 @@ void uart3_rx_error_isr() {
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART4
+
+#define UART_RX_4 UART_RX_NO_FIFO(UART_S1, UART4_D)
+
 void uart4_rx_status_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[4];
 
   uint8_t status = UART4_S1;
 
-  // No FIFO
-  UART_RX_NO_FIFO(4)
+  UART_RX(4)
 }
+
+#undef UART_RX_4
+
+#define UART_RX_ERROR_FLUSH_FIFO_4
 
 void uart4_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[4];
 
-  // A framing error likely indicates a break
-  if ((UART4_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-    // No FIFO
-    b = UART4_D;
-    UART_RX_ERROR_PROCESS
-  }
+  UART_RX_ERROR(4, UART4_S1, UART_S1, UART4_D)
 }
+
+#undef UART_RX_ERROR_FLUSH_FIFO_4
+
 #endif  // HAS_KINETISK_UART4
 
 // ---------------------------------------------------------------------------
@@ -643,32 +638,31 @@ void uart4_rx_error_isr() {
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART5
+
+#define UART_RX_5 UART_RX_NO_FIFO(UART_S1, UART5_D)
+
 void uart5_rx_status_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[5];
 
   uint8_t status = UART5_S1;
 
-  // No FIFO
-  UART_RX_NO_FIFO(5)
+  UART_RX(5)
 }
+
+#undef UART_RX_5
+
+#define UART_RX_ERROR_FLUSH_FIFO_5
 
 void uart5_rx_error_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[5];
 
-  // A framing error likely indicates a break
-  if ((UART5_S1 & UART_S1_FE) != 0) {
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-    // Note: Reading a byte clears interrupt flags
-
-    // No FIFO
-    b = UART5_D;
-    UART_RX_ERROR_PROCESS
-  }
+  UART_RX_ERROR(5, UART5_S1, UART_S1, UART5_D)
 }
+
+#undef UART_RX_ERROR_FLUSH_FIFO_5
+
 #endif  // HAS_KINETISK_UART5
 
 // ---------------------------------------------------------------------------
@@ -682,13 +676,7 @@ void lpuart0_rx_isr() {
 
   uint32_t status = LPUART0_STAT;
 
-  // No FIFO
-
-  // If the receive buffer is full
-  if ((status & LPUART_STAT_RDRF) != 0) {
-    b = LPUART0_DATA;
-    instance->receiveByte(b);
-  }
+  UART_RX_NO_FIFO(LPUART_STAT, LPUART0_DATA)
 
   // A framing error likely indicates a break
   if ((status & LPUART_STAT_FE) != 0) {
@@ -700,8 +688,7 @@ void lpuart0_rx_isr() {
 
     // No FIFO
 
-    b = LPUART0_DATA;
-    UART_RX_ERROR_PROCESS
+    UART_RX_ERROR_PROCESS(LPUART0_DATA)
   }
 }
 #endif  // HAS_KINETISK_LPUART0

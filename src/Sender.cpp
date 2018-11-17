@@ -264,6 +264,8 @@ void uart0_tx_status_isr() {
   UART_TX_COMPLETE(0)
 }
 
+#undef UART_TX_DATA_STATE_0
+
 // ---------------------------------------------------------------------------
 //  UART1 TX ISR
 // ---------------------------------------------------------------------------
@@ -284,6 +286,8 @@ void uart1_tx_status_isr() {
 
   UART_TX_COMPLETE(1)
 }
+
+#undef UART_TX_DATA_STATE_1
 
 // ---------------------------------------------------------------------------
 //  UART2 TX ISR
@@ -306,6 +310,8 @@ void uart2_tx_status_isr() {
   UART_TX_COMPLETE(2)
 }
 
+#undef UART_TX_DATA_STATE_2
+
 // ---------------------------------------------------------------------------
 //  UART3 TX ISR
 // ---------------------------------------------------------------------------
@@ -324,6 +330,9 @@ void uart3_tx_status_isr() {
 
   UART_TX_COMPLETE(3)
 }
+
+#undef UART_TX_DATA_STATE_3
+
 #endif  // HAS_KINETISK_UART3
 
 // ---------------------------------------------------------------------------
@@ -344,6 +353,9 @@ void uart4_tx_status_isr() {
 
   UART_TX_COMPLETE(4)
 }
+
+#undef UART_TX_DATA_STATE_4
+
 #endif  // HAS_KINETISK_UART4
 
 // ---------------------------------------------------------------------------
@@ -364,6 +376,9 @@ void uart5_tx_status_isr() {
 
   UART_TX_COMPLETE(5)
 }
+
+#undef UART_TX_DATA_STATE_5
+
 #endif  // HAS_KINETISK_UART5
 
 // ---------------------------------------------------------------------------

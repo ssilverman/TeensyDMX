@@ -1,3 +1,6 @@
+// Putting #defines inside a header file is against the Google C++ Style Guide,
+// however, there's so much duplicated UART code otherwise.
+
 #ifndef UART_ROUTINE_DEFINES_H_
 #define UART_ROUTINE_DEFINES_H_
 
@@ -129,14 +132,16 @@
   }
 
 // Assumes status = UARTx_S1
-#define UART_RX_NO_FIFO(N)            \
-  /* If the receive buffer is full */ \
-  if ((status & UART_S1_RDRF) != 0) { \
-    b = UART##N##_D;                  \
-    instance->receiveByte(b);         \
+#define UART_RX_NO_FIFO(STAT_PREFIX, DATA)  \
+  /* If the receive buffer is full */       \
+  if ((status & STAT_PREFIX##_RDRF) != 0) { \
+    b = DATA;                               \
+    instance->receiveByte(b);               \
   }
 
-#define UART_RX_ERROR_FLUSH_FIFO(N)   \
+#define UART_RX(N) UART_RX_##N
+
+#define UART_RX_ERROR_FLUSH_FIFO(N)  \
   /* Flush anything in the buffer */ \
   uint8_t avail = UART##N##_RCFIFO;  \
   if (avail > 1) {                   \
@@ -146,8 +151,8 @@
     }                                \
   }
 
-// Assumes b = UARTx_D or b = LPUARTx_DATA
-#define UART_RX_ERROR_PROCESS       \
+#define UART_RX_ERROR_PROCESS(DATA) \
+  b = DATA;                         \
   if (b == 0) {                     \
     instance->receiveBreak();       \
   } else {                          \
@@ -157,6 +162,19 @@
      * See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292) */ \
     instance->activeBufIndex_ = 0;  \
     instance->completePacket();     \
+  }
+
+#define UART_RX_ERROR(N, STAT, STAT_PREFIX, DATA)                          \
+  /* A framing error likely indicates a break */                           \
+  if ((STAT & STAT_PREFIX##_FE) != 0) {                                    \
+    /* Only allow a packet whose framing error actually indicates a break. \
+     * A value of zero indicates a true break and not some other           \
+     * framing error. */                                                   \
+    /* Note: Reading a byte clears interrupt flags */                      \
+                                                                           \
+    UART_RX_ERROR_FLUSH_FIFO_##N                                           \
+                                                                           \
+    UART_RX_ERROR_PROCESS(DATA)                                            \
   }
 
 #endif  // UART_ROUTINE_DEFINES_H_
