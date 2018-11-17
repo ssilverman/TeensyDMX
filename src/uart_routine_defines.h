@@ -27,7 +27,8 @@
     }                                                                \
   }
 
-// Assumes status = UARTx_S1 and control = UARTx_C2
+// Assumes status = UARTx_S1 and control = UARTx_C2.
+// Needs to have UART_TX_DATA_STATE_N defined.
 #define UART_TX(N)                                                         \
   /* If the transmit buffer is empty */                                    \
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {      \
@@ -139,6 +140,7 @@
     instance->receiveByte(b);               \
   }
 
+// Needs to have UART_RX_N defined.
 #define UART_RX(N) UART_RX_##N
 
 #define UART_RX_ERROR_FLUSH_FIFO(N)  \
@@ -164,6 +166,7 @@
     instance->completePacket();     \
   }
 
+// Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
 #define UART_RX_ERROR(N, STAT, STAT_PREFIX, DATA)                          \
   /* A framing error likely indicates a break */                           \
   if ((STAT & STAT_PREFIX##_FE) != 0) {                                    \
