@@ -152,23 +152,10 @@ class TeensyDMX {
 // A DMX receiver. This receives packets asynchronously.
 class Receiver final : public TeensyDMX {
  public:
-  Receiver(HardwareSerial &uart)
-      : TeensyDMX(uart),
-        buf1_{0},
-        buf2_{0},
-        activeBuf_(buf1_),
-        inactiveBuf_(buf2_),
-        activeBufIndex_(0),
-        packetSize_(0),
-        inPacket_(false),
-        lastBreakTime_(0),
-        packetTimeoutCount_(0),
-        framingErrorCount_(0) {}
+  Receiver(HardwareSerial &uart);
 
   // Destructs Receiver. This calls end().
-  ~Receiver() override {
-    end();
-  }
+  ~Receiver() override;
 
   // The maximum allowed packet time for receivers, either BREAK plus data,
   // or BREAK to BREAK, in milliseconds.
@@ -310,22 +297,10 @@ class Receiver final : public TeensyDMX {
 // A DMX transmitter. This sends packets asynchronously.
 class Sender final : public TeensyDMX {
  public:
-  Sender(HardwareSerial &uart)
-      : TeensyDMX(uart),
-        state_(XmitStates::kIdle),
-        outputBuf_{0},
-        outputBufIndex_(0),
-        packetSize_(kMaxDMXPacketSize),
-        refreshRate_(INFINITY),
-        breakToBreakTime_(0),
-        paused_(false),
-        resumeCounter_(0),
-        transmitting_(false) {}
+  Sender(HardwareSerial &uart);
 
   // Destructs Sender. This calls end().
-  ~Sender() override {
-    end();
-  }
+  ~Sender() override;
 
   void begin() override;
 

@@ -47,6 +47,22 @@ static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 static Sender *volatile txInstances[6]{nullptr};
 static volatile bool txInstancesMutex{false};
 
+Sender::Sender(HardwareSerial &uart)
+    : TeensyDMX(uart),
+      state_(XmitStates::kIdle),
+      outputBuf_{0},
+      outputBufIndex_(0),
+      packetSize_(kMaxDMXPacketSize),
+      refreshRate_(INFINITY),
+      breakToBreakTime_(0),
+      paused_(false),
+      resumeCounter_(0),
+      transmitting_(false) {}
+
+Sender::~Sender() {
+  end();
+}
+
 #define ACTIVATE_TX_SERIAL(N)\
   attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_status_isr);\
   UART##N##_C2 = UART_C2_TX_ACTIVE;

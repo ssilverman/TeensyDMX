@@ -47,6 +47,24 @@ static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 static Receiver *volatile rxInstances[6]{nullptr};
 static volatile bool rxInstancesMutex{false};
 
+Receiver::Receiver(HardwareSerial &uart)
+    : TeensyDMX(uart),
+      buf1_{0},
+      buf2_{0},
+      activeBuf_(buf1_),
+      inactiveBuf_(buf2_),
+      activeBufIndex_(0),
+      packetSize_(0),
+      packetTimestamp_(0),
+      inPacket_(false),
+      lastBreakTime_(0),
+      packetTimeoutCount_(0),
+      framingErrorCount_(0) {}
+
+Receiver::~Receiver() {
+  end();
+}
+
 #define ACTIVATE_RX_SERIAL(N)                                           \
   /* Enable receive-only */                                             \
   UART##N##_C2 = UART##N##_C2_RX_ENABLE;                                \
