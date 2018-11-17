@@ -137,7 +137,7 @@ void Sender::end() {
   }
 
   // Remove any chance that our TX ISRs start after end() is called,
-  // so disable the IRQ's first
+  // so disable the IRQs first
 
   uart_.end();
 
