@@ -496,7 +496,7 @@ class Sender final : public TeensyDMX {
 
   // The BREAK-to-BREAK timing, matching the refresh rate. This is
   // specified in microseconds.
-  uint32_t breakToBreakTime_;
+  volatile uint32_t breakToBreakTime_;
 
   // Keeps track of the time since the last break.
   elapsedMicros timeSinceBreak_;
