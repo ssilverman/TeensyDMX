@@ -247,17 +247,19 @@ void Sender::completePacket() {
 //  UART0 TX ISR
 // ---------------------------------------------------------------------------
 
+#ifdef HAS_KINETISK_UART0_FIFO
+#define UART_TX_DATA_STATE_0 UART_TX_DATA_STATE_WITH_FIFO(0)
+#else
+#define UART_TX_DATA_STATE_0 UART_TX_DATA_STATE_NO_FIFO(0)
+#endif  // HAS_KINETISK_UART0_FIFO
+
 void uart0_tx_status_isr() {
   Sender *instance = txInstances[0];
 
   uint8_t status = UART0_S1;
   uint8_t control = UART0_C2;
 
-#ifdef HAS_KINETISK_UART0_FIFO
-  UART_TX_WITH_FIFO(0)
-#else
-  UART_TX_NO_FIFO(0)
-#endif  // HAS_KINETISK_UART0_FIFO
+  UART_TX(0)
 
   UART_TX_COMPLETE(0)
 }
@@ -266,17 +268,19 @@ void uart0_tx_status_isr() {
 //  UART1 TX ISR
 // ---------------------------------------------------------------------------
 
+#ifdef HAS_KINETISK_UART1_FIFO
+#define UART_TX_DATA_STATE_1 UART_TX_DATA_STATE_WITH_FIFO(1)
+#else
+#define UART_TX_DATA_STATE_1 UART_TX_DATA_STATE_NO_FIFO(1)
+#endif  // HAS_KINETISK_UART1_FIFO
+
 void uart1_tx_status_isr() {
   Sender *instance = txInstances[1];
 
   uint8_t status = UART1_S1;
   uint8_t control = UART1_C2;
 
-#ifdef HAS_KINETISK_UART1_FIFO
-  UART_TX_WITH_FIFO(1)
-#else
-  UART_TX_NO_FIFO(1)
-#endif  // HAS_KINETISK_UART1_FIFO
+  UART_TX(1)
 
   UART_TX_COMPLETE(1)
 }
@@ -285,17 +289,19 @@ void uart1_tx_status_isr() {
 //  UART2 TX ISR
 // ---------------------------------------------------------------------------
 
+#ifdef HAS_KINETISK_UART2_FIFO
+#define UART_TX_DATA_STATE_2 UART_TX_DATA_STATE_WITH_FIFO(2)
+#else
+#define UART_TX_DATA_STATE_2 UART_TX_DATA_STATE_NO_FIFO(2)
+#endif  // HAS_KINETISK_UART2_FIFO
+
 void uart2_tx_status_isr() {
   Sender *instance = txInstances[2];
 
   uint8_t status = UART2_S1;
   uint8_t control = UART2_C2;
 
-#ifdef HAS_KINETISK_UART2_FIFO
-  UART_TX_WITH_FIFO(2)
-#else
-  UART_TX_NO_FIFO(2)
-#endif  // HAS_KINETISK_UART2_FIFO
+  UART_TX(2)
 
   UART_TX_COMPLETE(2)
 }
@@ -305,14 +311,16 @@ void uart2_tx_status_isr() {
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART3
+
+#define UART_TX_DATA_STATE_3 UART_TX_DATA_STATE_NO_FIFO(3)
+
 void uart3_tx_status_isr() {
   Sender *instance = txInstances[3];
 
   uint8_t status = UART3_S1;
   uint8_t control = UART3_C2;
 
-  // No FIFO
-  UART_TX_NO_FIFO(3)
+  UART_TX(3)
 
   UART_TX_COMPLETE(3)
 }
@@ -323,14 +331,16 @@ void uart3_tx_status_isr() {
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART4
+
+#define UART_TX_DATA_STATE_4 UART_TX_DATA_STATE_NO_FIFO(4)
+
 void uart4_tx_status_isr() {
   Sender *instance = txInstances[4];
 
   uint8_t status = UART4_S1;
   uint8_t control = UART4_C2;
 
-  // No FIFO
-  UART_TX_NO_FIFO(4)
+  UART_TX(4)
 
   UART_TX_COMPLETE(4)
 }
@@ -341,14 +351,16 @@ void uart4_tx_status_isr() {
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART5
+
+#define UART_TX_DATA_STATE_5 UART_TX_DATA_STATE_NO_FIFO(5)
+
 void uart5_tx_status_isr() {
   Sender *instance = txInstances[5];
 
   uint8_t status = UART5_S1;
   uint8_t control = UART5_C2;
 
-  // No FIFO
-  UART_TX_NO_FIFO(5)
+  UART_TX(5)
 
   UART_TX_COMPLETE(5)
 }
@@ -401,7 +413,7 @@ void lpuart0_tx_isr() {
           }
         }
 
-        transmitting_ = true;
+        instance->transmitting_ = true;
         instance->state_ = Sender::XmitStates::kBreak;
         instance->uart_.begin(kBreakBaud, kBreakFormat);
 
