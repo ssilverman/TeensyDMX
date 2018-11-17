@@ -233,6 +233,7 @@ bool Sender::isTransmitting() {
   __disable_irq();
   bool state = !paused_ || transmitting_;
   __enable_irq();
+  return state;
 }
 
 void Sender::completePacket() {
