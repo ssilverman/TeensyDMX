@@ -23,6 +23,14 @@ packetTimeoutCount	KEYWORD2
 framingErrorCount	KEYWORD2
 setPacketSize	KEYWORD2
 set	KEYWORD2
+setRefreshRate	KEYWORD2
+getRefreshRate	KEYWORD2
+pause	KEYWORD2
+isPaused	KEYWORD2
+resume	KEYWORD2
+resumeFor	KEYWORD2
+getResumedRemaining	KEYWORD2
+isTransmitting	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
