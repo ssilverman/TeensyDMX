@@ -2,6 +2,34 @@
 
 This document details the changes between each release.
 
+## [2.5.0]
+
+### Added
+* The sender can now be paused and resumed. This allows implementations to
+  send packets that must be adjacent to other packets, for example,
+  System Information Packets (SIP) (see Annex D5 of ANSI E1.11). Essentially,
+  the effect is being able to use the asynchronous transmitter synchronously.
+
+### Changed
+* The receiver no longer keeps packet data if it's followed by a framing error
+  having non-zero data. Framing errors are used to detect BREAKs and must
+  consist of all zeros in order for it to be considered a valid BREAK. This
+  choice was made because the condition may indicate corrupt data.
+
+  See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292)
+* Reduced the amount of duplicated code in the UART transmit and receive ISRs
+  via macros.
+* Internally, when `Sender` needs to disable interrupts, only the UART
+  interrupts are disabled for the required duration. This change is similar
+  to the change made in the previous release for `Receiver::readPacket`.
+* Updated `keywords.txt`.
+
+### Fixed
+* UARTs 2 and above (Serial3 and above) were not correctly detecting BREAKs
+  because the framing error detection appeared to be overidden by the other
+  receive routines. This was fixed by increasing the priority of the framing
+  error interrupts to one greater than the priority of the status interrupts.
+
 ## [2.4.0]
 
 ### Added

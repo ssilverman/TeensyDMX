@@ -12,12 +12,18 @@ alternate start codes.
 Some notable features of this library:
 
 1. Teensy's default serial buffer isn't used; the data goes directly to/from
-   the DMX buffers from/to the UART ISRs.
+   the DMX buffers from/to the UART ISRs. In other words, the library
+   is asynchronous and runs independently; all you need to worry about is
+   setting and getting channel data.
 2. Simple API: After setup, there's only one read call (`readPacket`) and two
    forms of one write call (`set` for single and multiple channels).
 3. The library properly handles DMX packets containing less than 513 slots.
 4. The transmitter refresh rate can be changed to something less than
    "maximum rate".
+5. The transmitter can be paused and resumed to allow for packets that must
+   be adjacent to other packets. In other words, the asynchronous transmitter
+   can be used synchronously. For example, System Information Packets (SIP)
+   require this. See Annex D5 of ANSI E1.11.
 
 ## How to use
 
@@ -90,6 +96,51 @@ dmxTx.set(6, 219);
 The other `set` function can set multiple channels at once. This is left as an
 exercise to the reader.
 
+#### Transmission rate
+
+The transmission rate can be changed from a maximum of about 44Hz down to as
+low as you wish. See the `setRefreshRate` and `getRefreshRate` in `Sender`.
+
+Note that the rate won't be higher than the limits dictated by the protocol,
+about 44Hz, no matter how high it's set. The default is, in fact, `INFINITY`.
+
+#### Pausing and resuming transmit
+
+`Sender` is an asynchronous packet transmitter; packets are always being sent.
+To ensure that certain packets are adjacent to others, such as for System
+Information Packets (SIP), the API provides a way to send packets synchronously.
+
+The `pause()` function pauses packet transmission, the `resume()` function
+resumes transmission, and `resumeFor(int)` resumes transmission for a specific
+number of packets, after which transmission is paused again. `isTransmitting()`
+indicates whether the transmitter is sending anything while paused---it always
+returns `true` when not paused---and can be used to determine when it's safe
+to start filling in packet data after a `resumeFor` call.
+
+Let's say you want to send a SIP packet immediately after a regular packet.
+The following code shows how to accomplish this:
+
+```c++
+dmxTx.pause();
+// [Use one of the dmxTx.set functions to set regular packet data]
+dmxTx.resumeFor(1);  // Send one regular packet
+while (dmxTx.isTransmitting()) {  // Wait for this packet to be sent
+  yield();
+}
+// [Fill in the SIP data]
+dmxTx.resumeFor(1);  // Send the SIP data
+while (dmxTx.isTransmitting()) {  // Wait for this packet to be sent
+  yield();
+}
+// [Return to filling in the regular data, but fill in at least one packet]
+dmxTx.resume();  // Resume transmitting regular data
+```
+
+Other functions of interest are `isPaused()` and `getResumedRemaining()`.
+`isPaused` indicates whether the transmitter is paused. `getResumedRemaining`
+returns the number of packets that will be sent before the transmitter is
+paused again.
+
 ## Technical notes
 
 ### Simultaneous transmit and receive
@@ -108,8 +159,8 @@ Use `qindesign::teensydmx::Receiver` to receive and
 
 From a UART perspective, there are two parts to a DMX frame:
 
-1. Break, 50000 baud, 8N1
-2. Up to 513 slots, 250000 baud, 8N2
+1. BREAK, 50000 baud, 8N1.
+2. Up to 513 slots, 250000 baud, 8N2.
 
 The total frame time is:
 
