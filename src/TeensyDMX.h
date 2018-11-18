@@ -330,6 +330,7 @@ class Sender final : public TeensyDMX {
 
   // Sets a channel's value. Channel zero represents the start code.
   // The start code should really be zero, but it can be changed here.
+  // This also affects the packet currently being transmitted.
   //
   // If the channel is not in the range 0-512 then the call is ignored.
   // Note that it is possible to set channels outside the range of the
@@ -339,17 +340,12 @@ class Sender final : public TeensyDMX {
   // in the range 25-512, then the value will be set internally but will
   // not be transmitted until the packet size changes via setPacketSize.
   //
-  // Note that setting any values can affect the packet currently being
-  // transmitted. After pausing with pause(), it's useful to wait until
-  // transmission is actually finished before setting channel values after
-  // pausing. isTransmitting() can be used to check this condition.
-  void set(int channel, uint8_t value) {
-    if (0 <= channel && channel < kMaxDMXPacketSize) {
-      outputBuf_[channel] = value;
-    }
-  }
+  // After pausing with pause(), it's not necessary to wait until transmission
+  // is finished before setting channel values.
+  void set(int channel, uint8_t value);
 
-  // Sets the values for a range of channels.
+  // Sets the values for a range of channels. This also affects the packet
+  // currently being transmitted.
   //
   // This does nothing if any part of the channel range is not in the
   // range 0-512. This limit is equal to kDMXMaxPacketSize-1.
@@ -358,10 +354,8 @@ class Sender final : public TeensyDMX {
   // values outside the range of the current packet size (if the size
   // is less than 513).
   //
-  // Note that setting any values can affect the packet currently being
-  // transmitted. After pausing with pause(), it's useful to wait until
-  // transmission is actually finished before setting channel values after
-  // pausing. isTransmitting() can be used to check this condition.
+  // After pausing with pause(), it's not necessary to wait until transmission
+  // is finished before setting channel values.
   void set(int startChannel, const uint8_t *values, int len);
 
   // Sets the packet refresh rate. Negative and NaN values are ignored.
@@ -388,21 +382,19 @@ class Sender final : public TeensyDMX {
 
   // Pauses the ansynchronous packet sending. This allows information
   // to be inserted at a specific point. This pauses after finishing
-  // any current packet.
+  // transmission of any current packet.
   //
   // An example where this is useful is for System Information (SIP)
   // packets, where checksum data needs to be applied to the preceding
   // packet.
   //
-  // Note that the current packet needs to complete before setting channel
-  // data with one of the 'set' functions. isTransmitting() can be used to
-  // check this condition.
+  // Note that the current packet does not need to complete before setting
+  // channel data with one of the 'set' functions. Use them freely after
+  // calling pause().
   //
   // Also note that this does not change the number of resumed packets
   // remaining.
-  void pause() {
-    paused_ = true;
-  }
+  void pause();
 
   // Returns whether we are currently paused. This will occur after pause()
   // is called and after any "resumed" messages are sent. Note that it is
@@ -450,6 +442,12 @@ class Sender final : public TeensyDMX {
   // or BREAK to BREAK, in microseconds.
   static constexpr uint32_t kMinDMXPacketTime = 1204;
 
+  // Disables all the UART IRQs so that variables can be accessed concurrently.
+  void disableIRQs();
+
+  // Enables all the UART IRQs.
+  void enableIRQs();
+
   // Completes a sent packet. This increments the packet count, resets the
   // output buffer index, and sets the state to Idle.
   //
@@ -458,6 +456,10 @@ class Sender final : public TeensyDMX {
 
   // Keeps track of what we're transmitting.
   volatile XmitStates state_;
+
+  // Use this buffer while paused. This way, we don't have to worry about
+  // affecting the currently-transmitting packet.
+  uint8_t pausedBuf_[kMaxDMXPacketSize];
 
   volatile uint8_t outputBuf_[kMaxDMXPacketSize];
   int outputBufIndex_;

@@ -164,6 +164,16 @@ static volatile void *memcpy(volatile void *dst, const void *src, size_t len) {
   return dst;
 }
 
+void Sender::set(int channel, uint8_t value) {
+  if (channel < 0 || kMaxDMXPacketSize <= channel) {
+    return;
+  }
+  if (!paused_) {
+    outputBuf_[channel] = value;
+  }
+  pausedBuf_[channel] = value;
+}
+
 void Sender::set(int startChannel, const uint8_t *values, int len) {
   if (len <= 0) {
     return;
@@ -175,7 +185,10 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
     return;
   }
 
-  memcpy(outputBuf_ + startChannel, values, len);
+  if (!paused_) {
+    memcpy(outputBuf_ + startChannel, values, len);
+  }
+  memcpy(pausedBuf_ + startChannel, values, len);
 }
 
 void Sender::setRefreshRate(float rate) {
@@ -194,6 +207,10 @@ void Sender::setRefreshRate(float rate) {
   refreshRate_ = rate;
 }
 
+void Sender::pause() {
+  paused_ = true;
+}
+
 void Sender::resume() {
   resumeFor(0);
 }
@@ -204,28 +221,34 @@ void Sender::resumeFor(int n) {
   }
 
   // Pausing made transmission INACTIVE
-  __disable_irq();
+  disableIRQs();
   resumeCounter_ = n;
-  if (paused_ && !transmitting_) {
-    switch (serialIndex_) {
-      case 0: UART0_C2 = UART_C2_TX_ACTIVE; break;
-      case 1: UART1_C2 = UART_C2_TX_ACTIVE; break;
-      case 2: UART2_C2 = UART_C2_TX_ACTIVE; break;
+  if (paused_) {
+    if (!transmitting_) {
+      switch (serialIndex_) {
+        case 0: UART0_C2 = UART_C2_TX_ACTIVE; break;
+        case 1: UART1_C2 = UART_C2_TX_ACTIVE; break;
+        case 2: UART2_C2 = UART_C2_TX_ACTIVE; break;
 #ifdef HAS_KINETISK_UART3
-      case 3: UART3_C2 = UART_C2_TX_ACTIVE; break;
+        case 3: UART3_C2 = UART_C2_TX_ACTIVE; break;
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
-      case 4: UART4_C2 = UART_C2_TX_ACTIVE; break;
+        case 4: UART4_C2 = UART_C2_TX_ACTIVE; break;
 #endif  // HAS_KINETISK_UART4
 #if defined(HAS_KINETISK_UART5)
-      case 5: UART5_C2 = UART_C2_TX_ACTIVE; break;
+        case 5: UART5_C2 = UART_C2_TX_ACTIVE; break;
 #elif defined(HAS_KINETISK_LPUART0)
-      case 5: LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE; break;
+        case 5: LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE; break;
 #endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+      }
     }
+
+    // Copy whatever's in the paused buffer to the output buffer
+    memcpy(outputBuf_, pausedBuf_, kMaxDMXPacketSize);
+
+    paused_ = false;
   }
-  paused_ = false;
-  __enable_irq();
+  enableIRQs();
 }
 
 bool Sender::isTransmitting() {
@@ -241,6 +264,76 @@ void Sender::completePacket() {
   outputBufIndex_ = 0;
   transmitting_ = false;
   state_ = XmitStates::kIdle;
+}
+
+// ---------------------------------------------------------------------------
+//  IRQ management
+// ---------------------------------------------------------------------------
+
+void Receiver::disableIRQs() {
+  switch (serialIndex_) {
+    case 0:
+      NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
+      break;
+    case 1:
+      NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
+      break;
+    case 2:
+      NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
+      break;
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    case 4:
+      NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART5)
+    case 5:
+      NVIC_DISABLE_IRQ(IRQ_UART5_STATUS);
+      break;
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      NVIC_DISABLE_IRQ(IRQ_LPUART0);
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+  }
+}
+
+void Receiver::enableIRQs() {
+  switch (serialIndex_) {
+    case 0:
+      NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
+      break;
+    case 1:
+      NVIC_ENABLE_IRQ(IRQ_UART1_STATUS);
+      break;
+    case 2:
+      NVIC_ENABLE_IRQ(IRQ_UART2_STATUS);
+      break;
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      NVIC_ENABLE_IRQ(IRQ_UART3_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    case 4:
+      NVIC_ENABLE_IRQ(IRQ_UART4_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART5)
+    case 5:
+      NVIC_ENABLE_IRQ(IRQ_UART5_STATUS);
+      break;
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      NVIC_ENABLE_IRQ(IRQ_LPUART0);
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+  }
 }
 
 // ---------------------------------------------------------------------------
