@@ -253,9 +253,9 @@ void Sender::resumeFor(int n) {
 
 bool Sender::isTransmitting() {
   // Check these both atomically
-  __disable_irq();
+  disableIRQs();
   bool state = !paused_ || transmitting_;
-  __enable_irq();
+  enableIRQs();
   return state;
 }
 
@@ -270,7 +270,7 @@ void Sender::completePacket() {
 //  IRQ management
 // ---------------------------------------------------------------------------
 
-void Receiver::disableIRQs() {
+void Sender::disableIRQs() {
   switch (serialIndex_) {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
@@ -303,7 +303,7 @@ void Receiver::disableIRQs() {
   }
 }
 
-void Receiver::enableIRQs() {
+void Sender::enableIRQs() {
   switch (serialIndex_) {
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
