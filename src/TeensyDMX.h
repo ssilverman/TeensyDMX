@@ -244,10 +244,10 @@ class Receiver final : public TeensyDMX {
 
   volatile uint8_t buf1_[kMaxDMXPacketSize];
   volatile uint8_t buf2_[kMaxDMXPacketSize];
-  volatile uint8_t *activeBuf_;
+  volatile uint8_t *volatile activeBuf_;
   // Read-only shared memory buffer, make const volatile
   // https://embeddedgurus.com/barr-code/2012/01/combining-cs-volatile-and-const-keywords/
-  const volatile uint8_t *inactiveBuf_;
+  const volatile uint8_t *volatile inactiveBuf_;
   volatile int activeBufIndex_;
 
   // The size of the last received packet.
