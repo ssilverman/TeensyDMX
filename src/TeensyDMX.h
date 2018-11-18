@@ -17,7 +17,6 @@
 #define QINDESIGN_TEENSYDMX_H_
 
 // C++ includes
-#include <cmath>
 #include <cstdint>
 
 // Other includes

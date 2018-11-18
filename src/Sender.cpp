@@ -1,6 +1,7 @@
 #include "TeensyDMX.h"
 
 // C++ includes
+#include <cmath>
 #include <cstring>
 
 // Project includes
@@ -192,7 +193,7 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
 }
 
 void Sender::setRefreshRate(float rate) {
-  if (std::isnan(rate) || rate < 0.0f) {
+  if ((rate != rate) || rate < 0.0f) {  // NaN or negative
     return;
   }
   if (rate == 0.0f) {
