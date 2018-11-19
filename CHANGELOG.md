@@ -42,6 +42,8 @@ This document details the changes between each release.
   because the framing error detection appeared to be overidden by the other
   receive routines. This was fixed by increasing the priority of the framing
   error interrupts to one greater than the priority of the status interrupts.
+* Sending via UARTs having FIFOs now works correctly with transmission-complete
+  timing. `Sender::completePacket()` is now called at the correct place.
 
 ## [2.4.0]
 
