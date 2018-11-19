@@ -15,28 +15,29 @@
     UART##N##_D = instance->outputBuf_[instance->outputBufIndex_++]; \
   } while (UART##N##_TCFIFO < 8);
 
-#define UART_TX_DATA_STATE_NO_FIFO(N)                                \
-  if (instance->outputBufIndex_ >= instance->packetSize_) {          \
-    instance->completePacket();                                      \
-    UART##N##_C2 = UART_C2_TX_COMPLETING;                            \
-  } else {                                                           \
-    UART##N##_D = instance->outputBuf_[instance->outputBufIndex_++]; \
-    if (instance->outputBufIndex_ >= instance->packetSize_) {        \
-      instance->completePacket();                                    \
-      UART##N##_C2 = UART_C2_TX_COMPLETING;                          \
-    }                                                                \
+#define UART_TX_DATA_STATE_NO_FIFO(CTRL, DATA, CTRL_PREFIX)   \
+  if (instance->outputBufIndex_ >= instance->packetSize_) {   \
+    instance->completePacket();                               \
+    CTRL = CTRL_PREFIX##_TX_COMPLETING;                       \
+  } else {                                                    \
+    DATA = instance->outputBuf_[instance->outputBufIndex_++]; \
+    if (instance->outputBufIndex_ >= instance->packetSize_) { \
+      instance->completePacket();                             \
+      CTRL = CTRL_PREFIX##_TX_COMPLETING;                     \
+    }                                                         \
   }
 
-// Assumes status = UARTx_S1 and control = UARTx_C2.
+// Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent)
 // Needs to have UART_TX_DATA_STATE_N defined.
-#define UART_TX(N)                                                    \
+#define UART_TX(N, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)              \
   /* If the transmit buffer is empty */                               \
-  if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) { \
+  if ((control & CTRL_PREFIX##_TIE) != 0 &&                           \
+      (status & STAT_PREFIX##_TDRE) != 0) {                           \
     switch (instance->state_) {                                       \
       case Sender::XmitStates::kBreak:                                \
-        UART##N##_D = 0;                                              \
+        DATA = 0;                                                     \
         instance->timeSinceBreak_ = 0;                                \
-        UART##N##_C2 = UART_C2_TX_COMPLETING;                         \
+        CTRL = CTRL_PREFIX##_TX_COMPLETING;                           \
         break;                                                        \
                                                                       \
       case Sender::XmitStates::kData:                                 \
@@ -46,7 +47,7 @@
       case Sender::XmitStates::kIdle:                                 \
         /* Pause management */                                        \
         if (instance->paused_) {                                      \
-          UART##N##_C2 = UART_C2_TX_INACTIVE;                         \
+          CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
           return;                                                     \
         }                                                             \
         if (instance->resumeCounter_ > 0) {                           \
@@ -62,42 +63,43 @@
         /* Delay so that we can achieve the specified refresh rate */ \
         uint32_t timeSinceBreak = instance->timeSinceBreak_;          \
         if (timeSinceBreak < instance->breakToBreakTime_) {           \
-          UART##N##_C2 = UART_C2_TX_INACTIVE;                         \
+          CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
           if (instance->breakToBreakTime_ != UINT32_MAX) {            \
             /* Non-infinite break time */                             \
             if (!instance->refreshRateTimer_.begin(                   \
                     []() {                                            \
                       txInstances[N]->refreshRateTimer_.end();        \
-                      UART##N##_C2 = UART_C2_TX_ACTIVE;               \
+                      CTRL = CTRL_PREFIX##_TX_ACTIVE;                 \
                     },                                                \
                     instance->breakToBreakTime_ - timeSinceBreak)) {  \
               /* If starting the timer failed */                      \
-              UART##N##_C2 = UART_C2_TX_ACTIVE;                       \
+              CTRL = CTRL_PREFIX##_TX_ACTIVE;                         \
             }                                                         \
           }                                                           \
         } else {                                                      \
           /* No delay necessary */                                    \
-          UART##N##_C2 = UART_C2_TX_ACTIVE;                           \
+          CTRL = CTRL_PREFIX##_TX_ACTIVE;                             \
         }                                                             \
         break;                                                        \
     }                                                                 \
   }
 
-// Assumes status = UARTx_S1 and control = UARTx_C2
-#define UART_TX_COMPLETE(N)                                          \
-  /* If transmission is complete */                                  \
-  if ((control & UART_C2_TCIE) != 0 && (status & UART_S1_TC) != 0) { \
-    switch (instance->state_) {                                      \
-      case Sender::XmitStates::kBreak:                               \
-        instance->state_ = Sender::XmitStates::kData;                \
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);             \
-        break;                                                       \
-                                                                     \
-      case Sender::XmitStates::kData:                                \
-      case Sender::XmitStates::kIdle:                                \
-        break;                                                       \
-    }                                                                \
-    UART##N##_C2 = UART_C2_TX_ACTIVE;                                \
+// Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent)
+#define UART_TX_COMPLETE(CTRL, CTRL_PREFIX, STAT_PREFIX) \
+  /* If transmission is complete */                      \
+  if ((control & CTRL_PREFIX##_TCIE) != 0 &&             \
+      (status & STAT_PREFIX##_TC) != 0) {                \
+    switch (instance->state_) {                          \
+      case Sender::XmitStates::kBreak:                   \
+        instance->state_ = Sender::XmitStates::kData;    \
+        instance->uart_.begin(kSlotsBaud, kSlotsFormat); \
+        break;                                           \
+                                                         \
+      case Sender::XmitStates::kData:                    \
+      case Sender::XmitStates::kIdle:                    \
+        break;                                           \
+    }                                                    \
+    CTRL = CTRL_PREFIX##_TX_ACTIVE;                      \
   }
 
 // Assumes status = UARTx_S1

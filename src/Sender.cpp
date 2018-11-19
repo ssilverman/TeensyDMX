@@ -354,7 +354,8 @@ void Sender::enableIRQs() {
 #ifdef HAS_KINETISK_UART0_FIFO
 #define UART_TX_DATA_STATE_0 UART_TX_DATA_STATE_WITH_FIFO(0)
 #else
-#define UART_TX_DATA_STATE_0 UART_TX_DATA_STATE_NO_FIFO(0)
+#define UART_TX_DATA_STATE_0 \
+  UART_TX_DATA_STATE_NO_FIFO(UART0_C2, UART0_D, UART_C2)
 #endif  // HAS_KINETISK_UART0_FIFO
 
 void uart0_tx_status_isr() {
@@ -363,9 +364,9 @@ void uart0_tx_status_isr() {
   uint8_t status = UART0_S1;
   uint8_t control = UART0_C2;
 
-  UART_TX(0)
+  UART_TX(0, UART0_C2, UART0_D, UART_C2, UART_S1)
 
-  UART_TX_COMPLETE(0)
+  UART_TX_COMPLETE(UART0_C2, UART_C2, UART_S1)
 }
 
 #undef UART_TX_DATA_STATE_0
@@ -377,7 +378,8 @@ void uart0_tx_status_isr() {
 #ifdef HAS_KINETISK_UART1_FIFO
 #define UART_TX_DATA_STATE_1 UART_TX_DATA_STATE_WITH_FIFO(1)
 #else
-#define UART_TX_DATA_STATE_1 UART_TX_DATA_STATE_NO_FIFO(1)
+#define UART_TX_DATA_STATE_1 \
+  UART_TX_DATA_STATE_NO_FIFO(UART1_C2, UART1_D, UART_C2)
 #endif  // HAS_KINETISK_UART1_FIFO
 
 void uart1_tx_status_isr() {
@@ -386,9 +388,9 @@ void uart1_tx_status_isr() {
   uint8_t status = UART1_S1;
   uint8_t control = UART1_C2;
 
-  UART_TX(1)
+  UART_TX(1, UART1_C2, UART1_D, UART_C2, UART_S1)
 
-  UART_TX_COMPLETE(1)
+  UART_TX_COMPLETE(UART1_C2, UART_C2, UART_S1)
 }
 
 #undef UART_TX_DATA_STATE_1
@@ -400,7 +402,8 @@ void uart1_tx_status_isr() {
 #ifdef HAS_KINETISK_UART2_FIFO
 #define UART_TX_DATA_STATE_2 UART_TX_DATA_STATE_WITH_FIFO(2)
 #else
-#define UART_TX_DATA_STATE_2 UART_TX_DATA_STATE_NO_FIFO(2)
+#define UART_TX_DATA_STATE_2 \
+  UART_TX_DATA_STATE_NO_FIFO(UART2_C2, UART2_D, UART_C2)
 #endif  // HAS_KINETISK_UART2_FIFO
 
 void uart2_tx_status_isr() {
@@ -409,9 +412,9 @@ void uart2_tx_status_isr() {
   uint8_t status = UART2_S1;
   uint8_t control = UART2_C2;
 
-  UART_TX(2)
+  UART_TX(2, UART2_C2, UART2_D, UART_C2, UART_S1)
 
-  UART_TX_COMPLETE(2)
+  UART_TX_COMPLETE(UART2_C2, UART_C2, UART_S1)
 }
 
 #undef UART_TX_DATA_STATE_2
@@ -422,7 +425,8 @@ void uart2_tx_status_isr() {
 
 #ifdef HAS_KINETISK_UART3
 
-#define UART_TX_DATA_STATE_3 UART_TX_DATA_STATE_NO_FIFO(3)
+#define UART_TX_DATA_STATE_3 \
+  UART_TX_DATA_STATE_NO_FIFO(UART3_C2, UART3_D, UART_C2)
 
 void uart3_tx_status_isr() {
   Sender *instance = txInstances[3];
@@ -430,9 +434,9 @@ void uart3_tx_status_isr() {
   uint8_t status = UART3_S1;
   uint8_t control = UART3_C2;
 
-  UART_TX(3)
+  UART_TX(3, UART3_C2, UART3_D, UART_C2, UART_S1)
 
-  UART_TX_COMPLETE(3)
+  UART_TX_COMPLETE(UART3_C2, UART_C2, UART_S1)
 }
 
 #undef UART_TX_DATA_STATE_3
@@ -445,7 +449,8 @@ void uart3_tx_status_isr() {
 
 #ifdef HAS_KINETISK_UART4
 
-#define UART_TX_DATA_STATE_4 UART_TX_DATA_STATE_NO_FIFO(4)
+#define UART_TX_DATA_STATE_4 \
+  UART_TX_DATA_STATE_NO_FIFO(UART4_C2, UART4_D, UART_C2)
 
 void uart4_tx_status_isr() {
   Sender *instance = txInstances[4];
@@ -453,9 +458,9 @@ void uart4_tx_status_isr() {
   uint8_t status = UART4_S1;
   uint8_t control = UART4_C2;
 
-  UART_TX(4)
+  UART_TX(4, UART4_C2, UART4_D, UART_C2, UART_S1)
 
-  UART_TX_COMPLETE(4)
+  UART_TX_COMPLETE(UART4_C2, UART_C2, UART_S1)
 }
 
 #undef UART_TX_DATA_STATE_4
@@ -468,7 +473,8 @@ void uart4_tx_status_isr() {
 
 #ifdef HAS_KINETISK_UART5
 
-#define UART_TX_DATA_STATE_5 UART_TX_DATA_STATE_NO_FIFO(5)
+#define UART_TX_DATA_STATE_5 \
+  UART_TX_DATA_STATE_NO_FIFO(UART5_C2, UART5_D, UART_C2)
 
 void uart5_tx_status_isr() {
   Sender *instance = txInstances[5];
@@ -476,9 +482,9 @@ void uart5_tx_status_isr() {
   uint8_t status = UART5_S1;
   uint8_t control = UART5_C2;
 
-  UART_TX(5)
+  UART_TX(5, UART5_C2, UART5_D, UART_C2, UART_S1)
 
-  UART_TX_COMPLETE(5)
+  UART_TX_COMPLETE(UART5_C2, UART_C2, UART_S1)
 }
 
 #undef UART_TX_DATA_STATE_5
@@ -489,6 +495,9 @@ void uart5_tx_status_isr() {
 //  LPUART0 TX ISR
 // ---------------------------------------------------------------------------
 
+#define UART_TX_DATA_STATE_5 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL)
+
 #ifdef HAS_KINETISK_LPUART0
 void lpuart0_tx_isr() {
   Sender *instance = txInstances[5];
@@ -496,84 +505,9 @@ void lpuart0_tx_isr() {
   uint32_t status = LPUART0_STAT;
   uint32_t control = LPUART0_CTRL;
 
-  // No FIFO
+  UART_TX(5, LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL, LPUART_STAT)
 
-  // If the transmit buffer is empty
-  if ((control & LPUART_CTRL_TIE) != 0 && (status & LPUART_STAT_TDRE) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        LPUART0_DATA = 0;
-        instance->timeSinceBreak_ = 0;
-        LPUART0_CTRL = LPUART_CTRL_TX_COMPLETING;
-        break;
-
-      case Sender::XmitStates::kData:
-        if (instance->outputBufIndex_ >= instance->packetSize_) {
-          instance->completePacket();
-          LPUART0_CTRL = LPUART_CTRL_TX_COMPLETING;
-        } else {
-          LPUART0_DATA = instance->outputBuf_[instance->outputBufIndex_++];
-          if (instance->outputBufIndex_ >= instance->packetSize_) {
-            instance->completePacket();
-            LPUART0_CTRL = LPUART_CTRL_TX_COMPLETING;
-          }
-        }
-        break;
-
-      case Sender::XmitStates::kIdle:
-        // Pause management
-        if (instance->paused_) {
-          LPUART0_CTRL = LPUART_CTRL_TX_INACTIVE;
-          return;
-        }
-        if (instance->resumeCounter_ > 0) {
-          if (--instance->resumeCounter_ == 0) {
-            instance->paused_ = true;
-          }
-        }
-
-        instance->transmitting_ = true;
-        instance->state_ = Sender::XmitStates::kBreak;
-        instance->uart_.begin(kBreakBaud, kBreakFormat);
-
-        // Delay so that we can achieve the specified refresh rate
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;
-        if (timeSinceBreak < instance->breakToBreakTime_) {
-          LPUART0_CTRL = LPUART_CTRL_TX_INACTIVE;
-          if (instance->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!instance->refreshRateTimer_.begin(
-                    []() {
-                      txInstances[5]->refreshRateTimer_.end();
-                      LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
-                    },
-                    instance->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
-            }
-          }
-        } else {
-          // No delay necessary
-          LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
-        }
-        break;
-    }
-  }
-
-  // If transmission is complete
-  if ((control & LPUART_CTRL_TCIE) != 0 && (status & LPUART_STAT_TC) != 0) {
-    switch (instance->state_) {
-      case Sender::XmitStates::kBreak:
-        instance->state_ = Sender::XmitStates::kData;
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);
-        break;
-
-      case Sender::XmitStates::kData:
-      case Sender::XmitStates::kIdle:
-        break;
-    }
-    LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
-  }
+  UART_TX_COMPLETE(LPUART0_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 #endif  // HAS_KINETISK_LPUART0
 
