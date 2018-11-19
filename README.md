@@ -128,7 +128,7 @@ will be called when the same conditions checked by `isTransmitting()` occur.
 It will be called from inside an ISR, so take this into account.
 
 Let's say you want to send a SIP packet immediately after a regular packet.
-The following code shows how to accomplish this using the polling method:
+The following code shows how to accomplish this using the polling approach:
 
 ```c++
 // Before the code starts looping, pause the transmitter
@@ -154,7 +154,7 @@ before the transmitter is paused again.
 
 Complete synchronous operation examples using SIP can be found in
 `SIPSenderAsync` and `SIPSenderSync`. The first uses the asynchronous
-notification method and the second uses the polling method.
+notification approach and the second uses the polling approach.
 
 ## Technical notes
 
