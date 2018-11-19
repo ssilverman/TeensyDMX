@@ -31,6 +31,9 @@ The classes you'll need are in the `qindesign::teensydmx` namespace:
 `Receiver` and `Sender`. Complete examples of how to use each are in `Flasher`
 and `Chaser`, respectively.
 
+Other examples that show how to utilize synchronous transmission are in
+`SIPSenderAsync` and `SIPSenderSync`.
+
 All class documentation can be found in `src/TeensyDMX.h`.
 
 ### DMX receive
