@@ -58,7 +58,8 @@ Sender::Sender(HardwareSerial &uart)
       breakToBreakTime_(0),
       paused_(false),
       resumeCounter_(0),
-      transmitting_(false) {}
+      transmitting_(false),
+      doneTXFunc_{nullptr} {}
 
 Sender::~Sender() {
   end();
@@ -217,6 +218,10 @@ void Sender::resume() {
 }
 
 void Sender::resumeFor(int n) {
+  resumeFor(n, nullptr);
+}
+
+void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
   if (n < 0) {
     return;
   }
@@ -249,6 +254,7 @@ void Sender::resumeFor(int n) {
 
     paused_ = false;
   }
+  doneTXFunc_ = doneTXFunc;
   enableIRQs();
 }
 
@@ -265,6 +271,10 @@ void Sender::completePacket() {
   outputBufIndex_ = 0;
   transmitting_ = false;
   state_ = XmitStates::kIdle;
+
+  if (paused_ && doneTXFunc_ != nullptr) {
+    doneTXFunc_(this);
+  }
 }
 
 // ---------------------------------------------------------------------------

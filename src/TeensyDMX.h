@@ -411,9 +411,22 @@ class Sender final : public TeensyDMX {
   // If sending is not already paused, only the next n packets will be sent,
   // not including any already in transmission.
   //
-  // isTransmitting() can be used to determine when the requested number of
-  // packets are done being sent.
+  // There are two ways to determine when the packets are done being sent.
+  // The first is by polling isTransmitting(). The second is to use a function
+  // that receives transmission-complete notifications. It is called when the
+  // same conditions checked by isTransmitting() occur. The
+  // setDoneTransmittingFunc method sets this function.
   void resumeFor(int n);
+
+  // Resumes sending, but pauses again after the specified number of packets
+  // are sent. Values < 0 will be ignored and a value of zero will resume.
+  //
+  // If sending is not already paused, only the next n packets will be sent,
+  // not including any already in transmission.
+  //
+  // When transmitting is done, the given function will be called. This
+  // replaces any function set by setDoneTransmittingFunc.
+  void resumeFor(int n, void (*doneTXFunc)(Sender *s));
 
   // Returns the number of packets remaining to be sent before being paused.
   // This will return zero if there are no packets remaining.
@@ -427,7 +440,21 @@ class Sender final : public TeensyDMX {
   //     while (isTransmitting()) { yield(); }
   //
   // Note that this will always return true if we are not paused.
+  //
+  // An alternative to this function is to use setDoneTransmittingFunc
+  // to be notified when transmission is complete.
   bool isTransmitting();
+
+  // Sets the function to call when the sender is paused and transmission
+  // of the current packet is done. This can be used instead of polling
+  // isTransmitting(). The function takes one argument, a pointer to this
+  // Sender instance.
+  //
+  // The function is called when the same conditions checked by
+  // isTransmitting() occur. It is called from an ISR.
+  void setDoneTransmittingFunc(void (*f)(Sender *s)) {
+    doneTXFunc_ = f;
+  }
 
  private:
    // State that tracks what to transmit and when.
@@ -482,6 +509,9 @@ class Sender final : public TeensyDMX {
   volatile int resumeCounter_;
   volatile bool transmitting_;  // Indicates whether we are currently
                                 // transmitting a packet
+
+  // This is called when we are done transmitting after a resumeFor call.
+  void (*volatile doneTXFunc_)(Sender *s);
 
   // These error ISRs need to access private functions
   friend void uart0_tx_status_isr();
