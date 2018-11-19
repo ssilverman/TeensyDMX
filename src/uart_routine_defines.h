@@ -7,7 +7,6 @@
 #define UART_TX_DATA_STATE_WITH_FIFO(N)                              \
   do {                                                               \
     if (instance->outputBufIndex_ >= instance->packetSize_) {        \
-      instance->completePacket();                                    \
       UART##N##_C2 = UART_C2_TX_COMPLETING;                          \
       break;                                                         \
     }                                                                \
@@ -17,12 +16,10 @@
 
 #define UART_TX_DATA_STATE_NO_FIFO(CTRL, DATA, CTRL_PREFIX)   \
   if (instance->outputBufIndex_ >= instance->packetSize_) {   \
-    instance->completePacket();                               \
     CTRL = CTRL_PREFIX##_TX_COMPLETING;                       \
   } else {                                                    \
     DATA = instance->outputBuf_[instance->outputBufIndex_++]; \
     if (instance->outputBufIndex_ >= instance->packetSize_) { \
-      instance->completePacket();                             \
       CTRL = CTRL_PREFIX##_TX_COMPLETING;                     \
     }                                                         \
   }
@@ -96,6 +93,8 @@
         break;                                           \
                                                          \
       case Sender::XmitStates::kData:                    \
+        instance->completePacket();                      \
+        break;                                           \
       case Sender::XmitStates::kIdle:                    \
         break;                                           \
     }                                                    \
