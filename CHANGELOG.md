@@ -19,7 +19,7 @@ This document details the changes between each release.
   * `isTransmitting()`
   * `onDoneTransmitting`
 * Two examples that show how to send SIP packets using synchronous
-  transmission: `SIPSenderASync` and `SIPSenderSync`.
+  transmission: `SIPSenderAsync` and `SIPSenderSync`.
 
 ### Changed
 * The receiver no longer keeps packet data if it's followed by a framing error
