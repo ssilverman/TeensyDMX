@@ -214,7 +214,7 @@ void Sender::resume() {
 }
 
 void Sender::resumeFor(int n) {
-  resumeFor(n, nullptr);
+  resumeFor(n, doneTXFunc_);
 }
 
 void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
