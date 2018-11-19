@@ -18,6 +18,8 @@ This document details the changes between each release.
   * `getResumedRemaining()`
   * `isTransmitting()`
   * `onDoneTransmitting`
+* Two examples that show how to send SIP packets using synchronous
+  transmission: `SIPSenderASync` and `SIPSenderSync`.
 
 ### Changed
 * The receiver no longer keeps packet data if it's followed by a framing error
@@ -32,6 +34,8 @@ This document details the changes between each release.
   interrupts are disabled for the required duration. This change is similar
   to the change made in the previous release for `Receiver::readPacket`.
 * Updated `keywords.txt`.
+* Now allowing packet sizes less than 25 (i.e. less than 24 channels) in
+  `Sender::setPacketSize`.
 
 ### Fixed
 * UARTs 2 and above (Serial3 and above) were not correctly detecting BREAKs
