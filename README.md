@@ -153,7 +153,6 @@ Complete synchronous operation examples using SIP can be found in
 `SIPSenderAsync` and `SIPSenderSync`. The first uses the asynchronous
 notification method and the second uses the polling method.
 
-
 ## Technical notes
 
 ### Simultaneous transmit and receive
@@ -179,6 +178,13 @@ The total frame time is:
 
 10 bits * 20 us + 513 slots * 11 bits * 4us = 22772us, or a rate of about
 43.91Hz.
+
+### Transmit/receive enable pins
+
+Some setups may require that an external part be enabled when transmitting or
+receiving. For example, an RS485 transceiver may require enabling or disabling
+specific buffers. That may be accomplished by using one of the GPIO pins.
+Please be sure the logic levels are compatible.
 
 ## Code style
 
