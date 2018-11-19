@@ -416,8 +416,8 @@ class Sender final : public TeensyDMX {
   // There are two ways to determine when the packets are done being sent.
   // The first is by polling isTransmitting(). The second is to use a function
   // that receives transmission-complete notifications. It is called when the
-  // same conditions checked by isTransmitting() occur. The onDoneTransmitting
-  // method sets this function.
+  // same conditions checked by isTransmitting() occur. onDoneTransmitting
+  // sets this function.
   void resumeFor(int n);
 
   // Resumes sending, but pauses again after the specified number of packets

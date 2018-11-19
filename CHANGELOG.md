@@ -10,7 +10,7 @@ This document details the changes between each release.
   System Information Packets (SIP) (see Annex D5 of ANSI E1.11). Essentially,
   the effect is being able to use the asynchronous transmitter synchronously.
 
-  New methods include:
+  New `Sender` functions include:
   * `pause()`
   * `isPaused()`
   * `resume()`

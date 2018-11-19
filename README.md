@@ -104,42 +104,55 @@ low as you wish. See the `setRefreshRate` and `getRefreshRate` in `Sender`.
 Note that the rate won't be higher than the limits dictated by the protocol,
 about 44Hz, no matter how high it's set. The default is, in fact, `INFINITY`.
 
-#### Pausing and resuming transmit
+#### Pausing and resuming transmit and synchronous operation
 
 `Sender` is an asynchronous packet transmitter; packets are always being sent.
 To ensure that certain packets are adjacent to others, such as for System
 Information Packets (SIP), the API provides a way to send packets synchronously.
 
-The `pause()` function pauses packet transmission, the `resume()` function
-resumes transmission, and `resumeFor(int)` resumes transmission for a specific
-number of packets, after which transmission is paused again. `isTransmitting()`
-indicates whether the transmitter is sending anything while paused---it always
-returns `true` when not paused---and can be used to determine when it's safe
-to start filling in packet data after a `resumeFor` call.
+Firstly, the `pause()` function pauses packet transmission, the `resume()`
+function resumes transmission, and `resumeFor(int)` resumes transmission
+for a specific number of packets, after which transmission is paused again.
+
+There are two ways to achieve synchronous operation. The first is with
+`isTransmitting()`. It indicates whether the transmitter is sending anything
+while paused---it always returns `true` when not paused---and can be used
+to determine when it's safe to start filling in packet data after
+a `resumeFor` call.
+
+The second way is to provide a function to `onDoneTransmitting`. The function
+will be called when the same conditions checked by `isTransmitting()` occur.
+It will be called from inside an ISR, so take this into account.
 
 Let's say you want to send a SIP packet immediately after a regular packet.
-The following code shows how to accomplish this:
+The following code shows how to accomplish this using the polling method:
 
 ```c++
+// Before the code starts looping, pause the transmitter
 dmxTx.pause();
-// [Use one of the dmxTx.set functions to set regular packet data]
+
+// Loop starts here
+fillRegularData();
 dmxTx.resumeFor(1);  // Send one regular packet
 while (dmxTx.isTransmitting()) {  // Wait for this packet to be sent
   yield();
 }
-// [Fill in the SIP data]
+fillSIPData();
 dmxTx.resumeFor(1);  // Send the SIP data
 while (dmxTx.isTransmitting()) {  // Wait for this packet to be sent
   yield();
 }
-// [Return to filling in the regular data, but fill in at least one packet]
-dmxTx.resume();  // Resume transmitting regular data
 ```
 
 Other functions of interest are `isPaused()` and `getResumedRemaining()`.
-`isPaused` indicates whether the transmitter is paused. `getResumedRemaining`
-returns the number of packets that will be sent before the transmitter is
-paused again.
+`isPaused()` indicates whether the transmitter is paused.
+`getResumedRemaining()` returns the number of packets that will be sent
+before the transmitter is paused again.
+
+Complete synchronous operation examples using SIP can be found in
+`SIPSenderAsync` and `SIPSenderSync`. The first uses the asynchronous
+notification method and the second uses the polling method.
+
 
 ## Technical notes
 
