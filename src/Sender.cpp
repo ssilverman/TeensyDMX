@@ -209,10 +209,6 @@ void Sender::setRefreshRate(float rate) {
   refreshRate_ = rate;
 }
 
-void Sender::pause() {
-  paused_ = true;
-}
-
 void Sender::resume() {
   resumeFor(0);
 }

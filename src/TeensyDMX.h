@@ -393,7 +393,9 @@ class Sender final : public TeensyDMX {
   //
   // Also note that this does not change the number of resumed packets
   // remaining.
-  void pause();
+  void pause() {
+    paused_ = true;
+  }
 
   // Returns whether we are currently paused. This will occur after pause()
   // is called and after any "resumed" messages are sent. Note that it is
@@ -414,8 +416,8 @@ class Sender final : public TeensyDMX {
   // There are two ways to determine when the packets are done being sent.
   // The first is by polling isTransmitting(). The second is to use a function
   // that receives transmission-complete notifications. It is called when the
-  // same conditions checked by isTransmitting() occur. The
-  // setDoneTransmittingFunc method sets this function.
+  // same conditions checked by isTransmitting() occur. The onDoneTransmitting
+  // method sets this function.
   void resumeFor(int n);
 
   // Resumes sending, but pauses again after the specified number of packets
@@ -425,7 +427,7 @@ class Sender final : public TeensyDMX {
   // not including any already in transmission.
   //
   // When transmitting is done, the given function will be called. This
-  // replaces any function set by setDoneTransmittingFunc.
+  // replaces any function set by onDoneTransmitting.
   void resumeFor(int n, void (*doneTXFunc)(Sender *s));
 
   // Returns the number of packets remaining to be sent before being paused.
@@ -441,8 +443,8 @@ class Sender final : public TeensyDMX {
   //
   // Note that this will always return true if we are not paused.
   //
-  // An alternative to this function is to use setDoneTransmittingFunc
-  // to be notified when transmission is complete.
+  // An alternative to this function is to use onDoneTransmitting to be
+  // notified when transmission is complete.
   bool isTransmitting();
 
   // Sets the function to call when the sender is paused and transmission
@@ -452,7 +454,7 @@ class Sender final : public TeensyDMX {
   //
   // The function is called when the same conditions checked by
   // isTransmitting() occur. It is called from an ISR.
-  void setDoneTransmittingFunc(void (*f)(Sender *s)) {
+  void onDoneTransmitting(void (*f)(Sender *s)) {
     doneTXFunc_ = f;
   }
 
