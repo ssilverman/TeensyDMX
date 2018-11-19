@@ -10,6 +10,15 @@ This document details the changes between each release.
   System Information Packets (SIP) (see Annex D5 of ANSI E1.11). Essentially,
   the effect is being able to use the asynchronous transmitter synchronously.
 
+  New methods include:
+  * `pause()`
+  * `isPaused()`
+  * `resume()`
+  * `resumeFor(int)`
+  * `getResumedRemaining()`
+  * `isTransmitting()`
+  * `onDoneTransmitting`
+
 ### Changed
 * The receiver no longer keeps packet data if it's followed by a framing error
   having non-zero data. Framing errors are used to detect BREAKs and must

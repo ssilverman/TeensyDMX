@@ -31,6 +31,7 @@ resume	KEYWORD2
 resumeFor	KEYWORD2
 getResumedRemaining	KEYWORD2
 isTransmitting	KEYWORD2
+onDoneTransmitting	KEYWORD2
 
 #######################################
 # Instances (KEYWORD2)
