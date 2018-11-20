@@ -166,9 +166,6 @@ void Receiver::begin() {
       break;
 #endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
   }
-
-  activeBuf_ = buf1_;
-  inactiveBuf_ = buf2_;
 }
 
 // Undefine this macro
