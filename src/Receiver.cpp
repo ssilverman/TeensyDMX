@@ -65,17 +65,21 @@ Receiver::~Receiver() {
   end();
 }
 
+// Must define ACTIVATE_RX_SERIAL_ERROR_N
 #define ACTIVATE_RX_SERIAL(N)                                             \
   /* Enable receive-only */                                               \
   UART##N##_C2 = UART##N##_C2_RX_ENABLE;                                  \
   attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_rx_status_isr);   \
+  /* Enable interrupt on frame error */                                   \
+  UART##N##_C3 |= UART_C3_FEIE;                                           \
+  ACTIVATE_RX_SERIAL_ERROR_##N
+
+#define ACTIVATE_RX_SERIAL_ERROR(N)                                       \
   attachInterruptVector(IRQ_UART##N##_ERROR, uart##N##_rx_error_isr);     \
   /* We fill bytes from the buffer in the framing error ISR, so we        \
    * can set to the same priority. */                                     \
   NVIC_SET_PRIORITY(IRQ_UART##N##_ERROR,                                  \
                     max(NVIC_GET_PRIORITY(IRQ_UART##N##_STATUS), 1) - 1); \
-  /* Enable interrupt on frame error */                                   \
-  UART##N##_C3 |= UART_C3_FEIE;                                           \
   NVIC_ENABLE_IRQ(IRQ_UART##N##_ERROR);
 
 void Receiver::begin() {
@@ -101,63 +105,56 @@ void Receiver::begin() {
 
   switch (serialIndex_) {
     case 0:
-      // Enable receive-only
-      UART0_C2 = UART0_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART0_STATUS, uart0_rx_status_isr);
-
-      // Enable UART0 interrupt on frame error
-      UART0_C3 |= UART_C3_FEIE;
-
 #ifndef HAS_KINETISL_UART0
-      attachInterruptVector(IRQ_UART0_ERROR, uart0_rx_error_isr);
-
-      // We fill bytes from the buffer in the framing error ISR, so we
-      // can set to the same priority.
-      NVIC_SET_PRIORITY(IRQ_UART0_ERROR,
-                        max(NVIC_GET_PRIORITY(IRQ_UART0_STATUS), 1) - 1);
-      NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
-#endif
+#define ACTIVATE_RX_SERIAL_ERROR_0 ACTIVATE_RX_SERIAL_ERROR(0)
+#else
+#define ACTIVATE_RX_SERIAL_ERROR_0
+#endif  // HAS_KINETISL_UART0
+      ACTIVATE_RX_SERIAL(0)
+#undef ACTIVATE_RX_SERIAL_ERROR_0
       break;
 
     case 1:
-      UART1_C2 = UART1_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART1_STATUS, uart1_rx_status_isr);
-      UART1_C3 |= UART_C3_FEIE;
 #ifndef HAS_KINETISL_UART1
-      attachInterruptVector(IRQ_UART1_ERROR, uart1_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART1_ERROR,
-                        max(NVIC_GET_PRIORITY(IRQ_UART1_STATUS), 1) - 1);
-      NVIC_ENABLE_IRQ(IRQ_UART1_ERROR);
-#endif
+#define ACTIVATE_RX_SERIAL_ERROR_1 ACTIVATE_RX_SERIAL_ERROR(1)
+#else
+#define ACTIVATE_RX_SERIAL_ERROR_1
+#endif  // HAS_KINETISL_UART1
+      ACTIVATE_RX_SERIAL(1)
+#undef ACTIVATE_RX_SERIAL_ERROR_1
       break;
 
     case 2:
-      UART2_C2 = UART2_C2_RX_ENABLE;
-      attachInterruptVector(IRQ_UART2_STATUS, uart2_rx_status_isr);
-      UART2_C3 |= UART_C3_FEIE;
 #ifndef HAS_KINETISL_UART2
-      attachInterruptVector(IRQ_UART2_ERROR, uart2_rx_error_isr);
-      NVIC_SET_PRIORITY(IRQ_UART2_ERROR,
-                        max(NVIC_GET_PRIORITY(IRQ_UART2_STATUS), 1) - 1);
-      NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
-#endif
+#define ACTIVATE_RX_SERIAL_ERROR_2 ACTIVATE_RX_SERIAL_ERROR(2)
+#else
+#define ACTIVATE_RX_SERIAL_ERROR_2
+#endif  // HAS_KINETISL_UART2
+      ACTIVATE_RX_SERIAL(2)
+#undef ACTIVATE_RX_SERIAL_ERROR_2
       break;
 
 #ifdef HAS_KINETISK_UART3
     case 3:
+#define ACTIVATE_RX_SERIAL_ERROR_3 ACTIVATE_RX_SERIAL_ERROR(3)
       ACTIVATE_RX_SERIAL(3)
+#undef ACTIVATE_RX_SERIAL_ERROR_3
       break;
 #endif  // HAS_KINETISK_UART3
 
 #ifdef HAS_KINETISK_UART4
     case 4:
+#define ACTIVATE_RX_SERIAL_ERROR_4 ACTIVATE_RX_SERIAL_ERROR(4)
       ACTIVATE_RX_SERIAL(4)
+#undef ACTIVATE_RX_SERIAL_ERROR_4
       break;
 #endif  // HAS_KINETISK_UART4
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
+#define ACTIVATE_RX_SERIAL_ERROR_5 ACTIVATE_RX_SERIAL_ERROR(5)
       ACTIVATE_RX_SERIAL(5)
+#undef ACTIVATE_RX_SERIAL_ERROR_5
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
@@ -168,8 +165,9 @@ void Receiver::begin() {
   }
 }
 
-// Undefine this macro
+// Undefine these macros
 #undef ACTIVATE_RX_SERIAL
+#undef ACTIVATE_RX_SERIAL_ERROR
 
 void Receiver::end() {
   if (!began_) {
