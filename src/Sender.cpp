@@ -224,40 +224,44 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
 
   // Pausing made transmission INACTIVE
   disableIRQs();
-  resumeCounter_ = n;
-  if (paused_) {
-    if (!transmitting_) {
-      switch (serialIndex_) {
-        case 0: UART0_C2 = UART_C2_TX_ACTIVE; break;
-        case 1: UART1_C2 = UART_C2_TX_ACTIVE; break;
-        case 2: UART2_C2 = UART_C2_TX_ACTIVE; break;
+  //{
+    resumeCounter_ = n;
+    if (paused_) {
+      if (!transmitting_) {
+        switch (serialIndex_) {
+          case 0: UART0_C2 = UART_C2_TX_ACTIVE; break;
+          case 1: UART1_C2 = UART_C2_TX_ACTIVE; break;
+          case 2: UART2_C2 = UART_C2_TX_ACTIVE; break;
 #ifdef HAS_KINETISK_UART3
-        case 3: UART3_C2 = UART_C2_TX_ACTIVE; break;
+          case 3: UART3_C2 = UART_C2_TX_ACTIVE; break;
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
-        case 4: UART4_C2 = UART_C2_TX_ACTIVE; break;
+          case 4: UART4_C2 = UART_C2_TX_ACTIVE; break;
 #endif  // HAS_KINETISK_UART4
 #if defined(HAS_KINETISK_UART5)
-        case 5: UART5_C2 = UART_C2_TX_ACTIVE; break;
+          case 5: UART5_C2 = UART_C2_TX_ACTIVE; break;
 #elif defined(HAS_KINETISK_LPUART0)
-        case 5: LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE; break;
+          case 5: LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE; break;
 #endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+        }
       }
+
+      // Copy whatever's in the paused buffer to the output buffer
+      memcpy(outputBuf_, pausedBuf_, kMaxDMXPacketSize);
+
+      paused_ = false;
     }
-
-    // Copy whatever's in the paused buffer to the output buffer
-    memcpy(outputBuf_, pausedBuf_, kMaxDMXPacketSize);
-
-    paused_ = false;
-  }
-  doneTXFunc_ = doneTXFunc;
+    doneTXFunc_ = doneTXFunc;
+  //}
   enableIRQs();
 }
 
 bool Sender::isTransmitting() {
   // Check these both atomically
   disableIRQs();
-  bool state = !paused_ || transmitting_;
+  //{
+    bool state = !paused_ || transmitting_;
+  //}
   enableIRQs();
   return state;
 }
