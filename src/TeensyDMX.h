@@ -261,6 +261,9 @@ class Receiver final : public TeensyDMX {
   // For timing
   volatile uint32_t lastBreakTime_;  // In milliseconds
 
+  // Last time a slot ended.
+  volatile uint32_t lastSlotTime_;  // In milliseconds
+
   // Counts
   volatile uint32_t packetTimeoutCount_;
   volatile uint32_t framingErrorCount_;

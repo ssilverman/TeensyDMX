@@ -263,7 +263,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   //{
     // Instead of using a timer, we can use this function to poll timeouts
     if (inPacket_) {
-      if ((millis() - lastBreakTime_) > kMaxDMXPacketTime) {
+      if ((lastSlotTime_ - lastBreakTime_) > kMaxDMXPacketTime) {
         packetTimeoutCount_++;
         completePacket();
       }
@@ -340,7 +340,8 @@ void Receiver::receiveByte(uint8_t b) {
   // Check the timing and if we are out of range then complete any bytes
   // until, but not including, this one
   // See the notes in receiveBreak() regarding completing any un-flushed bytes
-  if ((millis() - lastBreakTime_) > kMaxDMXPacketTime) {
+  lastSlotTime_ = millis();
+  if ((lastSlotTime_ - lastBreakTime_) > kMaxDMXPacketTime) {
     packetTimeoutCount_++;
     completePacket();
     return;
