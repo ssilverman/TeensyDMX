@@ -49,6 +49,7 @@ static volatile bool rxInstancesMutex{false};
 
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
+      state_{RecvStates::kIdle},
       buf1_{0},
       buf2_{0},
       activeBuf_(buf1_),
@@ -56,7 +57,6 @@ Receiver::Receiver(HardwareSerial &uart)
       activeBufIndex_(0),
       packetSize_(0),
       packetTimestamp_(0),
-      inPacket_(false),
       lastBreakTime_(0),
       lastSlotTime_(0),
       packetTimeoutCount_(0),
@@ -261,7 +261,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   disableIRQs();
   //{
     // Instead of using a timer, we can use this function to poll timeouts
-    if (inPacket_) {
+    if (state_ == RecvStates::kData) {
       if ((lastSlotTime_ - lastBreakTime_) > kMaxDMXPacketTime) {
         packetTimeoutCount_++;
         completePacket();
@@ -286,7 +286,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
 }
 
 void Receiver::completePacket() {
-  inPacket_ = false;
+  state_ = RecvStates::kIdle;
 
   // An empty packet isn't valid
   if (activeBufIndex_ <= 0) {
@@ -319,15 +319,14 @@ void Receiver::receiveBreak() {
   // TODO: Disallow BREAKs shorter than 88us
   lastBreakTime_ = millis();
 
-  if (inPacket_) {
+  if (state_ == RecvStates::kData) {
     // Complete any un-flushed bytes
     // The timing can't be incorrect because, technically, the packet ended
     // with the last byte, even if it's a short packet
     completePacket();
     // TODO: Figure out how to implement a timeout, so that a short packet isn't only processed when there's the next BREAK
-  } else {
-    inPacket_ = true;
   }
+  state_ = RecvStates::kData;
 }
 
 void Receiver::receiveBadBreak() {
@@ -342,7 +341,7 @@ void Receiver::receiveBadBreak() {
 
 void Receiver::receiveByte(uint8_t b) {
   // Ignore any extra bytes in a packet or any bytes outside a packet
-  if (!inPacket_) {
+  if (state_ != RecvStates::kData) {
     return;
   }
 

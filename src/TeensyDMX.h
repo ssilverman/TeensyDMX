@@ -223,6 +223,14 @@ class Receiver final : public TeensyDMX {
   }
 
  private:
+  // State that tracks where we are in the receive process.
+  enum class RecvStates {
+    kBreak,  // Break
+    kMAB,    // Mark after break
+    kData,   // Packet data
+    kIdle,   // The end of data for one packet has been reached
+  };
+
   // Disables all the UART IRQs so that variables can be accessed concurrently.
   void disableIRQs();
 
@@ -245,6 +253,10 @@ class Receiver final : public TeensyDMX {
   // This will be called from an ISR.
   void receiveByte(uint8_t b);
 
+  // Keeps track of what we're receiving
+  volatile RecvStates state_;
+  volatile uint32_t stateStartTime_;  // When the state started, in microseconds
+
   volatile uint8_t buf1_[kMaxDMXPacketSize];
   volatile uint8_t buf2_[kMaxDMXPacketSize];
   volatile uint8_t *volatile activeBuf_;
@@ -259,10 +271,7 @@ class Receiver final : public TeensyDMX {
   // The timestamp of the last received packet.
   volatile uint32_t packetTimestamp_;
 
-  // Indicates that we are inside a packet; a BREAK was received.
-  volatile bool inPacket_;
-
-  // For timing
+  // Last BREAK start time, about 44us after the low-transition
   volatile uint32_t lastBreakTime_;  // In milliseconds
 
   // Last time a slot ended.

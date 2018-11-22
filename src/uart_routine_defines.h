@@ -171,6 +171,9 @@
      * framing error. */                                                   \
     /* Note: Reading a byte clears interrupt flags */                      \
                                                                            \
+    /* The state start was 44us ago, at the start of the break */          \
+    instance->stateStartTime_ = micros() - 44;                             \
+                                                                           \
     UART_RX_ERROR_FLUSH_FIFO_##N                                           \
                                                                            \
     UART_RX_ERROR_PROCESS(DATA)                                            \
