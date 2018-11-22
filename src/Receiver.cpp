@@ -329,6 +329,16 @@ void Receiver::receiveBreak() {
   }
 }
 
+void Receiver::receiveBadBreak() {
+  // Not a break
+  framingErrorCount_++;
+
+  // Don't keep the packet
+  // See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292)
+  activeBufIndex_ = 0;
+  completePacket();
+}
+
 void Receiver::receiveByte(uint8_t b) {
   // Ignore any extra bytes in a packet or any bytes outside a packet
   if (!inPacket_) {

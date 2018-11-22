@@ -159,12 +159,7 @@
   if (b == 0) {                     \
     instance->receiveBreak();       \
   } else {                          \
-    /* Not a break */               \
-    instance->framingErrorCount_++; \
-    /* Don't keep the packet        \
-     * See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292) */ \
-    instance->activeBufIndex_ = 0;  \
-    instance->completePacket();     \
+    instance->receiveBadBreak();    \
   }
 
 // Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
