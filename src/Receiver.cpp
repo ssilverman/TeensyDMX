@@ -58,6 +58,7 @@ Receiver::Receiver(HardwareSerial &uart)
       packetTimestamp_(0),
       inPacket_(false),
       lastBreakTime_(0),
+      lastSlotTime_(0),
       packetTimeoutCount_(0),
       framingErrorCount_(0) {}
 
