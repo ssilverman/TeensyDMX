@@ -477,7 +477,7 @@ class Sender final : public TeensyDMX {
 
  private:
    // State that tracks what to transmit and when.
-   enum XmitStates {
+   enum class XmitStates {
      kBreak,  // Need to transmit a break
      kData,   // Need to transmit data
      kIdle,   // The end of data for one packet has been reached
