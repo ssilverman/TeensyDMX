@@ -238,19 +238,20 @@ class Receiver final : public TeensyDMX {
   void enableIRQs();
 
   // Makes a new packet available.
-  // This will be called from an ISR.
+  // This is called from an ISR.
   void completePacket();
 
   // A break has just been received.
-  // This will be called from an ISR.
+  // This is called from an ISR.
   void receiveBreak();
 
   // An invalid start-of-break was received. There were non-zero bytes
   // in the framing error.
+  // This is called from an ISR.
   void receiveBadBreak();
 
   // Receives a byte.
-  // This will be called from an ISR.
+  // This is called from an ISR.
   void receiveByte(uint8_t b);
 
   // Keeps track of what we're receiving
@@ -496,7 +497,7 @@ class Sender final : public TeensyDMX {
   // Completes a sent packet. This increments the packet count, resets the
   // output buffer index, and sets the state to Idle.
   //
-  // This will be called from an ISR.
+  // This is called from an ISR.
   void completePacket();
 
   // Keeps track of what we're transmitting.

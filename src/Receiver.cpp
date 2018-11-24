@@ -325,6 +325,7 @@ void Receiver::receiveBreak() {
     // with the last byte, even if it's a short packet
     completePacket();
     // TODO: Figure out how to implement a timeout, so that a short packet isn't only processed when there's the next BREAK
+    // DONETODO: readPacket() has code that detects short packets
   }
   state_ = RecvStates::kData;
 }
