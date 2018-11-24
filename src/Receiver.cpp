@@ -286,6 +286,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
 }
 
 void Receiver::completePacket() {
+  uint32_t t = millis();
   state_ = RecvStates::kIdle;
 
   // An empty packet isn't valid
@@ -304,7 +305,7 @@ void Receiver::completePacket() {
 
   packetCount_++;
   packetSize_ = activeBufIndex_;
-  packetTimestamp_ = millis();
+  packetTimestamp_ = t;
 
   activeBufIndex_ = 0;
 }
