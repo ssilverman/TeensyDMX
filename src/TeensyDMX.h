@@ -369,20 +369,21 @@ class Sender final : public TeensyDMX {
   void end() override;
 
   // Sets the transmit packet size, in number of channels plus the start code.
-  // The size should be in the range 25-513, but this does nothing only if
-  // the size is greater than 513 or negative. These limits are contained in
-  // kMinDMXPacketSize and kMaxDMXPacketSize, respectively.
+  // This does nothing if the size is greater than 513 or negative.
+  //
+  // When the maximum refresh rate is used, the packet size should be >= 25
+  // so that the total packet time does not fall below 1204us, per the ANSI
+  // E1.11 DMX specification. However, smaller packets can be sent if the
+  // refresh rate is decreased.
+  //
+  // These limits are contained in kMinDMXPacketSize and kMaxDMXPacketSize,
+  // respectively.
   //
   // For example, if the packet size is set to 25, then the channels can range
   // from 0 to 24, inclusive, with channel zero containing the start code and
   // slots 1-24 containing the remainder of the packet data.
   //
   // The default is 513.
-  //
-  // The reason for the lower bound is so that, under conditions where minimum
-  // timings are used, the total packet time does not fall below 1204us, per
-  // the ANSI E1.11 DMX specification. However, if the refresh rate is set to
-  // something slower, then the minimum possible packet size will change.
   void setPacketSize(int size) {
     if (0 <= size && size <= kMaxDMXPacketSize) {
       packetSize_ = size;
