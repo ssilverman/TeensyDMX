@@ -14,33 +14,21 @@ static constexpr uint32_t kSlotsBaud = 250000;
 static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 
 // RX control states
-#ifdef HAS_KINETISK_UART0_FIFO
 #define UART0_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
-#else
-#define UART0_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
-#endif  // HAS_KINETISK_UART0_FIFO
-#ifdef HAS_KINETISK_UART1_FIFO
 #define UART1_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
-#else
-#define UART1_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
-#endif  // HAS_KINETISK_UART1_FIFO
-#ifdef HAS_KINETISK_UART2_FIFO
 #define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
-#else
-#define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
-#endif  // HAS_KINETISK_UART2_FIFO
 
 #ifdef HAS_KINETISK_UART3
-#define UART3_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
+#define UART3_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
-#define UART4_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
+#define UART4_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
 #endif  // HAS_KINETISK_UART4
 #ifdef HAS_KINETISK_UART5
-#define UART5_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE
+#define UART5_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
 #endif  // HAS_KINETISK_UART5
 #ifdef HAS_KINETISK_LPUART0
-#define LPUART0_CTRL_RX_ENABLE LPUART_CTRL_RE | LPUART_CTRL_RIE
+#define LPUART0_CTRL_RX_ENABLE LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE
 #endif  // HAS_KINETISK_LPUART0
 
 // Used by the RX ISRs.
@@ -57,10 +45,12 @@ Receiver::Receiver(HardwareSerial &uart)
       activeBufIndex_(0),
       packetSize_(0),
       packetTimestamp_(0),
-      lastBreakTime_(0),
-      lastSlotTime_(0),
+      lastBreakStartTime_(0),
+      breakStartTime_(0),
+      lastSlotEndTime_(0),
       packetTimeoutCount_(0),
-      framingErrorCount_(0) {}
+      framingErrorCount_(0),
+      shortPacketCount_(0) {}
 
 Receiver::~Receiver() {
   end();
@@ -101,6 +91,9 @@ void Receiver::begin() {
   if (r != nullptr && r != this) {  // NOTE: Shouldn't be able to be 'this'
     r->end();
   }
+
+  // Reset "previous" state; zero means there's no previous packet
+  lastBreakStartTime_ = 0;
 
   uart_.begin(kSlotsBaud, kSlotsFormat);
 
@@ -260,13 +253,8 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   int retval = -1;
   disableIRQs();
   //{
-    // Instead of using a timer, we can use this function to poll timeouts
-    if (state_ == RecvStates::kData) {
-      if ((lastSlotTime_ - lastBreakTime_) > kMaxDMXPacketTime) {
-        packetTimeoutCount_++;
-        completePacket();
-      }
-    }
+    // Instead of using a timer, we can use readPacket to poll timeouts
+    checkPacketTimeout();
 
     if (packetSize_ > 0) {
       if (startChannel >= packetSize_) {
@@ -289,8 +277,8 @@ void Receiver::completePacket() {
   uint32_t t = millis();
   state_ = RecvStates::kIdle;
 
-  // An empty packet isn't valid
-  if (activeBufIndex_ <= 0) {
+  // An empty packet isn't valid, there must be at least a start code
+  if (activeBufIndex_ == 0) {
     return;
   }
 
@@ -310,30 +298,40 @@ void Receiver::completePacket() {
   activeBufIndex_ = 0;
 }
 
-void Receiver::receiveBreak() {
-  // Assume the actual BREAK start time is the current time, even though
-  // the current time is at the end or middle of the BREAK, because the
-  // difference is much smaller than a millisecond.
-  // A BREAK is detected when a stop bit is expected but not received, and
-  // this happens after the start bit, nine bits, and the missing stop bit,
-  // about 44us.
-  // TODO: Disallow BREAKs shorter than 88us
-  lastBreakTime_ = millis();
-
-  if (state_ == RecvStates::kData) {
-    // Complete any un-flushed bytes
-    // The timing can't be incorrect because, technically, the packet ended
-    // with the last byte, even if it's a short packet
-    completePacket();
-    // TODO: Figure out how to implement a timeout, so that a short packet isn't only processed when there's the next BREAK
-    // DONETODO: readPacket() has code that detects short packets
+void Receiver::checkPacketTimeout() {
+  if (state_ != RecvStates::kData) {
+    return;
   }
-  state_ = RecvStates::kData;
+  if ((micros() - breakStartTime_) > kMaxDMXPacketTime) {
+    packetTimeoutCount_++;
+    completePacket();
+  }
+}
+
+void Receiver::receivePotentialBreak() {
+  // A potential BREAK is detected when a stop bit is expected but not
+  // received, and this happens after the start bit, nine bits, and the
+  // missing stop bit, about 44us.
+  // Note that breakStartTime_ only represents a potential BREAK start
+  // time until we receive the first character.
+  breakStartTime_ = feStartTime_ - 44;
+
+  state_ = RecvStates::kBreak;
+
+  // At this point, we don't know whether to keep or discard any collected
+  // data because the BREAK may be invalid. In other words, don't make any
+  // framing error or short packet decisions until we know the nature of
+  // this BREAK.
 }
 
 void Receiver::receiveBadBreak() {
   // Not a break
   framingErrorCount_++;
+
+  // Consider this case as not seeing a break
+  // This may be line noise, so now we can't tell for sure where the
+  // last break was
+  lastBreakStartTime_ = 0;
 
   // Don't keep the packet
   // See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292)
@@ -342,16 +340,58 @@ void Receiver::receiveBadBreak() {
 }
 
 void Receiver::receiveByte(uint8_t b) {
-  // Ignore any extra bytes in a packet or any bytes outside a packet
-  if (state_ != RecvStates::kData) {
-    return;
+  uint32_t t = micros();
+
+  // Bad breaks are detected when BREAK + MAB + character time is too short
+  // BREAK: 88us
+  // MAB: 8us
+  // Character time: 44us
+
+  switch (state_) {
+    case RecvStates::kBreak:
+      // This is only a rudimentary check for short BREAKs. It does not
+      // detect short BREAKs followed by long MABs. It only detects
+      // whether BREAK + MAB time is at least 88us + 8us.
+      if ((t - breakStartTime_) < 88 + 8 + 44) {
+        // First byte is too early, discard any data
+        receiveBadBreak();
+        return;
+      } else if (lastBreakStartTime_ > 0) {  // This condition indicates
+                                             // we've seen at least one BREAK
+        // Complete any un-flushed bytes
+        uint32_t dt = breakStartTime_ - lastBreakStartTime_;
+        if (dt < kMinDMXPacketTime) {
+          shortPacketCount_++;
+          // Discard the data
+          activeBufIndex_ = 0;
+        } else if (dt > kMaxDMXPacketTime) {
+          // NOTE: Zero-length packets will also trigger a timeout
+          packetTimeoutCount_++;
+          // Keep the data
+        }
+        completePacket();
+      }
+      lastBreakStartTime_ = breakStartTime_;
+      state_ = RecvStates::kData;
+      break;
+    case RecvStates::kData:
+      // Checking this here accounts for buffered input, where several
+      // bytes come in at the same time
+      if ((t - breakStartTime_) < 88 + 8 + 44 + 44*activeBufIndex_) {
+        // First byte is too early, discard any data
+        receiveBadBreak();
+        return;
+      }
+      break;
+    default:
+      // Ignore any extra bytes in a packet or any bytes outside a packet
+      return;
   }
 
   // Check the timing and if we are out of range then complete any bytes
   // until, but not including, this one
-  // See the notes in receiveBreak() regarding completing any un-flushed bytes
-  lastSlotTime_ = millis();
-  if ((lastSlotTime_ - lastBreakTime_) > kMaxDMXPacketTime) {
+  lastSlotEndTime_ = t;
+  if ((t - breakStartTime_) > kMaxDMXPacketTime) {
     packetTimeoutCount_++;
     completePacket();
     return;
@@ -464,7 +504,8 @@ void Receiver::enableIRQs() {
 #ifdef HAS_KINETISK_UART0_FIFO
 #define UART_RX_0 UART_RX_WITH_FIFO(0)
 #else
-#define UART_RX_0 UART_RX_NO_FIFO(UART_S1, UART0_D)
+#define UART_RX_0 UART_RX_NO_FIFO(0, UART_S1, UART0_D)
+#define UART_RX_CLEAR_IDLE_0 b = UART0_D;
 #endif  // HAS_KINETISK_UART0_FIFO
 
 void uart0_rx_status_isr() {
@@ -482,6 +523,7 @@ void uart0_rx_status_isr() {
 }
 
 #undef UART_RX_0
+#undef UART_RX_CLEAR_IDLE_0
 
 #ifdef HAS_KINETISK_UART0_FIFO
 #define UART_RX_ERROR_FLUSH_FIFO_0 UART_RX_ERROR_FLUSH_FIFO(0)
@@ -505,7 +547,8 @@ void uart0_rx_error_isr() {
 #ifdef HAS_KINETISK_UART1_FIFO
 #define UART_RX_1 UART_RX_WITH_FIFO(1)
 #else
-#define UART_RX_1 UART_RX_NO_FIFO(UART_S1, UART1_D)
+#define UART_RX_1 UART_RX_NO_FIFO(1, UART_S1, UART1_D)
+#define UART_RX_CLEAR_IDLE_1 b = UART1_D;
 #endif  // HAS_KINETISK_UART1_FIFO
 
 void uart1_rx_status_isr() {
@@ -523,6 +566,7 @@ void uart1_rx_status_isr() {
 }
 
 #undef UART_RX_1
+#undef UART_RX_CLEAR_IDLE_1
 
 #ifdef HAS_KINETISK_UART1_FIFO
 #define UART_RX_ERROR_FLUSH_FIFO_1 UART_RX_ERROR_FLUSH_FIFO(1)
@@ -546,7 +590,8 @@ void uart1_rx_error_isr() {
 #ifdef HAS_KINETISK_UART2_FIFO
 #define UART_RX_2 UART_RX_WITH_FIFO(2)
 #else
-#define UART_RX_2 UART_RX_NO_FIFO(UART_S1, UART2_D)
+#define UART_RX_2 UART_RX_NO_FIFO(2, UART_S1, UART2_D)
+#define UART_RX_CLEAR_IDLE_2 b = UART2_D;
 #endif  // HAS_KINETISK_UART2_FIFO
 
 void uart2_rx_status_isr() {
@@ -564,6 +609,7 @@ void uart2_rx_status_isr() {
 }
 
 #undef UART_RX_2
+#undef UART_RX_CLEAR_IDLE_2
 
 #ifdef HAS_KINETISK_UART2_FIFO
 #define UART_RX_ERROR_FLUSH_FIFO_2 UART_RX_ERROR_FLUSH_FIFO(2)
@@ -586,7 +632,8 @@ void uart2_rx_error_isr() {
 
 #ifdef HAS_KINETISK_UART3
 
-#define UART_RX_3 UART_RX_NO_FIFO(UART_S1, UART3_D)
+#define UART_RX_3 UART_RX_NO_FIFO(3, UART_S1, UART3_D)
+#define UART_RX_CLEAR_IDLE_3 b = UART3_D;
 
 void uart3_rx_status_isr() {
   uint8_t b;
@@ -598,6 +645,7 @@ void uart3_rx_status_isr() {
 }
 
 #undef UART_RX_3
+#undef UART_RX_CLEAR_IDLE_3
 
 #define UART_RX_ERROR_FLUSH_FIFO_3
 
@@ -618,7 +666,8 @@ void uart3_rx_error_isr() {
 
 #ifdef HAS_KINETISK_UART4
 
-#define UART_RX_4 UART_RX_NO_FIFO(UART_S1, UART4_D)
+#define UART_RX_4 UART_RX_NO_FIFO(4, UART_S1, UART4_D)
+#define UART_RX_CLEAR_IDLE_4 b = UART4_D;
 
 void uart4_rx_status_isr() {
   uint8_t b;
@@ -630,6 +679,7 @@ void uart4_rx_status_isr() {
 }
 
 #undef UART_RX_4
+#undef UART_RX_CLEAR_IDLE_4
 
 #define UART_RX_ERROR_FLUSH_FIFO_4
 
@@ -650,7 +700,8 @@ void uart4_rx_error_isr() {
 
 #ifdef HAS_KINETISK_UART5
 
-#define UART_RX_5 UART_RX_NO_FIFO(UART_S1, UART5_D)
+#define UART_RX_5 UART_RX_NO_FIFO(5, UART_S1, UART5_D)
+#define UART_RX_CLEAR_IDLE_5 b = UART5_D;
 
 void uart5_rx_status_isr() {
   uint8_t b;
@@ -662,6 +713,7 @@ void uart5_rx_status_isr() {
 }
 
 #undef UART_RX_5
+#undef UART_RX_CLEAR_IDLE_5
 
 #define UART_RX_ERROR_FLUSH_FIFO_5
 
@@ -681,6 +733,7 @@ void uart5_rx_error_isr() {
 // ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_LPUART0
+#define UART_RX_CLEAR_IDLE_5 LPUART0_STAT |= LPUART_STAT_IDLE;
 void lpuart0_rx_isr() {
   uint8_t b;
   Receiver *instance = rxInstances[5];
@@ -695,14 +748,17 @@ void lpuart0_rx_isr() {
     // A value of zero indicates a true break and not some other
     // framing error.
 
+    instance->feStartTime_ = micros();
+
     // No FIFO
 
     UART_RX_ERROR_PROCESS(LPUART0_DATA)
     return;
   }
 
-  UART_RX_NO_FIFO(LPUART_STAT, LPUART0_DATA)
+  UART_RX_NO_FIFO(5, LPUART_STAT, LPUART0_DATA)
 }
+#undef UART_RX_CLEAR_IDLE_5
 #endif  // HAS_KINETISK_LPUART0
 
 }  // namespace teensydmx

@@ -116,6 +116,7 @@
       b = UART##N##_D;                                                     \
       UART##N##_CFIFO = UART_CFIFO_RXFLUSH;                                \
       __enable_irq();                                                      \
+      instance->checkPacketTimeout();                                      \
       return;                                                              \
     } else {                                                               \
       __enable_irq();                                                      \
@@ -133,12 +134,16 @@
     }                                                                      \
   }
 
-// Assumes status = UARTx_S1
-#define UART_RX_NO_FIFO(STAT_PREFIX, DATA)  \
-  /* If the receive buffer is full */       \
-  if ((status & STAT_PREFIX##_RDRF) != 0) { \
-    b = DATA;                               \
-    instance->receiveByte(b);               \
+// Assumes status = UARTx_S1.
+// Needs to have UART_RX_CLEAR_IDLE_N defined.
+#define UART_RX_NO_FIFO(N, STAT_PREFIX, DATA)      \
+  /* If the receive buffer is full */              \
+  if ((status & STAT_PREFIX##_RDRF) != 0) {        \
+    b = DATA;                                      \
+    instance->receiveByte(b);                      \
+  } else if ((status & STAT_PREFIX##_IDLE) != 0) { \
+    UART_RX_CLEAR_IDLE_##N                         \
+    instance->checkPacketTimeout();                \
   }
 
 // Needs to have UART_RX_N defined.
@@ -154,12 +159,12 @@
     }                                \
   }
 
-#define UART_RX_ERROR_PROCESS(DATA) \
-  b = DATA;                         \
-  if (b == 0) {                     \
-    instance->receiveBreak();       \
-  } else {                          \
-    instance->receiveBadBreak();    \
+#define UART_RX_ERROR_PROCESS(DATA)    \
+  b = DATA;                            \
+  if (b == 0) {                        \
+    instance->receivePotentialBreak(); \
+  } else {                             \
+    instance->receiveBadBreak();       \
   }
 
 // Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
@@ -171,8 +176,7 @@
      * framing error. */                                                   \
     /* Note: Reading a byte clears interrupt flags */                      \
                                                                            \
-    /* The state start was 44us ago, at the start of the break */          \
-    instance->stateStartTime_ = micros() - 44;                             \
+    instance->feStartTime_ = micros();                                     \
                                                                            \
     UART_RX_ERROR_FLUSH_FIFO_##N                                           \
                                                                            \

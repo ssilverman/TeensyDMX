@@ -156,10 +156,6 @@ class Receiver final : public TeensyDMX {
   // Destructs Receiver. This calls end().
   ~Receiver() override;
 
-  // The maximum allowed packet time for receivers, either BREAK plus data,
-  // or BREAK to BREAK, in milliseconds.
-  static constexpr uint32_t kMaxDMXPacketTime = 1250;
-
   void begin() override;
 
   void end() override;
@@ -217,9 +213,15 @@ class Receiver final : public TeensyDMX {
     return packetTimeoutCount_;
   }
 
-  // Returns the total number of framing errors encountered.
+  // Returns the total number of framing errors encountered. This includes
+  // BREAKs that are too short.
   uint32_t framingErrorCount() const {
     return framingErrorCount_;
+  }
+
+  // Returns the total number of packets that were too short.
+  uint32_t shortPacketCount() const {
+    return shortPacketCount_;
   }
 
  private:
@@ -231,6 +233,14 @@ class Receiver final : public TeensyDMX {
     kIdle,   // The end of data for one packet has been reached
   };
 
+  // The maximum allowed packet time for receivers, either BREAK plus data,
+  // or BREAK to BREAK, in microseconds.
+  static constexpr uint32_t kMaxDMXPacketTime = 1250000;
+
+  // The minimum allowed packet time for receivers, BREAK to BREAK,
+  // in microseconds.
+  static constexpr uint32_t kMinDMXPacketTime = 1196;
+
   // Disables all the UART IRQs so that variables can be accessed concurrently.
   void disableIRQs();
 
@@ -241,9 +251,12 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void completePacket();
 
-  // A break has just been received.
+  // Look for potential packet timeouts.
+  void checkPacketTimeout();
+
+  // A potential break has just been received.
   // This is called from an ISR.
-  void receiveBreak();
+  void receivePotentialBreak();
 
   // An invalid start-of-break was received. There were non-zero bytes
   // in the framing error.
@@ -254,9 +267,17 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void receiveByte(uint8_t b);
 
-  // Keeps track of what we're receiving
+  // Keeps track of what we're receiving.
   volatile RecvStates state_;
-  volatile uint32_t stateStartTime_;  // When the state started, in microseconds
+
+  // The framing-error start time, in microseconds. This needs to be
+  // accessed from the same interrupt that triggered the framing error
+  // so that there's a guarantee that it doesn't get changed.
+  //
+  // This is separate from breakStartTime_ because the measurement is done
+  // right when the framing error is detected, and before any logic that
+  // might consume some time.
+  volatile uint32_t feStartTime_;
 
   volatile uint8_t buf1_[kMaxDMXPacketSize];
   volatile uint8_t buf2_[kMaxDMXPacketSize];
@@ -264,23 +285,28 @@ class Receiver final : public TeensyDMX {
   // Read-only shared memory buffer, make const volatile
   // https://embeddedgurus.com/barr-code/2012/01/combining-cs-volatile-and-const-keywords/
   const volatile uint8_t *volatile inactiveBuf_;
-  volatile int activeBufIndex_;
+  volatile unsigned int activeBufIndex_;
 
   // The size of the last received packet.
   volatile int packetSize_;
 
-  // The timestamp of the last received packet.
+  // The timestamp of the last received packet, in milliseconds.
   volatile uint32_t packetTimestamp_;
 
-  // Last BREAK start time, about 44us after the low-transition
-  volatile uint32_t lastBreakTime_;  // In milliseconds
+  // Current and last BREAK start times, in microseconds. The last start
+  // time is zero if we can consider that there's been no prior packet,
+  // and the current start time isn't set until it's confirmed that there's
+  // been a valid BREAK.
+  uint32_t lastBreakStartTime_;
+  volatile uint32_t breakStartTime_;
 
-  // Last time a slot ended.
-  volatile uint32_t lastSlotTime_;  // In milliseconds
+  // Last time a slot ended, in microseconds.
+  volatile uint32_t lastSlotEndTime_;
 
   // Counts
   volatile uint32_t packetTimeoutCount_;
   volatile uint32_t framingErrorCount_;
+  volatile uint32_t shortPacketCount_;
 
   // These error ISRs need to access private functions
   friend void uart0_rx_status_isr();
