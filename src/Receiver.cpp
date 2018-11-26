@@ -106,7 +106,7 @@ void Receiver::begin() {
 #define ACTIVATE_RX_SERIAL_ERROR_0 ACTIVATE_RX_SERIAL_ERROR(0)
 #else
 #define ACTIVATE_RX_SERIAL_ERROR_0
-#endif  // HAS_KINETISL_UART0
+#endif  // !HAS_KINETISL_UART0
       ACTIVATE_RX_SERIAL(0)
 #undef ACTIVATE_RX_SERIAL_ERROR_0
       break;
@@ -116,7 +116,7 @@ void Receiver::begin() {
 #define ACTIVATE_RX_SERIAL_ERROR_1 ACTIVATE_RX_SERIAL_ERROR(1)
 #else
 #define ACTIVATE_RX_SERIAL_ERROR_1
-#endif  // HAS_KINETISL_UART1
+#endif  // !HAS_KINETISL_UART1
       ACTIVATE_RX_SERIAL(1)
 #undef ACTIVATE_RX_SERIAL_ERROR_1
       break;
@@ -126,7 +126,7 @@ void Receiver::begin() {
 #define ACTIVATE_RX_SERIAL_ERROR_2 ACTIVATE_RX_SERIAL_ERROR(2)
 #else
 #define ACTIVATE_RX_SERIAL_ERROR_2
-#endif  // HAS_KINETISL_UART2
+#endif  // !HAS_KINETISL_UART2
       ACTIVATE_RX_SERIAL(2)
 #undef ACTIVATE_RX_SERIAL_ERROR_2
       break;
@@ -187,19 +187,19 @@ void Receiver::end() {
       UART0_C3 &= ~UART_C3_FEIE;
 #ifndef HAS_KINETISL_UART0
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART0
       break;
     case 1:
       UART1_C3 &= ~UART_C3_FEIE;
 #ifndef HAS_KINETISL_UART1
       NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART1
       break;
     case 2:
       UART2_C3 &= ~UART_C3_FEIE;
 #ifndef HAS_KINETISL_UART2
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART2
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
@@ -422,19 +422,19 @@ void Receiver::disableIRQs() {
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
 #ifndef HAS_KINETISL_UART0
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART0
       break;
     case 1:
       NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
 #ifndef HAS_KINETISL_UART1
       NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART1
       break;
     case 2:
       NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
 #ifndef HAS_KINETISL_UART2
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART2
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
@@ -467,19 +467,19 @@ void Receiver::enableIRQs() {
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
 #ifndef HAS_KINETISL_UART0
       NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART0
       break;
     case 1:
       NVIC_ENABLE_IRQ(IRQ_UART1_STATUS);
 #ifndef HAS_KINETISL_UART1
       NVIC_ENABLE_IRQ(IRQ_UART1_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART1
       break;
     case 2:
       NVIC_ENABLE_IRQ(IRQ_UART2_STATUS);
 #ifndef HAS_KINETISL_UART2
       NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
-#endif
+#endif  // !HAS_KINETISL_UART2
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
