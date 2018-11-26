@@ -256,8 +256,8 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   int retval = -1;
   disableIRQs();
   //{
-    // Instead of using a timer, we can use readPacket to poll timeouts
-    checkPacketTimeout();
+    // No need to poll for a timeout here because IDLE detection
+    // handles this now
 
     if (packetSize_ > 0) {
       if (startChannel >= packetSize_) {
