@@ -48,6 +48,7 @@ Receiver::Receiver(HardwareSerial &uart)
       lastBreakStartTime_(0),
       breakStartTime_(0),
       lastSlotEndTime_(0),
+      connected_(false),
       packetTimeoutCount_(0),
       framingErrorCount_(0),
       shortPacketCount_(0) {}
@@ -92,10 +93,12 @@ void Receiver::begin() {
     r->end();
   }
 
-  // Reset "previous" state; zero means there's no previous packet
-  lastBreakStartTime_ = 0;
-
   uart_.begin(kSlotsBaud, kSlotsFormat);
+
+  // Reset "previous" state
+  // NOTE: Any tampering with UART_C2 must be done after the serial port
+  //       is activated because setting ILIE to 0 seems to lock things up
+  connected_ = false;
 
   switch (serialIndex_) {
     case 0:
@@ -302,8 +305,11 @@ void Receiver::checkPacketTimeout() {
   if (state_ != RecvStates::kData) {
     return;
   }
-  if ((micros() - breakStartTime_) > kMaxDMXPacketTime) {
+  uint32_t t = micros();
+  if ((t - breakStartTime_) > kMaxDMXPacketTime ||
+      (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
     packetTimeoutCount_++;
+    connected_ = false;
     completePacket();
   }
 }
@@ -331,7 +337,7 @@ void Receiver::receiveBadBreak() {
   // Consider this case as not seeing a break
   // This may be line noise, so now we can't tell for sure where the
   // last break was
-  lastBreakStartTime_ = 0;
+  connected_ = false;
 
   // Don't keep the packet
   // See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292)
@@ -356,8 +362,8 @@ void Receiver::receiveByte(uint8_t b) {
         // First byte is too early, discard any data
         receiveBadBreak();
         return;
-      } else if (lastBreakStartTime_ > 0) {  // This condition indicates
-                                             // we've seen at least one BREAK
+      } else if (connected_) {  // This condition indicates we haven't
+                                // seen some timeout
         // Complete any un-flushed bytes
         uint32_t dt = breakStartTime_ - lastBreakStartTime_;
         if (dt < kMinDMXPacketTime) {
@@ -372,6 +378,7 @@ void Receiver::receiveByte(uint8_t b) {
         completePacket();
       }
       lastBreakStartTime_ = breakStartTime_;
+      connected_ = true;
       state_ = RecvStates::kData;
       break;
     case RecvStates::kData:
@@ -382,6 +389,8 @@ void Receiver::receiveByte(uint8_t b) {
         receiveBadBreak();
         return;
       }
+      // NOTE: Don't need to check for inter-slot MARK time being
+      //       too large because the IDLE detection will catch that
       break;
     default:
       // Ignore any extra bytes in a packet or any bytes outside a packet

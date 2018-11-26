@@ -207,6 +207,13 @@ class Receiver final : public TeensyDMX {
     return packetTimestamp_;
   }
 
+  // Returns whether this is considered to be connected to a DMX transmitter.
+  // A connection is considered to have been broken if a timeout was detected
+  // or a BREAK plus Mark after Break (MAB) was too short.
+  bool connected() const {
+    return connected_;
+  }
+
   // Returns the total number of packets received or transmitted since
   // the reciever was started.
   uint32_t packetTimeoutCount() const {
@@ -240,6 +247,10 @@ class Receiver final : public TeensyDMX {
   // The minimum allowed packet time for receivers, BREAK to BREAK,
   // in microseconds.
   static constexpr uint32_t kMinDMXPacketTime = 1196;
+
+  // The maximum allowed IDLE and Mark Before Break (MBB) time,
+  // in microseconds, exclusive.
+  static constexpr uint32_t kMaxDMXIdleTime = 1000000;
 
   // Disables all the UART IRQs so that variables can be accessed concurrently.
   void disableIRQs();
@@ -302,6 +313,11 @@ class Receiver final : public TeensyDMX {
 
   // Last time a slot ended, in microseconds.
   volatile uint32_t lastSlotEndTime_;
+
+  // Indicates whether we are connected to a DMX transmitter. Disconnection
+  // is considered to have occurred when a timeout, framing error, or short
+  // packet is detected.
+  volatile bool connected_;
 
   // Counts
   volatile uint32_t packetTimeoutCount_;
