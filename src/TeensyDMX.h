@@ -263,6 +263,7 @@ class Receiver final : public TeensyDMX {
   void completePacket();
 
   // Look for potential packet timeouts.
+  // This is called from an ISR.
   void checkPacketTimeout();
 
   // A potential break has just been received.
