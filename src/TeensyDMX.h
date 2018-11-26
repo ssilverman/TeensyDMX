@@ -364,11 +364,17 @@ class Sender final : public TeensyDMX {
   //
   // The reason for the lower bound is so that, under conditions where minimum
   // timings are used, the total packet time does not fall below 1204us, per
-  // the ANSI E1.11 DMX specification.
+  // the ANSI E1.11 DMX specification. However, if the refresh rate is set to
+  // something slower, then the minimum possible packet size will change.
   void setPacketSize(int size) {
     if (0 <= size && size <= kMaxDMXPacketSize) {
       packetSize_ = size;
     }
+  }
+
+  // Returns the current packet size.
+  int getPacketSize() {
+    return packetSize_;
   }
 
   // Sets a channel's value. Channel zero represents the start code.
