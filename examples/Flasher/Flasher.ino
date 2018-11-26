@@ -31,9 +31,10 @@ elapsedMillis lastFrameTime;
 uint8_t lastValue;
 
 void setup() {
-  // Initialize the serial port and wait for initialization to complete
+  // Initialize the serial port
   Serial.begin(115200);
   while (!Serial && millis() < 4000) {
+    // Wait for initialization to complete or a time limit
   }
   Serial.println("Starting.");
 

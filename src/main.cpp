@@ -16,9 +16,10 @@ teensydmx::Sender dmxTx{Serial1};
 int channel = 0;
 
 void setup() {
-  // Initialize the serial port and wait for initialization to complete
+  // Initialize the serial port
   Serial.begin(115200);
   while (!Serial && millis() < 4000) {
+    // Wait for initialization to complete or a time limit
   }
 
   // Set up any pins
