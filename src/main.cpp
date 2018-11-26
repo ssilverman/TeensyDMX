@@ -1,5 +1,8 @@
 // Basic main program, so it's easy to compile the project.
 
+// Define MAIN_TEST_PROGRAM to use this test program.
+#ifdef MAIN_TEST_PROGRAM
+
 #include <Arduino.h>
 
 // Project includes
@@ -44,3 +47,5 @@ void loop() {
 
   delay(980);
 }
+
+#endif  // MAIN_TEST_PROGRAM
