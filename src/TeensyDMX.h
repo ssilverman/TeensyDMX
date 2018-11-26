@@ -376,8 +376,7 @@ class Sender final : public TeensyDMX {
   // E1.11 DMX specification. However, smaller packets can be sent if the
   // refresh rate is decreased.
   //
-  // These limits are contained in kMinDMXPacketSize and kMaxDMXPacketSize,
-  // respectively.
+  // These limits are contained in kMaxDMXPacketSize and kMinDMXPacketSize.
   //
   // For example, if the packet size is set to 25, then the channels can range
   // from 0 to 24, inclusive, with channel zero containing the start code and
