@@ -742,7 +742,8 @@ void lpuart0_rx_isr() {
 
   // A framing error likely indicates a break
   if ((status & LPUART_STAT_FE) != 0) {
-    LPUART0_STAT |= LPUART_STAT_FE;  // Clear the status
+    // Clear all statuses that may have triggered this interrupt
+    LPUART0_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
 
     // Only allow a packet whose framing error actually indicates a break.
     // A value of zero indicates a true break and not some other
