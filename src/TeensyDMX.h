@@ -179,13 +179,10 @@ class Receiver final : public TeensyDMX {
   // Gets the value for one channel. The start code can be read at
   // channel zero.
   //
-  // If the channel is out of range then this will return zero.
-  uint8_t get(int channel) const {
-    if (channel <= 0 || kMaxDMXPacketSize <= channel) {
-      return 0;
-    }
-    return inactiveBuf_[channel];
-  }
+  // If the channel is out of range then this will return zero. This is
+  // equivalent to calling readPacket with a buffer size of 1 and returning
+  // zero for unavailable data or an out of range request.
+  uint8_t get(int channel) const;
 
   // Returns the timestamp of the last received packet. Under the covers,
   // millis() is called when a packet is received. Note that this may not

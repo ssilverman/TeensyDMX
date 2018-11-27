@@ -276,6 +276,26 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
   return retval;
 }
 
+uint8_t Receiver::get(int channel) const {
+  if (packetSize_ <= 0) {
+    return 0;
+  }
+  if (channel < 0 || kMaxDMXPacketSize <= channel) {
+    return 0;
+  }
+
+  uint8_t b = 0;
+  disableIRQs();
+  //{
+    // Since channel >= 0, packetSize_ > channel implies packetSize_ > 0
+    if (channel < packetSize_) {
+      b = inactiveBuf_[channel];
+    }
+  //}
+  enableIRQs();
+  return b;
+}
+
 void Receiver::completePacket() {
   uint32_t t = millis();
   state_ = RecvStates::kIdle;
