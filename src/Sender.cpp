@@ -154,7 +154,7 @@ void Sender::end() {
 
 // memcpy implementation that accepts a volatile destination.
 // Derived from:
-// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/stdlib/mem.c
+// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/libc/memcpy.c
 static volatile void *memcpy(volatile void *dst, const void *src, size_t len) {
   volatile uint8_t *d = reinterpret_cast<volatile uint8_t *>(dst);
   const uint8_t *s = reinterpret_cast<const uint8_t *>(src);

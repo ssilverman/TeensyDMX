@@ -233,7 +233,7 @@ void Receiver::end() {
 
 // memcpy implementation that accepts a const volatile source.
 // Derived from:
-// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/stdlib/mem.c
+// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/libc/memcpy.c
 static void *memcpy(void *dst, const volatile void *src, size_t len) {
   const volatile uint8_t *s = reinterpret_cast<const volatile uint8_t *>(src);
   uint8_t *d = reinterpret_cast<uint8_t *>(dst);
