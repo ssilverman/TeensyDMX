@@ -416,7 +416,7 @@ void Receiver::receiveByte(uint8_t b) {
 //  IRQ management
 // ---------------------------------------------------------------------------
 
-void Receiver::disableIRQs() {
+void Receiver::disableIRQs() const {
   switch (serialIndex_) {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
@@ -461,7 +461,7 @@ void Receiver::disableIRQs() {
   }
 }
 
-void Receiver::enableIRQs() {
+void Receiver::enableIRQs() const {
   switch (serialIndex_) {
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);

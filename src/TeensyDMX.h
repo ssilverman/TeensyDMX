@@ -253,10 +253,10 @@ class Receiver final : public TeensyDMX {
   static constexpr uint32_t kMaxDMXIdleTime = 1000000;
 
   // Disables all the UART IRQs so that variables can be accessed concurrently.
-  void disableIRQs();
+  void disableIRQs() const;
 
   // Enables all the UART IRQs.
-  void enableIRQs();
+  void enableIRQs() const;
 
   // Makes a new packet available.
   // This is called from an ISR.
@@ -390,7 +390,7 @@ class Sender final : public TeensyDMX {
   }
 
   // Returns the current packet size.
-  int getPacketSize() {
+  int packetSize() const {
     return packetSize_;
   }
 
@@ -442,7 +442,7 @@ class Sender final : public TeensyDMX {
 
   // Returns the packet refresh rate. The default is INFINITY, indicating
   // "as fast as possible".
-  float getRefreshRate() {
+  float refreshRate() const {
     return refreshRate_;
   }
 
@@ -499,7 +499,7 @@ class Sender final : public TeensyDMX {
 
   // Returns the number of packets remaining to be sent before being paused.
   // This will return zero if there are no packets remaining.
-  int getResumedRemaining() {
+  int resumedRemaining() const {
     return resumeCounter_;
   }
 
@@ -538,10 +538,10 @@ class Sender final : public TeensyDMX {
   static constexpr uint32_t kMinDMXPacketTime = 1204;
 
   // Disables all the UART IRQs so that variables can be accessed concurrently.
-  void disableIRQs();
+  void disableIRQs() const;
 
   // Enables all the UART IRQs.
-  void enableIRQs();
+  void enableIRQs() const;
 
   // Completes a sent packet. This increments the packet count, resets the
   // output buffer index, and sets the state to Idle.

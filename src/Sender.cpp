@@ -281,7 +281,7 @@ void Sender::completePacket() {
 //  IRQ management
 // ---------------------------------------------------------------------------
 
-void Sender::disableIRQs() {
+void Sender::disableIRQs() const {
   switch (serialIndex_) {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
@@ -314,7 +314,7 @@ void Sender::disableIRQs() {
   }
 }
 
-void Sender::enableIRQs() {
+void Sender::enableIRQs() const {
   switch (serialIndex_) {
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
