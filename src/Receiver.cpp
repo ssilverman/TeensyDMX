@@ -49,6 +49,7 @@ Receiver::Receiver(HardwareSerial &uart)
       breakStartTime_(0),
       lastSlotEndTime_(0),
       connected_(false),
+      connectChangeFunc_{nullptr},
       packetTimeoutCount_(0),
       framingErrorCount_(0),
       shortPacketCount_(0) {}
@@ -98,7 +99,7 @@ void Receiver::begin() {
   // Reset "previous" state
   // NOTE: Any tampering with UART_C2 must be done after the serial port
   //       is activated because setting ILIE to 0 seems to lock things up
-  connected_ = false;
+  setConnected(false);
 
   switch (serialIndex_) {
     case 0:
@@ -175,6 +176,8 @@ void Receiver::end() {
   if (serialIndex_ < 0) {
     return;
   }
+
+  setConnected(false);
 
   // Remove any chance that our RX ISRs start after end() is called,
   // so disable the IRQs first
@@ -329,8 +332,8 @@ void Receiver::checkPacketTimeout() {
   if ((t - breakStartTime_) > kMaxDMXPacketTime ||
       (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
     packetTimeoutCount_++;
-    connected_ = false;
     completePacket();
+    setConnected(false);
   }
 }
 
@@ -354,15 +357,15 @@ void Receiver::receiveBadBreak() {
   // Not a break
   framingErrorCount_++;
 
-  // Consider this case as not seeing a break
-  // This may be line noise, so now we can't tell for sure where the
-  // last break was
-  connected_ = false;
-
   // Don't keep the packet
   // See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292)
   activeBufIndex_ = 0;
   completePacket();
+
+  // Consider this case as not seeing a break
+  // This may be line noise, so now we can't tell for sure where the
+  // last break was
+  setConnected(false);
 }
 
 void Receiver::receiveByte(uint8_t b) {
@@ -398,7 +401,7 @@ void Receiver::receiveByte(uint8_t b) {
         completePacket();
       }
       lastBreakStartTime_ = breakStartTime_;
-      connected_ = true;
+      setConnected(true);
       state_ = RecvStates::kData;
       break;
     case RecvStates::kData:
@@ -429,6 +432,15 @@ void Receiver::receiveByte(uint8_t b) {
   activeBuf_[activeBufIndex_++] = b;
   if (activeBufIndex_ == kMaxDMXPacketSize) {
     completePacket();
+  }
+}
+
+void Receiver::setConnected(bool flag) {
+  bool changed = (connected_ != flag);
+  connected_ = flag;
+
+  if (changed && connectChangeFunc_ != nullptr) {
+    connectChangeFunc_(this);
   }
 }
 

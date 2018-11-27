@@ -211,6 +211,16 @@ class Receiver final : public TeensyDMX {
     return connected_;
   }
 
+  // Sets the function to call when the connection state changes. This can
+  // be used instead of polling connected(). The function takes one argument,
+  // a pointer to this Receiver instance.
+  //
+  // The function is called when the same conditions checked by connected()
+  // occur. It is called from an ISR.
+  void onConnectChange(void (*f)(Receiver *r)) {
+    connectChangeFunc_ = f;
+  }
+
   // Returns the total number of packets received or transmitted since
   // the reciever was started.
   uint32_t packetTimeoutCount() const {
@@ -254,6 +264,9 @@ class Receiver final : public TeensyDMX {
 
   // Enables all the UART IRQs.
   void enableIRQs() const;
+
+  // Called when the connection state changes.
+  void setConnected(bool flag);
 
   // Makes a new packet available.
   // This is called from an ISR.
@@ -316,6 +329,9 @@ class Receiver final : public TeensyDMX {
   // is considered to have occurred when a timeout, framing error, or short
   // packet is detected.
   volatile bool connected_;
+
+  // This is called when the connection state changes.
+  void (*volatile connectChangeFunc_)(Receiver *r);
 
   // Counts
   volatile uint32_t packetTimeoutCount_;
