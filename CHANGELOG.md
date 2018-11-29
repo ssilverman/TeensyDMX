@@ -18,6 +18,8 @@ This document details the changes between each release.
   _connected_ state.
 * Synchronous operation in `Receiver`. Using the new `Responder` class, it's
   now possible to intercept, and even respond to, each packet as it comes in.
+* Two examples that use the new `Responder` feature: `SIPHandler`
+  and `TextPacketHandler`.
 
 ### Changed
 * Renamed:
