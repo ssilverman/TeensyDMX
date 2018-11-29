@@ -12,7 +12,7 @@
     "url": "https://github.com/ssilverman/TeensyDMX"
   },
   "version": "3.0.0-alpha",
-  "license": "BSD-3-Clause",
+  "license": "BSD-3-Clause-Clear",
   "homepage": "https://github.com/ssilverman/TeensyDMX",
   "frameworks": "arduino",
   "platforms": "teensy"
