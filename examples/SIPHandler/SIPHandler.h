@@ -56,11 +56,11 @@ class SIPHandler final : public teensydmx::Responder {
 
   // Gets the latest SIP data. This returns false if there is no SIP data
   // or if the parameter 'sipData' is nullptr. Otherwise, this returns true.
-  bool getSIPData(volatile SIPData *sipData) {
+  bool getSIPData(SIPData *sipData) {
     if (!sipDataValid_ || sipData == nullptr) {
       return false;
     }
-    *sipData = sipData_;
+    *sipData = *const_cast<SIPData *>(&sipData_);
     return true;
   }
 
