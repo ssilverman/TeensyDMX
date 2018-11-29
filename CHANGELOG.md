@@ -2,6 +2,38 @@
 
 This document details the changes between each release.
 
+## [3.0.0-alpha]
+
+### Added
+* Short packet detection. These are packets that are smaller than 1196us.
+* Ability to get the current transmitted packet size with
+  `Sender::packetSize()`.
+* The concept of being _connected_ in `Receiver`. There is a polling function,
+  `connected()`, and also a way to register a callback for when the state
+  changes, via `onConnectChange`.
+* Associated with the concept of being _connected_ in the receiver, and in
+  addition to the improved BREAK plus MAB timing checks, `Receiver` now also
+  checks for inter-slot and Mark before Break (MBB) IDLE times that are too
+  long. Detecting these conditions will register as a change to the
+  _connected_ state.
+* Synchronous operation in `Receiver`. Using the new `Responder` class, it's
+  now possible to intercept, and even respond to, each packet as it comes in.
+
+### Changed
+* Renamed:
+  * `Sender::getRefreshRate()` to `Sender::refreshRate()`.
+  * `Sender::getResumedRemaining()` to `Sender::resumedRemaining()`.
+
+### Fixed
+* Documentation fixes.
+* Improved packet timeout detection. It now detects when the BREAK plus MAB
+  duration is too short, but not when they are individually too short.
+* Added a define around the contents of `main.cpp` so that the project can
+  be used in an Arduino environment. This prevents the `setup()` and `loop()`
+  definitions in `main.cpp` from interfering with the Arduino program.
+* `Receiver::get` now respects the current received packet size and behaves
+  more similarly to `Receiver::readPacket`.
+
 ## [2.5.0]
 
 ### Added
