@@ -25,6 +25,7 @@ This document details the changes between each release.
 * Renamed:
   * `Sender::getRefreshRate()` to `Sender::refreshRate()`.
   * `Sender::getResumedRemaining()` to `Sender::resumedRemaining()`.
+* The licence changed from BSD-3-Clause to BSD-3-Clause-Clear.
 
 ### Fixed
 * Documentation fixes.
