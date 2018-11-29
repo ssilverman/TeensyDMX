@@ -1,4 +1,5 @@
 #include "TeensyDMX.h"
+#include "Responder.h"
 
 // C++ includes
 #include <cstring>
@@ -12,23 +13,50 @@ namespace teensydmx {
 
 static constexpr uint32_t kSlotsBaud = 250000;
 static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
+static constexpr uint32_t kBitTime = 1000000 / 250000;  // In microseconds
+static constexpr uint32_t kCharTime = 11 * kBitTime;  // In microseconds
 
 // RX control states
-#define UART0_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
-#define UART1_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
-#define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
+#define UART0_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
+#define UART1_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
+#define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
 
 #ifdef HAS_KINETISK_UART3
-#define UART3_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
+#define UART3_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
-#define UART4_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
+#define UART4_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
 #endif  // HAS_KINETISK_UART4
 #ifdef HAS_KINETISK_UART5
-#define UART5_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
+#define UART5_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
 #endif  // HAS_KINETISK_UART5
 #ifdef HAS_KINETISK_LPUART0
-#define LPUART0_CTRL_RX_ENABLE LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE
+#define LPUART0_CTRL_RX_ENABLE LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE | LPUART_CTRL_TE
+#endif  // HAS_KINETISK_LPUART0
+
+// Routines that do raw transmit
+// These don't affect the transmitter
+static void uart0_tx(const uint8_t *b, int len);
+static void uart0_tx_break(int count, uint32_t mabTime);
+static void uart1_tx(const uint8_t *b, int len);
+static void uart1_tx_break(int count, uint32_t mabTime);
+static void uart2_tx(const uint8_t *b, int len);
+static void uart2_tx_break(int count, uint32_t mabTime);
+#ifdef HAS_KINETISK_UART3
+static void uart3_tx(const uint8_t *b, int len);
+static void uart3_tx_break(int count, uint32_t mabTime);
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+static void uart4_tx(const uint8_t *b, int len);
+static void uart4_tx_break(int count, uint32_t mabTime);
+#endif  // HAS_KINETISK_UART4
+#ifdef HAS_KINETISK_UART5
+static void uart5_tx(const uint8_t *b, int len);
+static void uart5_tx_break(int count, uint32_t mabTime);
+#endif  // HAS_KINETISK_UART5
+#ifdef HAS_KINETISK_LPUART0
+static void lpuart0_tx(const uint8_t *b, int len);
+static void lpuart0_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_LPUART0
 
 // Used by the RX ISRs.
@@ -52,10 +80,59 @@ Receiver::Receiver(HardwareSerial &uart)
       connectChangeFunc_{nullptr},
       packetTimeoutCount_(0),
       framingErrorCount_(0),
-      shortPacketCount_(0) {}
+      shortPacketCount_(0),
+      responders_{nullptr},
+      responderOutBuf_(nullptr),
+      responderOutBufLen_{0},
+      setRXNotTXFunc_(nullptr) {
+  switch(serialIndex_) {
+    case 0:
+      txFunc_ = uart0_tx;
+      txBreakFunc_ = uart0_tx_break;
+      break;
+    case 1:
+      txFunc_ = uart1_tx;
+      txBreakFunc_ = uart1_tx_break;
+      break;
+    case 2:
+      txFunc_ = uart2_tx;
+      txBreakFunc_ = uart2_tx_break;
+      break;
+#ifdef HAS_KINETISK_UART3
+    case 3:
+      txFunc_ = uart3_tx;
+      txBreakFunc_ = uart3_tx_break;
+      break;
+#endif  // HAS_KINETISK_UART3
+#ifdef HAS_KINETISK_UART4
+    case 4:
+      txFunc_ = uart4_tx;
+      txBreakFunc_ = uart4_tx_break;
+      break;
+#endif  // HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART5)
+    case 5:
+      txFunc_ = uart5_tx;
+      txBreakFunc_ = uart5_tx_break;
+      break;
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      txFunc_ = lpuart0_tx;
+      txBreakFunc_ = lpuart0_tx_break;
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+    default:
+      txFunc_ = nullptr;
+      txBreakFunc_ = nullptr;
+  }
+}
 
 Receiver::~Receiver() {
   end();
+
+  if (responderOutBuf_ != nullptr) {
+    delete[] responderOutBuf_;
+  }
 }
 
 // Must define ACTIVATE_RX_SERIAL_ERROR_N
@@ -161,6 +238,9 @@ void Receiver::begin() {
       break;
 #endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
   }
+
+  // Enable receive
+  setRXNotTX(true);
 }
 
 // Undefine these macros
@@ -299,6 +379,26 @@ uint8_t Receiver::get(int channel) const {
   return b;
 }
 
+Responder *Receiver::addResponder(uint8_t startCode, Responder *r) {
+  if (r == nullptr) {
+    return nullptr;
+  }
+
+  // First, initialize the output buffer
+  int outBufSize = r->outputBufferSize();
+  if (responderOutBuf_ == nullptr || responderOutBufLen_ < outBufSize) {
+    if (responderOutBuf_ != nullptr) {
+      delete[] responderOutBuf_;
+    }
+    responderOutBuf_ = new uint8_t[outBufSize];
+    responderOutBufLen_ = outBufSize;
+  }
+
+  Responder *old = responders_[startCode];
+  responders_[startCode] = r;
+  return old;
+}
+
 void Receiver::completePacket() {
   uint32_t t = millis();
   state_ = RecvStates::kIdle;
@@ -320,6 +420,14 @@ void Receiver::completePacket() {
   packetCount_++;
   packetSize_ = activeBufIndex_;
   packetTimestamp_ = t;
+
+  Responder *r = responders_[inactiveBuf_[0]];
+  if (r != nullptr) {
+    r->receivePacket(const_cast<const uint8_t *>(inactiveBuf_), packetSize_);
+    if (r->eatPacket()) {
+      packetSize_ = 0;
+    }
+  }
 
   activeBufIndex_ = 0;
 }
@@ -369,7 +477,7 @@ void Receiver::receiveBadBreak() {
 }
 
 void Receiver::receiveByte(uint8_t b) {
-  uint32_t t = micros();
+  uint32_t eopTime = micros();
 
   // Bad breaks are detected when BREAK + MAB + character time is too short
   // BREAK: 88us
@@ -381,7 +489,7 @@ void Receiver::receiveByte(uint8_t b) {
       // This is only a rudimentary check for short BREAKs. It does not
       // detect short BREAKs followed by long MABs. It only detects
       // whether BREAK + MAB time is at least 88us + 8us.
-      if ((t - breakStartTime_) < 88 + 8 + 44) {
+      if ((eopTime - breakStartTime_) < 88 + 8 + 44) {
         // First byte is too early, discard any data
         receiveBadBreak();
         return;
@@ -407,7 +515,7 @@ void Receiver::receiveByte(uint8_t b) {
     case RecvStates::kData:
       // Checking this here accounts for buffered input, where several
       // bytes come in at the same time
-      if ((t - breakStartTime_) < 88 + 8 + 44 + 44*activeBufIndex_) {
+      if ((eopTime - breakStartTime_) < 88 + 8 + 44 + 44*activeBufIndex_) {
         // First byte is too early, discard any data
         receiveBadBreak();
         return;
@@ -422,17 +530,70 @@ void Receiver::receiveByte(uint8_t b) {
 
   // Check the timing and if we are out of range then complete any bytes
   // until, but not including, this one
-  lastSlotEndTime_ = t;
-  if ((t - breakStartTime_) > kMaxDMXPacketTime) {
+  lastSlotEndTime_ = eopTime;
+  if ((eopTime - breakStartTime_) > kMaxDMXPacketTime) {
     packetTimeoutCount_++;
     completePacket();
     return;
   }
 
+  bool packetFull = false;  // Indicates whether the maximum packet size
+                            // has been reached.
+                            // Using this is necessary so that the responder's
+                            // processByte is called before its receivePacket.
   activeBuf_[activeBufIndex_++] = b;
   if (activeBufIndex_ == kMaxDMXPacketSize) {
-    completePacket();
+    packetFull = true;
   }
+
+  // See if a responder needs to process the byte and respond
+  Responder *r = responders_[activeBuf_[0]];
+  if (r == nullptr) {
+    if (packetFull) {
+      completePacket();
+    }
+    return;
+  }
+
+  int respLen = r->processByte(const_cast<const uint8_t*>(activeBuf_),
+                               activeBufIndex_,
+                               responderOutBuf_);
+  if (respLen <= 0) {
+    if (packetFull) {
+      // If the responder isn't done by now, it's too late for this packet
+      // because the maximum packet size has been reached
+      completePacket();
+    }
+    return;
+  }
+  completePacket();  // This is the best option, even though there may be
+                     // more bytes
+  if (txFunc_ == nullptr) {
+    return;
+  }
+
+  // Do the response
+  if (r->isSendBreakForLastPacket()) {
+    if (txBreakFunc_ == nullptr) {
+      return;
+    }
+    uint32_t delay = r->preBreakDelay();
+    uint32_t dt = micros() - eopTime;
+    if (dt < delay) {
+      delayMicroseconds(delay - dt);
+    }
+
+    setRXNotTX(false);
+    txBreakFunc_(r->breakLength(), r->markAfterBreakTime());
+  } else {
+    uint32_t delay = r->preNoBreakDelay();
+    setRXNotTX(false);
+    if (delay > 0) {
+      delayMicroseconds(delay);
+    }
+  }
+  txFunc_(responderOutBuf_, respLen);
+  setRXNotTX(true);
 }
 
 void Receiver::setConnected(bool flag) {
@@ -537,6 +698,240 @@ void Receiver::enableIRQs() const {
 #endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
   }
 }
+
+// ---------------------------------------------------------------------------
+//  UART TX routines
+// ---------------------------------------------------------------------------
+
+void uart0_tx(const uint8_t *b, int len) {
+  if (len <= 0) {
+    return;
+  }
+
+  while (len > 0) {
+    while ((UART0_S1 & UART_S1_TDRE) == 0) {
+      // Wait until we can transmit
+    }
+    UART0_D = *(b++);
+    len--;
+#ifdef HAS_KINETISK_UART0_FIFO
+    while (len > 0 && UART0_TCFIFO < 8) {
+      uint8_t status = UART0_S1;
+      UART0_D = *(b++);
+      len--;
+    }
+#endif  // HAS_KINETISK_UART0_FIFO
+  }
+
+  while ((UART0_S1 & UART_S1_TC) == 0) {
+    // Wait until transmission complete
+  }
+}
+
+#ifdef HAS_KINETISK_UART0_FIFO
+#define UART_TX_FLUSH_FIFO_0 UART_TX_FLUSH_FIFO(0)
+#else
+#define UART_TX_FLUSH_FIFO_0
+#endif  // HAS_KINETISK_UART0_FIFO
+
+void uart0_tx_break(int count, uint32_t mabTime) {
+  UART_TX_BREAK(0)
+}
+
+#undef UART_TX_FLUSH_FIFO_0
+
+void uart1_tx(const uint8_t *b, int len) {
+  if (len <= 0) {
+    return;
+  }
+
+  while (len > 0) {
+    while ((UART1_S1 & UART_S1_TDRE) == 0) {
+      // Wait until we can transmit
+    }
+    UART1_D = *(b++);
+    len--;
+#ifdef HAS_KINETISK_UART1_FIFO
+    while (len > 0 && UART1_TCFIFO < 8) {
+      uint8_t status = UART1_S1;
+      UART1_D = *(b++);
+      len--;
+    }
+#endif  // HAS_KINETISK_UART1_FIFO
+  }
+
+  while ((UART1_S1 & UART_S1_TC) == 0) {
+    // Wait until transmission complete
+  }
+}
+
+#ifdef HAS_KINETISK_UART1_FIFO
+#define UART_TX_FLUSH_FIFO_1 UART_TX_FLUSH_FIFO(1)
+#else
+#define UART_TX_FLUSH_FIFO_1
+#endif  // HAS_KINETISK_UART1_FIFO
+
+void uart1_tx_break(int count, uint32_t mabTime) {
+  UART_TX_BREAK(1)
+}
+
+#undef UART_TX_FLUSH_FIFO_1
+
+void uart2_tx(const uint8_t *b, int len) {
+  if (len <= 0) {
+    return;
+  }
+
+  while (len > 0) {
+    while ((UART2_S1 & UART_S1_TDRE) == 0) {
+      // Wait until we can transmit
+    }
+    UART2_D = *(b++);
+    len--;
+#ifdef HAS_KINETISK_UART2_FIFO
+    while (len > 0 && UART2_TCFIFO < 8) {
+      uint8_t status = UART2_S1;
+      UART2_D = *(b++);
+      len--;
+    }
+#endif  // HAS_KINETISK_UART2_FIFO
+  }
+
+  while ((UART2_S1 & UART_S1_TC) == 0) {
+    // Wait until transmission complete
+  }
+}
+
+#ifdef HAS_KINETISK_UART2_FIFO
+#define UART_TX_FLUSH_FIFO_2 UART_TX_FLUSH_FIFO(2)
+#else
+#define UART_TX_FLUSH_FIFO_2
+#endif  // HAS_KINETISK_UART2_FIFO
+
+void uart2_tx_break(int count, uint32_t mabTime) {
+  UART_TX_BREAK(2)
+}
+
+#undef UART_TX_FLUSH_FIFO_2
+
+#ifdef HAS_KINETISK_UART3
+void uart3_tx(const uint8_t *b, int len) {
+  if (len <= 0) {
+    return;
+  }
+
+  while (len > 0) {
+    while ((UART3_S1 & UART_S1_TDRE) == 0) {
+      // Wait until we can transmit
+    }
+    UART3_D = *(b++);
+    len--;
+  }
+
+  while ((UART3_S1 & UART_S1_TC) == 0) {
+    // Wait until transmission complete
+  }
+}
+
+#define UART_TX_FLUSH_FIFO_3
+
+void uart3_tx_break(int count, uint32_t mabTime) {
+  UART_TX_BREAK(3)
+}
+
+#undef UART_TX_FLUSH_FIFO_3
+#endif  // HAS_KINETISK_UART3
+
+#ifdef HAS_KINETISK_UART4
+void uart4_tx(const uint8_t *b, int len) {
+  if (len <= 0) {
+    return;
+  }
+
+  while (len > 0) {
+    while ((UART4_S1 & UART_S1_TDRE) == 0) {
+      // Wait until we can transmit
+    }
+    UART4_D = *(b++);
+    len--;
+  }
+
+  while ((UART4_S1 & UART_S1_TC) == 0) {
+    // Wait until transmission complete
+  }
+}
+
+#define UART_TX_FLUSH_FIFO_4
+
+void uart4_tx_break(int count, uint32_t mabTime) {
+  UART_TX_BREAK(4)
+}
+
+#undef UART_TX_FLUSH_FIFO_4
+#endif  // HAS_KINETISK_UART4
+
+#ifdef HAS_KINETISK_UART5
+void uart5_tx(const uint8_t *b, int len) {
+  if (len <= 0) {
+    return;
+  }
+
+  while (len > 0) {
+    while ((UART5_S1 & UART_S1_TDRE) == 0) {
+      // Wait until we can transmit
+    }
+    UART5_D = *(b++);
+    len--;
+  }
+
+  while ((UART5_S1 & UART_S1_TC) == 0) {
+    // Wait until transmission complete
+  }
+}
+
+#define UART_TX_FLUSH_FIFO_5
+
+void uart5_tx_break(int count, uint32_t mabTime) {
+  UART_TX_BREAK(5)
+}
+
+#undef UART_TX_FLUSH_FIFO_5
+#endif  // HAS_KINETISK_UART5
+
+#ifdef HAS_KINETISK_LPUART0
+void lpuart0_tx(const uint8_t *b, int len) {
+  if (len <= 0) {
+    return;
+  }
+
+  while (len > 0) {
+    while ((LPUART0_STAT & LPUART_STAT_TDRE) == 0) {
+      // Wait until we can transmit
+    }
+    LPUART0_DATA = *(b++);
+    len--;
+  }
+
+  while ((LPUART0_STAT & LPUART_STAT_TC) == 0) {
+    // Wait until transmission complete
+  }
+}
+
+void lpuart0_tx_break(int count, uint32_t mabTime) {
+  if (count <= 0) {
+    return;
+  }
+
+  while (count-- > 0) {
+    while ((LPUART0_STAT & LPUART_STAT_TDRE) == 0) {
+      // Wait until we can transmit
+    }
+    LPUART0_DATA = LPUART_DATA_FRETSC;  // T9 is zero
+  }
+
+  delayMicroseconds(mabTime);
+}
+#endif  // HAS_KINETISK_LPUART0
 
 // ---------------------------------------------------------------------------
 //  UART0 RX ISRs

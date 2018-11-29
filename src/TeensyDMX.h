@@ -21,6 +21,7 @@
 
 // Other includes
 #include <Arduino.h>
+#include "Responder.h"
 
 namespace qindesign {
 namespace teensydmx {
@@ -151,11 +152,14 @@ class TeensyDMX {
 // A DMX receiver. This receives packets asynchronously.
 class Receiver final : public TeensyDMX {
  public:
+  // Creates a new receiver and uses the given UART for communication.
   Receiver(HardwareSerial &uart);
 
   // Destructs Receiver. This calls end().
   ~Receiver() override;
 
+  // Call setSetRXNotTXFunc to set an appropriate pin toggle function
+  // before calling begin.
   void begin() override;
 
   void end() override;
@@ -202,6 +206,22 @@ class Receiver final : public TeensyDMX {
   // valid data received would give a value that's later than the true value.
   uint32_t lastPacketTimestamp() const {
     return packetTimestamp_;
+  }
+
+  // Adds a responder and uses the supplied start code to deterimine when to
+  // respond to a received packet. This holds on to the pointer, so callers
+  // should take care to not free the object before this Receiver is freed.
+  // This does nothing if r is nullptr.
+  //
+  // This will replace any responder having the same start code and returns
+  // the replaced pointer. Note that this will return nullptr if no responder
+  // was replaced.
+  Responder *addResponder(uint8_t startCode, Responder *r);
+
+  // Sets the setRXNotTX implementation function. This should be called
+  // before calling begin().
+  void setSetRXNotTXFunc(void (*f)(bool)) {
+    setRXNotTXFunc_ = f;
   }
 
   // Returns whether this is considered to be connected to a DMX transmitter.
@@ -268,7 +288,7 @@ class Receiver final : public TeensyDMX {
   // Called when the connection state changes.
   void setConnected(bool flag);
 
-  // Makes a new packet available.
+  // Makes a new packet available and resets state.
   // This is called from an ISR.
   void completePacket();
 
@@ -288,6 +308,16 @@ class Receiver final : public TeensyDMX {
   // Receives a byte.
   // This is called from an ISR.
   void receiveByte(uint8_t b);
+
+  // Sets whether to enable or disable RX or TX through some external means.
+  // This is needed when responding to a received message and transmission
+  // needs to occur. This is also called at the end of begin().
+  void setRXNotTX(bool flag) {
+    if (setRXNotTXFunc_ == nullptr) {
+      return;
+    }
+    setRXNotTXFunc_(flag);
+  }
 
   // Keeps track of what we're receiving.
   volatile RecvStates state_;
@@ -337,6 +367,21 @@ class Receiver final : public TeensyDMX {
   volatile uint32_t packetTimeoutCount_;
   volatile uint32_t framingErrorCount_;
   volatile uint32_t shortPacketCount_;
+
+  // Responders state
+  Responder *volatile responders_[256];
+  uint8_t *volatile responderOutBuf_;
+  int responderOutBufLen_;
+
+  // Function for enabling/disabling RX and TX.
+  void (*volatile setRXNotTXFunc_)(bool);
+
+  // Transmit function for the current UART.
+  void (*txFunc_)(const uint8_t *b, int len);
+
+  // Transmit BREAK function for the current UART. The MAB (mark after break)
+  // time is spcified because different UARTs send BREAKs differently.
+  void (*txBreakFunc_)(int count, uint32_t mabTime);
 
   // These error ISRs need to access private functions
   friend void uart0_rx_status_isr();
