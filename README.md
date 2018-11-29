@@ -151,12 +151,13 @@ dmxRx.onConnectChange([](Receiver *r) {
 There is the ability to notify specific instances of `Responder` when packets
 having specific start codes arrive. To implement the simplest form, simply
 extend `Responder`, override the protected `receivePacket` function, and
-attach an instance to one or more start codes using `dmxRx.addResponder`.
+attach an instance to one or more start codes using `Receiver::addResponder`.
 `receivePacket` will be called for each packet received that has one of the
 desired start codes.
 
 As well, by default, handlers will "eat" packets so that they aren't available
-to callers to the `Receiver` API.
+to callers to the `Receiver` API. To change this behaviour, override
+`Responder::eatPacket()`.
 
 For example, let's say you want to change the local display when a text packet
 arrvies. The following partial code example shows how to do this.
@@ -199,6 +200,9 @@ void setup() {
 
 Responders can be added at any time.
 
+Complete synchronous operation examples using SIP and text packets can be
+found in `SIPHandler` and `TextPacketHandler`.
+
 #### Responding
 
 Protocols such as RDM need the ability, not only to process specific packets,
@@ -207,7 +211,7 @@ implementation can also be notified of each byte as it arrives. The function
 of interest is `processByte`.
 
 As bytes are received, the implementation tracks some internal state. When
-it is decided that a response is necessary, it returns a non-negative value
+it is decided that a response is necessary, it returns a positive value
 indicating how many bytes it placed into the output buffer, for transmitting
 back to the transmitter. The `Responder` needs to implement `outputBufferSize()`
 in order for any response to be sent. `processByte` will be passed a buffer
@@ -259,7 +263,7 @@ exercise to the reader.
 ### Packet size
 
 The packet size can be adjusted and retrieved via `setPacketSize` and
-`getPacketSize`. Smaller packets will naturally result in a higher
+`packetSize()`. Smaller packets will naturally result in a higher
 refresh rate.
 
 This can be changed at any time.
@@ -267,7 +271,7 @@ This can be changed at any time.
 ### Transmission rate
 
 The transmission rate can be changed from a maximum of about 44Hz down to as
-low as you wish. See the `setRefreshRate` and `getRefreshRate` in `Sender`.
+low as you wish. See the `setRefreshRate` and `refreshRate()` in `Sender`.
 
 Note that the rate won't be higher than the limits dictated by the protocol,
 about 44Hz, no matter how high it's set. The default is, in fact, `INFINITY`.
@@ -317,9 +321,9 @@ while (dmxTx.isTransmitting()) {  // Wait for this packet to be sent
 Using the asynchronous notification approach requires keeping track of
 some state, and is slightly more complex than the polling approach.
 
-Other functions of interest are `isPaused()` and `getResumedRemaining()`.
+Other functions of interest are `isPaused()` and `resumedRemaining()`.
 `isPaused()` indicates whether the transmitter is paused.
-`getResumedRemaining()` returns the number of packets that will be sent
+`resumedRemaining()` returns the number of packets that will be sent
 before the transmitter is paused again.
 
 Complete synchronous operation examples using SIP can be found in

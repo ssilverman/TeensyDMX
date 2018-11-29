@@ -64,7 +64,7 @@ class Responder {
  protected:
   // Processes single bytes as they are received. This returns a positive
   // value indicating the output buffer size if a response should be sent.
-  // It may be assumed that index will start at zero and increment
+  // It may be assumed that 'len' will start at zero and increment
   // monotonically by one for each call.
   //
   // A return value of -1 means that the packet is invalid, not understood,
