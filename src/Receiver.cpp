@@ -436,11 +436,11 @@ void Receiver::receiveByte(uint8_t b) {
 }
 
 void Receiver::setConnected(bool flag) {
-  bool changed = (connected_ != flag);
-  connected_ = flag;
-
-  if (changed && connectChangeFunc_ != nullptr) {
-    connectChangeFunc_(this);
+  if (connected_ != flag) {
+    connected_ = flag;
+    if (connectChangeFunc_ != nullptr) {
+      connectChangeFunc_(this);
+    }
   }
 }
 
