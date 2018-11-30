@@ -66,7 +66,7 @@ Sender::~Sender() {
 }
 
 #define ACTIVATE_TX_SERIAL(N)\
-  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_status_isr);\
+  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_isr);\
   UART##N##_C2 = UART_C2_TX_ACTIVE;
 
 void Sender::begin() {
@@ -358,7 +358,7 @@ void Sender::enableIRQs() const {
   UART_TX_DATA_STATE_NO_FIFO(UART0_C2, UART0_D, UART_C2)
 #endif  // HAS_KINETISK_UART0_FIFO
 
-void uart0_tx_status_isr() {
+void uart0_tx_isr() {
   Sender *instance = txInstances[0];
 
   uint8_t status = UART0_S1;
@@ -382,7 +382,7 @@ void uart0_tx_status_isr() {
   UART_TX_DATA_STATE_NO_FIFO(UART1_C2, UART1_D, UART_C2)
 #endif  // HAS_KINETISK_UART1_FIFO
 
-void uart1_tx_status_isr() {
+void uart1_tx_isr() {
   Sender *instance = txInstances[1];
 
   uint8_t status = UART1_S1;
@@ -406,7 +406,7 @@ void uart1_tx_status_isr() {
   UART_TX_DATA_STATE_NO_FIFO(UART2_C2, UART2_D, UART_C2)
 #endif  // HAS_KINETISK_UART2_FIFO
 
-void uart2_tx_status_isr() {
+void uart2_tx_isr() {
   Sender *instance = txInstances[2];
 
   uint8_t status = UART2_S1;
@@ -428,7 +428,7 @@ void uart2_tx_status_isr() {
 #define UART_TX_DATA_STATE_3 \
   UART_TX_DATA_STATE_NO_FIFO(UART3_C2, UART3_D, UART_C2)
 
-void uart3_tx_status_isr() {
+void uart3_tx_isr() {
   Sender *instance = txInstances[3];
 
   uint8_t status = UART3_S1;
@@ -452,7 +452,7 @@ void uart3_tx_status_isr() {
 #define UART_TX_DATA_STATE_4 \
   UART_TX_DATA_STATE_NO_FIFO(UART4_C2, UART4_D, UART_C2)
 
-void uart4_tx_status_isr() {
+void uart4_tx_isr() {
   Sender *instance = txInstances[4];
 
   uint8_t status = UART4_S1;
@@ -476,7 +476,7 @@ void uart4_tx_status_isr() {
 #define UART_TX_DATA_STATE_5 \
   UART_TX_DATA_STATE_NO_FIFO(UART5_C2, UART5_D, UART_C2)
 
-void uart5_tx_status_isr() {
+void uart5_tx_isr() {
   Sender *instance = txInstances[5];
 
   uint8_t status = UART5_S1;

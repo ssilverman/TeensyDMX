@@ -27,27 +27,27 @@ namespace qindesign {
 namespace teensydmx {
 
 void uart0_rx_isr();
-void uart0_tx_status_isr();
+void uart0_tx_isr();
 
 void uart1_rx_isr();
-void uart1_tx_status_isr();
+void uart1_tx_isr();
 
 void uart2_rx_isr();
-void uart2_tx_status_isr();
+void uart2_tx_isr();
 
 #ifdef HAS_KINETISK_UART3
 void uart3_rx_isr();
-void uart3_tx_status_isr();
+void uart3_tx_isr();
 #endif  // HAS_KINETISK_UART3
 
 #ifdef HAS_KINETISK_UART4
 void uart4_rx_isr();
-void uart4_tx_status_isr();
+void uart4_tx_isr();
 #endif  // HAS_KINETISK_UART4
 
 #ifdef HAS_KINETISK_UART5
 void uart5_rx_isr();
-void uart5_tx_status_isr();
+void uart5_tx_isr();
 #endif  // HAS_KINETISK_UART5
 
 #ifdef HAS_KINETISK_LPUART0
@@ -629,17 +629,17 @@ class Sender final : public TeensyDMX {
   void (*volatile doneTXFunc_)(Sender *s);
 
   // These error ISRs need to access private functions
-  friend void uart0_tx_status_isr();
-  friend void uart1_tx_status_isr();
-  friend void uart2_tx_status_isr();
+  friend void uart0_tx_isr();
+  friend void uart1_tx_isr();
+  friend void uart2_tx_isr();
 #ifdef HAS_KINETISK_UART3
-  friend void uart3_tx_status_isr();
+  friend void uart3_tx_isr();
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
-  friend void uart4_tx_status_isr();
+  friend void uart4_tx_isr();
 #endif  // HAS_KINETISK_UART4
 #ifdef HAS_KINETISK_UART5
-  friend void uart5_tx_status_isr();
+  friend void uart5_tx_isr();
 #endif  // HAS_KINETISK_UART5
 #ifdef HAS_KINETISK_LPUART0
   friend void lpuart0_tx_isr();
