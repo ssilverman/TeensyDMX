@@ -24,6 +24,7 @@ When sending a zero, the following table shows how many bits appear for each
 setting. These are constraints.
 
 **Table 1—Possible bit layouts**
+
 | Format | BREAK Bits | MAB Bits |
 | :----- | ---------: | -------: |
 | 8N1    |          9 |        1 |
@@ -65,6 +66,7 @@ that we are not restricted to integer times, but it's useful to use them to
 construct this table.
 
 **Table 2—Example timings**
+
 | BREAK time (µs) | MAB time (µs) | Baud Rate (1/bitTime) | Format |
 | --------------: | ------------: | --------------------: | :----- |
 |            _90_ |           _9_ |             111111.11 | 8E1    |
