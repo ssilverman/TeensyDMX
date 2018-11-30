@@ -133,8 +133,8 @@ If we are limited to only one stop bit (8N1 or 8E1), then the largest baud rate
 is 1/12µs, about 83333.33.
 
 Remember that with a serial port, we can only create a BREAK plus MAB using a
-single zero character, and using the bit layout constraints outlined in
-Table&nbsp;1.
+single zero character (unless there's built-in BREAK support), and using the bit
+layout constraints outlined in Table&nbsp;1.
 
 ### Baud rate error
 
