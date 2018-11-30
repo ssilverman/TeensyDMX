@@ -701,138 +701,87 @@ void Receiver::enableIRQs() const {
 }
 
 // ---------------------------------------------------------------------------
-//  UART TX routines
+//  UART0 synchronous TX
 // ---------------------------------------------------------------------------
 
-void uart0_tx(const uint8_t *b, int len) {
-  if (len <= 0) {
-    return;
-  }
-
-  while (len > 0) {
-    while ((UART0_S1 & UART_S1_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    UART0_D = *(b++);
-    len--;
 #ifdef HAS_KINETISK_UART0_FIFO
-    while (len > 0 && UART0_TCFIFO < 8) {
-      uint8_t status = UART0_S1;
-      UART0_D = *(b++);
-      len--;
-    }
-#endif  // HAS_KINETISK_UART0_FIFO
-  }
-
-  while ((UART0_S1 & UART_S1_TC) == 0) {
-    // Wait until transmission complete
-  }
-}
-
-#ifdef HAS_KINETISK_UART0_FIFO
+#define UART_SYNC_TX_SEND_FIFO_0 UART_SYNC_TX_SEND_FIFO(0)
 #define UART_TX_FLUSH_FIFO_0 UART_TX_FLUSH_FIFO(0)
 #else
+#define UART_SYNC_TX_SEND_FIFO_0
 #define UART_TX_FLUSH_FIFO_0
 #endif  // HAS_KINETISK_UART0_FIFO
+
+void uart0_tx(const uint8_t *b, int len) {
+  UART_SYNC_TX(0, UART0_S1, UART_S1, UART0_D)
+}
 
 void uart0_tx_break(int count, uint32_t mabTime) {
   UART_TX_BREAK(0)
 }
 
+#undef UART_SYNC_TX_SEND_FIFO_0
 #undef UART_TX_FLUSH_FIFO_0
 
-void uart1_tx(const uint8_t *b, int len) {
-  if (len <= 0) {
-    return;
-  }
-
-  while (len > 0) {
-    while ((UART1_S1 & UART_S1_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    UART1_D = *(b++);
-    len--;
-#ifdef HAS_KINETISK_UART1_FIFO
-    while (len > 0 && UART1_TCFIFO < 8) {
-      uint8_t status = UART1_S1;
-      UART1_D = *(b++);
-      len--;
-    }
-#endif  // HAS_KINETISK_UART1_FIFO
-  }
-
-  while ((UART1_S1 & UART_S1_TC) == 0) {
-    // Wait until transmission complete
-  }
-}
+// ---------------------------------------------------------------------------
+//  UART1 synchronous TX
+// ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART1_FIFO
+#define UART_SYNC_TX_SEND_FIFO_1 UART_SYNC_TX_SEND_FIFO(1)
 #define UART_TX_FLUSH_FIFO_1 UART_TX_FLUSH_FIFO(1)
 #else
+#define UART_SYNC_TX_SEND_FIFO_1
 #define UART_TX_FLUSH_FIFO_1
 #endif  // HAS_KINETISK_UART1_FIFO
+
+void uart1_tx(const uint8_t *b, int len) {
+  UART_SYNC_TX(1, UART1_S1, UART_S1, UART1_D)
+}
 
 void uart1_tx_break(int count, uint32_t mabTime) {
   UART_TX_BREAK(1)
 }
 
+#undef UART_SYNC_TX_SEND_FIFO_1
 #undef UART_TX_FLUSH_FIFO_1
 
-void uart2_tx(const uint8_t *b, int len) {
-  if (len <= 0) {
-    return;
-  }
-
-  while (len > 0) {
-    while ((UART2_S1 & UART_S1_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    UART2_D = *(b++);
-    len--;
-#ifdef HAS_KINETISK_UART2_FIFO
-    while (len > 0 && UART2_TCFIFO < 8) {
-      uint8_t status = UART2_S1;
-      UART2_D = *(b++);
-      len--;
-    }
-#endif  // HAS_KINETISK_UART2_FIFO
-  }
-
-  while ((UART2_S1 & UART_S1_TC) == 0) {
-    // Wait until transmission complete
-  }
-}
+// ---------------------------------------------------------------------------
+//  UART2 synchronous TX
+// ---------------------------------------------------------------------------
 
 #ifdef HAS_KINETISK_UART2_FIFO
+#define UART_SYNC_TX_SEND_FIFO_2 UART_SYNC_TX_SEND_FIFO(2)
 #define UART_TX_FLUSH_FIFO_2 UART_TX_FLUSH_FIFO(2)
 #else
+#define UART_SYNC_TX_SEND_FIFO_2
 #define UART_TX_FLUSH_FIFO_2
 #endif  // HAS_KINETISK_UART2_FIFO
+
+void uart2_tx(const uint8_t *b, int len) {
+  UART_SYNC_TX(2, UART2_S1, UART_S1, UART2_D)
+}
 
 void uart2_tx_break(int count, uint32_t mabTime) {
   UART_TX_BREAK(2)
 }
 
+#undef UART_SYNC_TX_SEND_FIFO_2
 #undef UART_TX_FLUSH_FIFO_2
 
+// ---------------------------------------------------------------------------
+//  UART3 synchronous TX
+// ---------------------------------------------------------------------------
+
 #ifdef HAS_KINETISK_UART3
+
+#define UART_SYNC_TX_SEND_FIFO_3
+
 void uart3_tx(const uint8_t *b, int len) {
-  if (len <= 0) {
-    return;
-  }
-
-  while (len > 0) {
-    while ((UART3_S1 & UART_S1_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    UART3_D = *(b++);
-    len--;
-  }
-
-  while ((UART3_S1 & UART_S1_TC) == 0) {
-    // Wait until transmission complete
-  }
+  UART_SYNC_TX(3, UART3_S1, UART_S1, UART3_D)
 }
+
+#undef UART_SYNC_TX_SEND_FIFO_3
 
 #define UART_TX_FLUSH_FIFO_3
 
@@ -841,26 +790,22 @@ void uart3_tx_break(int count, uint32_t mabTime) {
 }
 
 #undef UART_TX_FLUSH_FIFO_3
+
 #endif  // HAS_KINETISK_UART3
 
+// ---------------------------------------------------------------------------
+//  UART4 synchronous TX
+// ---------------------------------------------------------------------------
+
 #ifdef HAS_KINETISK_UART4
+
+#define UART_SYNC_TX_SEND_FIFO_4
+
 void uart4_tx(const uint8_t *b, int len) {
-  if (len <= 0) {
-    return;
-  }
-
-  while (len > 0) {
-    while ((UART4_S1 & UART_S1_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    UART4_D = *(b++);
-    len--;
-  }
-
-  while ((UART4_S1 & UART_S1_TC) == 0) {
-    // Wait until transmission complete
-  }
+  UART_SYNC_TX(4, UART4_S1, UART_S1, UART4_D)
 }
+
+#undef UART_SYNC_TX_SEND_FIFO_4
 
 #define UART_TX_FLUSH_FIFO_4
 
@@ -869,26 +814,22 @@ void uart4_tx_break(int count, uint32_t mabTime) {
 }
 
 #undef UART_TX_FLUSH_FIFO_4
+
 #endif  // HAS_KINETISK_UART4
 
+// ---------------------------------------------------------------------------
+//  UART5 synchronous TX
+// ---------------------------------------------------------------------------
+
 #ifdef HAS_KINETISK_UART5
+
+#define UART_SYNC_TX_SEND_FIFO_5
+
 void uart5_tx(const uint8_t *b, int len) {
-  if (len <= 0) {
-    return;
-  }
-
-  while (len > 0) {
-    while ((UART5_S1 & UART_S1_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    UART5_D = *(b++);
-    len--;
-  }
-
-  while ((UART5_S1 & UART_S1_TC) == 0) {
-    // Wait until transmission complete
-  }
+  UART_SYNC_TX(5, UART5_S1, UART_S1, UART5_D)
 }
+
+#undef UART_SYNC_TX_SEND_FIFO_5
 
 #define UART_TX_FLUSH_FIFO_5
 
@@ -897,26 +838,22 @@ void uart5_tx_break(int count, uint32_t mabTime) {
 }
 
 #undef UART_TX_FLUSH_FIFO_5
+
 #endif  // HAS_KINETISK_UART5
 
+// ---------------------------------------------------------------------------
+//  LPUART0 synchronous TX
+// ---------------------------------------------------------------------------
+
 #ifdef HAS_KINETISK_LPUART0
+
+#define UART_SYNC_TX_SEND_FIFO_5
+
 void lpuart0_tx(const uint8_t *b, int len) {
-  if (len <= 0) {
-    return;
-  }
-
-  while (len > 0) {
-    while ((LPUART0_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART0_DATA = *(b++);
-    len--;
-  }
-
-  while ((LPUART0_STAT & LPUART_STAT_TC) == 0) {
-    // Wait until transmission complete
-  }
+  UART_SYNC_TX(5, LPUART0_STAT, LPUART_STAT, LPUART0_DATA)
 }
+
+#undef UART_SYNC_TX_SEND_FIFO_5
 
 void lpuart0_tx_break(int count, uint32_t mabTime) {
   if (count <= 0) {
@@ -932,6 +869,7 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 
   delayMicroseconds(mabTime);
 }
+
 #endif  // HAS_KINETISK_LPUART0
 
 // ---------------------------------------------------------------------------

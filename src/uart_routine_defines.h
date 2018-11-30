@@ -183,6 +183,34 @@
     instance->receiveBadBreak();       \
   }
 
+// Synchronous TX, used in Receiver.
+// Needs to have UART_TX_FLUSH_FIFO_N defined.
+#define UART_SYNC_TX(N, STAT, STAT_PREFIX, DATA) \
+  if (len <= 0) {                                \
+    return;                                      \
+  }                                              \
+                                                 \
+  while (len > 0) {                              \
+    while ((STAT & STAT_PREFIX##_TDRE) == 0) {   \
+      /* Wait until we can transmit */           \
+    }                                            \
+    DATA = *(b++);                               \
+    len--;                                       \
+                                                 \
+    UART_SYNC_TX_SEND_FIFO_##N                   \
+  }                                              \
+                                                 \
+  while ((STAT & STAT_PREFIX##_TC) == 0) {       \
+    /* Wait until transmission complete */       \
+  }
+
+#define UART_SYNC_TX_SEND_FIFO(N)           \
+  while (len > 0 && UART##N##_TCFIFO < 8) { \
+    uint8_t status = UART##N##_S1;          \
+    UART##N##_D = *(b++);                   \
+    len--;                                  \
+  }
+
 #define UART_TX_FLUSH_FIFO(N)        \
   while (UART##N##_TCFIFO > 0) {     \
     /* Wait for the FIFO to drain */ \
