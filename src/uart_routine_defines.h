@@ -206,7 +206,7 @@
 
 #define UART_SYNC_TX_SEND_FIFO(N)           \
   while (len > 0 && UART##N##_TCFIFO < 8) { \
-    uint8_t status = UART##N##_S1;          \
+    UART##N##_S1;                           \
     UART##N##_D = *(b++);                   \
     len--;                                  \
   }
