@@ -146,8 +146,24 @@
     instance->checkPacketTimeout();                \
   }
 
+// Needs to have UART_RX_CLEAR_ERRORS_N defined.
+// Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
 // Needs to have UART_RX_N defined.
-#define UART_RX(N) UART_RX_##N
+#define UART_RX(N, STAT_PREFIX, DATA)                                      \
+  /* A framing error likely indicates a break */                           \
+  if ((status & STAT_PREFIX##_FE) != 0) {                                  \
+    /* Only allow a packet whose framing error actually indicates a break. \
+     * A value of zero indicates a true break and not some other           \
+     * framing error. */                                                   \
+                                                                           \
+    instance->feStartTime_ = micros();                                     \
+                                                                           \
+    UART_RX_CLEAR_ERRORS_##N                                               \
+    UART_RX_ERROR_FLUSH_FIFO_##N                                           \
+    UART_RX_ERROR_PROCESS(DATA)                                            \
+    return;                                                                \
+  }                                                                        \
+  UART_RX_##N
 
 #define UART_RX_ERROR_FLUSH_FIFO(N)  \
   /* Flush anything in the buffer */ \
@@ -165,22 +181,6 @@
     instance->receivePotentialBreak(); \
   } else {                             \
     instance->receiveBadBreak();       \
-  }
-
-// Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
-#define UART_RX_ERROR(N, STAT, STAT_PREFIX, DATA)                          \
-  /* A framing error likely indicates a break */                           \
-  if ((STAT & STAT_PREFIX##_FE) != 0) {                                    \
-    /* Only allow a packet whose framing error actually indicates a break. \
-     * A value of zero indicates a true break and not some other           \
-     * framing error. */                                                   \
-    /* Note: Reading a byte clears interrupt flags */                      \
-                                                                           \
-    instance->feStartTime_ = micros();                                     \
-                                                                           \
-    UART_RX_ERROR_FLUSH_FIFO_##N                                           \
-                                                                           \
-    UART_RX_ERROR_PROCESS(DATA)                                            \
   }
 
 #define UART_TX_FLUSH_FIFO(N)        \

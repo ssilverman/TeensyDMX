@@ -136,20 +136,20 @@ Receiver::~Receiver() {
 }
 
 // Must define ACTIVATE_RX_SERIAL_ERROR_N
-#define ACTIVATE_RX_SERIAL(N)                                             \
-  /* Enable receive-only */                                               \
-  UART##N##_C2 = UART##N##_C2_RX_ENABLE;                                  \
-  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_rx_status_isr);   \
-  /* Enable interrupt on frame error */                                   \
-  UART##N##_C3 |= UART_C3_FEIE;                                           \
+#define ACTIVATE_RX_SERIAL(N)                                    \
+  /* Enable receive-only */                                      \
+  UART##N##_C2 = UART##N##_C2_RX_ENABLE;                         \
+  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_rx_isr); \
+  /* Enable interrupt on frame error */                          \
+  UART##N##_C3 |= UART_C3_FEIE;                                  \
   ACTIVATE_RX_SERIAL_ERROR_##N
 
-#define ACTIVATE_RX_SERIAL_ERROR(N)                                       \
-  attachInterruptVector(IRQ_UART##N##_ERROR, uart##N##_rx_error_isr);     \
-  /* We fill bytes from the buffer in the framing error ISR, so we        \
-   * can set to the same priority. */                                     \
-  NVIC_SET_PRIORITY(IRQ_UART##N##_ERROR,                                  \
-                    max(NVIC_GET_PRIORITY(IRQ_UART##N##_STATUS), 1) - 1); \
+#define ACTIVATE_RX_SERIAL_ERROR(N)                                \
+  attachInterruptVector(IRQ_UART##N##_ERROR, uart##N##_rx_isr);    \
+  /* We fill bytes from the buffer in the framing error ISR, so we \
+   * can set to the same priority. */                              \
+  NVIC_SET_PRIORITY(IRQ_UART##N##_ERROR,                           \
+                    NVIC_GET_PRIORITY(IRQ_UART##N##_STATUS));      \
   NVIC_ENABLE_IRQ(IRQ_UART##N##_ERROR);
 
 void Receiver::begin() {
@@ -935,267 +935,148 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 #endif  // HAS_KINETISK_LPUART0
 
 // ---------------------------------------------------------------------------
-//  UART0 RX ISRs
+//  UART RX routines
 // ---------------------------------------------------------------------------
 
+// Reading a byte clears interrupt flags
+#define UART_RX_CLEAR_ERRORS_0
 #ifdef HAS_KINETISK_UART0_FIFO
+#define UART_RX_ERROR_FLUSH_FIFO_0 UART_RX_ERROR_FLUSH_FIFO(0)
 #define UART_RX_0 UART_RX_WITH_FIFO(0)
 #else
+#define UART_RX_ERROR_FLUSH_FIFO_0
 #define UART_RX_0 UART_RX_NO_FIFO(0, UART_S1, UART0_D)
 #define UART_RX_CLEAR_IDLE_0 b = UART0_D;
 #endif  // HAS_KINETISK_UART0_FIFO
-
-void uart0_rx_status_isr() {
-// The Teensy LC doesn't have a separate ERROR IRQ
-#ifdef HAS_KINETISL_UART0
-  uart0_rx_error_isr();
-#endif
-
+void uart0_rx_isr() {
   uint8_t b;
+  uint8_t status = UART0_S1;
   Receiver *instance = rxInstances[0];
 
-  uint8_t status = UART0_S1;
-
-  UART_RX(0)
+  UART_RX(0, UART_S1, UART0_D)
 }
-
+#undef UART_RX_CLEAR_ERRORS_0
+#undef UART_RX_ERROR_FLUSH_FIFO_0
 #undef UART_RX_0
 #undef UART_RX_CLEAR_IDLE_0
 
-#ifdef HAS_KINETISK_UART0_FIFO
-#define UART_RX_ERROR_FLUSH_FIFO_0 UART_RX_ERROR_FLUSH_FIFO(0)
-#else
-#define UART_RX_ERROR_FLUSH_FIFO_0
-#endif  // HAS_KINETISK_UART0_FIFO
-
-void uart0_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[0];
-
-  UART_RX_ERROR(0, UART0_S1, UART_S1, UART0_D)
-}
-
-#undef UART_RX_ERROR_FLUSH_FIFO_0
-
-// ---------------------------------------------------------------------------
-//  UART1 RX ISRs
-// ---------------------------------------------------------------------------
-
+// Reading a byte clears interrupt flags
+#define UART_RX_CLEAR_ERRORS_1
 #ifdef HAS_KINETISK_UART1_FIFO
+#define UART_RX_ERROR_FLUSH_FIFO_1 UART_RX_ERROR_FLUSH_FIFO(1)
 #define UART_RX_1 UART_RX_WITH_FIFO(1)
 #else
+#define UART_RX_ERROR_FLUSH_FIFO_1
 #define UART_RX_1 UART_RX_NO_FIFO(1, UART_S1, UART1_D)
 #define UART_RX_CLEAR_IDLE_1 b = UART1_D;
 #endif  // HAS_KINETISK_UART1_FIFO
-
-void uart1_rx_status_isr() {
-// The Teensy LC doesn't have a separate ERROR IRQ
-#ifdef HAS_KINETISL_UART1
-  uart1_rx_error_isr();
-#endif
-
+void uart1_rx_isr() {
   uint8_t b;
+  uint8_t status = UART1_S1;
   Receiver *instance = rxInstances[1];
 
-  uint8_t status = UART1_S1;
-
-  UART_RX(1)
+  UART_RX(1, UART_S1, UART1_D)
 }
-
+#undef UART_RX_CLEAR_ERRORS_1
+#undef UART_RX_ERROR_FLUSH_FIFO_1
 #undef UART_RX_1
 #undef UART_RX_CLEAR_IDLE_1
 
-#ifdef HAS_KINETISK_UART1_FIFO
-#define UART_RX_ERROR_FLUSH_FIFO_1 UART_RX_ERROR_FLUSH_FIFO(1)
-#else
-#define UART_RX_ERROR_FLUSH_FIFO_1
-#endif  // HAS_KINETISK_UART1_FIFO
-
-void uart1_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[1];
-
-  UART_RX_ERROR(1, UART1_S1, UART_S1, UART1_D)
-}
-
-#undef UART_RX_ERROR_FLUSH_FIFO_1
-
-// ---------------------------------------------------------------------------
-//  UART2 RX ISRs
-// ---------------------------------------------------------------------------
-
+// Reading a byte clears interrupt flags
+#define UART_RX_CLEAR_ERRORS_2
 #ifdef HAS_KINETISK_UART2_FIFO
+#define UART_RX_ERROR_FLUSH_FIFO_2 UART_RX_ERROR_FLUSH_FIFO(2)
 #define UART_RX_2 UART_RX_WITH_FIFO(2)
 #else
+#define UART_RX_ERROR_FLUSH_FIFO_2
 #define UART_RX_2 UART_RX_NO_FIFO(2, UART_S1, UART2_D)
 #define UART_RX_CLEAR_IDLE_2 b = UART2_D;
 #endif  // HAS_KINETISK_UART2_FIFO
-
-void uart2_rx_status_isr() {
-// The Teensy LC doesn't have a separate ERROR IRQ
-#ifdef HAS_KINETISL_UART2
-  uart2_rx_error_isr();
-#endif
-
+void uart2_rx_isr() {
   uint8_t b;
+  uint8_t status = UART2_S1;
   Receiver *instance = rxInstances[2];
 
-  uint8_t status = UART2_S1;
-
-  UART_RX(2)
+  UART_RX(2, UART_S1, UART2_D)
 }
-
+#undef UART_RX_CLEAR_ERRORS_2
+#undef UART_RX_ERROR_FLUSH_FIFO_2
 #undef UART_RX_2
 #undef UART_RX_CLEAR_IDLE_2
 
-#ifdef HAS_KINETISK_UART2_FIFO
-#define UART_RX_ERROR_FLUSH_FIFO_2 UART_RX_ERROR_FLUSH_FIFO(2)
-#else
-#define UART_RX_ERROR_FLUSH_FIFO_2
-#endif  // HAS_KINETISK_UART2_FIFO
-
-void uart2_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[2];
-
-  UART_RX_ERROR(2, UART2_S1, UART_S1, UART2_D)
-}
-
-#undef UART_RX_ERROR_FLUSH_FIFO_2
-
-// ---------------------------------------------------------------------------
-//  UART3 RX ISRs
-// ---------------------------------------------------------------------------
-
 #ifdef HAS_KINETISK_UART3
-
+// Reading a byte clears interrupt flags
+#define UART_RX_CLEAR_ERRORS_3
+#define UART_RX_ERROR_FLUSH_FIFO_3
 #define UART_RX_3 UART_RX_NO_FIFO(3, UART_S1, UART3_D)
 #define UART_RX_CLEAR_IDLE_3 b = UART3_D;
-
-void uart3_rx_status_isr() {
+void uart3_rx_isr() {
   uint8_t b;
+  uint8_t status = UART3_S1;
   Receiver *instance = rxInstances[3];
 
-  uint8_t status = UART3_S1;
-
-  UART_RX(3)
+  UART_RX(3, UART_S1, UART3_D)
 }
-
+#undef UART_RX_CLEAR_ERRORS_3
+#undef UART_RX_ERROR_FLUSH_FIFO_3
 #undef UART_RX_3
 #undef UART_RX_CLEAR_IDLE_3
-
-#define UART_RX_ERROR_FLUSH_FIFO_3
-
-void uart3_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[3];
-
-  UART_RX_ERROR(3, UART3_S1, UART_S1, UART3_D)
-}
-
-#undef UART_RX_ERROR_FLUSH_FIFO_3
-
 #endif  // HAS_KINETISK_UART3
 
-// ---------------------------------------------------------------------------
-//  UART4 RX ISRs
-// ---------------------------------------------------------------------------
-
 #ifdef HAS_KINETISK_UART4
-
+// Reading a byte clears interrupt flags
+#define UART_RX_CLEAR_ERRORS_4
+#define UART_RX_ERROR_FLUSH_FIFO_4
 #define UART_RX_4 UART_RX_NO_FIFO(4, UART_S1, UART4_D)
 #define UART_RX_CLEAR_IDLE_4 b = UART4_D;
-
-void uart4_rx_status_isr() {
+void uart4_rx_isr() {
   uint8_t b;
+  uint8_t status = UART4_S1;
   Receiver *instance = rxInstances[4];
 
-  uint8_t status = UART4_S1;
-
-  UART_RX(4)
+  UART_RX(4, UART_S1, UART4_D)
 }
-
+#undef UART_RX_CLEAR_ERRORS_4
+#undef UART_RX_ERROR_FLUSH_FIFO_4
 #undef UART_RX_4
 #undef UART_RX_CLEAR_IDLE_4
-
-#define UART_RX_ERROR_FLUSH_FIFO_4
-
-void uart4_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[4];
-
-  UART_RX_ERROR(4, UART4_S1, UART_S1, UART4_D)
-}
-
-#undef UART_RX_ERROR_FLUSH_FIFO_4
-
 #endif  // HAS_KINETISK_UART4
 
-// ---------------------------------------------------------------------------
-//  UART5 RX ISRs
-// ---------------------------------------------------------------------------
-
 #ifdef HAS_KINETISK_UART5
-
+// Reading a byte clears interrupt flags
+#define UART_RX_CLEAR_ERRORS_5
+#define UART_RX_ERROR_FLUSH_FIFO_5
 #define UART_RX_5 UART_RX_NO_FIFO(5, UART_S1, UART5_D)
 #define UART_RX_CLEAR_IDLE_5 b = UART5_D;
-
-void uart5_rx_status_isr() {
+void uart5_rx_isr() {
   uint8_t b;
+  uint8_t status = UART5_S1;
   Receiver *instance = rxInstances[5];
 
-  uint8_t status = UART5_S1;
-
-  UART_RX(5)
+  UART_RX(5, UART_S1, UART5_D)
 }
-
+#undef UART_RX_CLEAR_ERRORS_5
+#undef UART_RX_ERROR_FLUSH_FIFO_5
 #undef UART_RX_5
 #undef UART_RX_CLEAR_IDLE_5
-
-#define UART_RX_ERROR_FLUSH_FIFO_5
-
-void uart5_rx_error_isr() {
-  uint8_t b;
-  Receiver *instance = rxInstances[5];
-
-  UART_RX_ERROR(5, UART5_S1, UART_S1, UART5_D)
-}
-
-#undef UART_RX_ERROR_FLUSH_FIFO_5
-
 #endif  // HAS_KINETISK_UART5
 
-// ---------------------------------------------------------------------------
-//  LPUART0 RX ISR
-// ---------------------------------------------------------------------------
-
 #ifdef HAS_KINETISK_LPUART0
+#define UART_RX_CLEAR_ERRORS_5 \
+  LPUART0_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_5
+#define UART_RX_5 UART_RX_NO_FIFO(5, LPUART_STAT, LPUART0_DATA)
 #define UART_RX_CLEAR_IDLE_5 LPUART0_STAT |= LPUART_STAT_IDLE;
 void lpuart0_rx_isr() {
   uint8_t b;
+  uint32_t status = LPUART0_STAT;
   Receiver *instance = rxInstances[5];
 
-  uint32_t status = LPUART0_STAT;
-
-  // A framing error likely indicates a break
-  if ((status & LPUART_STAT_FE) != 0) {
-    // Clear all statuses that may have triggered this interrupt
-    LPUART0_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
-
-    // Only allow a packet whose framing error actually indicates a break.
-    // A value of zero indicates a true break and not some other
-    // framing error.
-
-    instance->feStartTime_ = micros();
-
-    // No FIFO
-
-    UART_RX_ERROR_PROCESS(LPUART0_DATA)
-    return;
-  }
-
-  UART_RX_NO_FIFO(5, LPUART_STAT, LPUART0_DATA)
+  UART_RX(5, LPUART_STAT, LPUART0_DATA)
 }
+#undef UART_RX_CLEAR_ERRORS_5
+#undef UART_RX_ERROR_FLUSH_FIFO_5
+#undef UART_RX_5
 #undef UART_RX_CLEAR_IDLE_5
 #endif  // HAS_KINETISK_LPUART0
 
