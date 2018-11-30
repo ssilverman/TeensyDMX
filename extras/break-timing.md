@@ -178,3 +178,7 @@ duration than expected. Table&nbsp;2 shows values that are far shorter than the
 maximum MAB, so it shouldn't be an issue for receiving equipment; the MAB won't
 be much larger, and so shouldn't hit the 1s limit for DMX512-A, nor the 88µs
 limit for RDM.
+
+---
+
+Copyright (c) 2018 Shawn Silverman
