@@ -404,7 +404,7 @@ void Receiver::completePacket() {
   state_ = RecvStates::kIdle;
 
   // An empty packet isn't valid, there must be at least a start code
-  if (activeBufIndex_ == 0) {
+  if (activeBufIndex_ <= 0) {
     return;
   }
 
@@ -515,7 +515,8 @@ void Receiver::receiveByte(uint8_t b) {
     case RecvStates::kData:
       // Checking this here accounts for buffered input, where several
       // bytes come in at the same time
-      if ((eopTime - breakStartTime_) < 88 + 8 + 44 + 44*activeBufIndex_) {
+      if (static_cast<int>(eopTime - breakStartTime_) <
+          88 + 8 + 44 + 44*activeBufIndex_) {
         // First byte is too early, discard any data
         receiveBadBreak();
         return;

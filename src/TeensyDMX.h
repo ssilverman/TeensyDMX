@@ -337,7 +337,7 @@ class Receiver final : public TeensyDMX {
   // Read-only shared memory buffer, make const volatile
   // https://embeddedgurus.com/barr-code/2012/01/combining-cs-volatile-and-const-keywords/
   const volatile uint8_t *volatile inactiveBuf_;
-  volatile unsigned int activeBufIndex_;
+  volatile int activeBufIndex_;
 
   // The size of the last received packet.
   volatile int packetSize_;
