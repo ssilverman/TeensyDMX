@@ -1,7 +1,8 @@
-# BREAK Timing
+# BREAK Timing in DMX512-A
 
-This document discusses BREAK and Mark after Break (MAB) timing using
-[serial port](https://en.wikipedia.org/wiki/Serial_port) terms.
+This document discusses BREAK and Mark after Break (MAB) timing in
+[DMX512-A](http://tsp.esta.org/tsp/documents/docs/ANSI-ESTA_E1-11_2008R2018.pdf)
+using [serial port](https://en.wikipedia.org/wiki/Serial_port) terms.
 
 A BREAK can be represented by sending a zero (SPACE bits, in serial port terms)
 to a serial port that's configured for a specific baud rate, parity setting, and
