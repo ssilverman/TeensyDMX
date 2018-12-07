@@ -160,7 +160,12 @@
                                                                            \
     UART_RX_CLEAR_ERRORS_##N                                               \
     UART_RX_ERROR_FLUSH_FIFO_##N                                           \
-    UART_RX_ERROR_PROCESS(DATA)                                            \
+                                                                           \
+    if (DATA == 0) {                                                       \
+      instance->receivePotentialBreak();                                   \
+    } else {                                                               \
+      instance->receiveBadBreak();                                         \
+    }                                                                      \
     return;                                                                \
   }                                                                        \
   UART_RX_##N
@@ -173,14 +178,6 @@
       b = UART##N##_D;               \
       instance->receiveByte(b);      \
     }                                \
-  }
-
-#define UART_RX_ERROR_PROCESS(DATA)    \
-  b = DATA;                            \
-  if (b == 0) {                        \
-    instance->receivePotentialBreak(); \
-  } else {                             \
-    instance->receiveBadBreak();       \
   }
 
 // Synchronous TX, used in Receiver.
