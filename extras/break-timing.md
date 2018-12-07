@@ -58,8 +58,11 @@ describes a range of valid BREAK and MAB timings. For transmitters, the minimum
 BREAK time is 92µs and the typical duration is 176µs; there is no maximum. The
 minimum MAB time is 12µs and the maximum is less than 1s.
 
-For RDM, the BREAK time can range from 176–352µs and the MAB time can range
-from 12–88µs.
+For RDM (start code 0xCC), the BREAK time can range from 176–352µs and the MAB
+time can range from 12–88µs.
+
+For test packets (start code 0x55), the BREAK time can range from 88–120µs and
+the MAB time can range from 8-16µs.
 
 The following table shows BREAK and MAB times and which theoretical baud rates
 will produce them. The rows are sorted by BREAK time and then by MAB time. Note
