@@ -21,7 +21,7 @@ namespace teensydmx {
 //
 // Minimum accepted receive break-to-break time = 1196us.
 // This means that we must transmit at least 24 slots (25 including the
-// start code).
+// start code) at full speed.
 //
 // Some other timing options:
 // 8N2: 1000000/11 (90909) baud, 99us break, 22us MAB
