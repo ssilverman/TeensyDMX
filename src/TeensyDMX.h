@@ -214,7 +214,7 @@ class Receiver final : public TeensyDMX {
 
   // Sets the setRXNotTX implementation function. This should be called
   // before calling begin().
-  void setSetRXNotTXFunc(void (*f)(bool)) {
+  void setSetRXNotTXFunc(void (*f)(bool flag)) {
     setRXNotTXFunc_ = f;
   }
 
@@ -368,7 +368,7 @@ class Receiver final : public TeensyDMX {
   int responderOutBufLen_;
 
   // Function for enabling/disabling RX and TX.
-  void (*volatile setRXNotTXFunc_)(bool);
+  void (*volatile setRXNotTXFunc_)(bool flag);
 
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
