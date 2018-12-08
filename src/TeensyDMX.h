@@ -152,7 +152,7 @@ class Receiver final : public TeensyDMX {
   // Destructs Receiver. This calls end().
   ~Receiver() override;
 
-  // Call setSetRXNotTXFunc to set an appropriate pin toggle function before
+  // Call setSetTXNotRXFunc to set an appropriate pin toggle function before
   // calling begin. If one is set, this will call it to enable receive.
   void begin() override;
 
@@ -212,10 +212,10 @@ class Receiver final : public TeensyDMX {
   // was replaced.
   Responder *addResponder(uint8_t startCode, Responder *r);
 
-  // Sets the setRXNotTX implementation function. This should be called
+  // Sets the setTXNotRX implementation function. This should be called
   // before calling begin().
-  void setSetRXNotTXFunc(void (*f)(bool flag)) {
-    setRXNotTXFunc_ = f;
+  void setSetTXNotRXFunc(void (*f)(bool flag)) {
+    setTXNotRXFunc_ = f;
   }
 
   // Returns whether this is considered to be connected to a DMX transmitter.
@@ -303,14 +303,15 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void receiveByte(uint8_t b);
 
-  // Sets whether to enable or disable RX or TX through some external means.
+  // Sets whether to enable or disable TX or RX through some external means.
   // This is needed when responding to a received message and transmission
-  // needs to occur. This is also called at the end of begin().
-  void setRXNotTX(bool flag) {
-    if (setRXNotTXFunc_ == nullptr) {
+  // needs to occur. This is also called at the end of begin() with 'false'
+  // to enable RX.
+  void setTXNotRX(bool flag) {
+    if (setTXNotRXFunc_ == nullptr) {
       return;
     }
-    setRXNotTXFunc_(flag);
+    setTXNotRXFunc_(flag);
   }
 
   // Keeps track of what we're receiving.
@@ -368,7 +369,7 @@ class Receiver final : public TeensyDMX {
   int responderOutBufLen_;
 
   // Function for enabling/disabling RX and TX.
-  void (*volatile setRXNotTXFunc_)(bool flag);
+  void (*volatile setTXNotRXFunc_)(bool flag);
 
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);

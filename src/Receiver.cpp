@@ -84,7 +84,7 @@ Receiver::Receiver(HardwareSerial &uart)
       responders_{nullptr},
       responderOutBuf_(nullptr),
       responderOutBufLen_{0},
-      setRXNotTXFunc_(nullptr) {
+      setTXNotRXFunc_(nullptr) {
   switch(serialIndex_) {
     case 0:
       txFunc_ = uart0_tx;
@@ -240,7 +240,7 @@ void Receiver::begin() {
   }
 
   // Enable receive
-  setRXNotTX(true);
+  setTXNotRX(false);
 }
 
 // Undefine these macros
@@ -584,17 +584,17 @@ void Receiver::receiveByte(uint8_t b) {
       delayMicroseconds(delay - dt);
     }
 
-    setRXNotTX(false);
+    setTXNotRX(true);
     txBreakFunc_(r->breakLength(), r->markAfterBreakTime());
   } else {
     uint32_t delay = r->preNoBreakDelay();
-    setRXNotTX(false);
+    setTXNotRX(true);
     if (delay > 0) {
       delayMicroseconds(delay);
     }
   }
   txFunc_(responderOutBuf_, respLen);
-  setRXNotTX(true);
+  setTXNotRX(false);
 }
 
 void Receiver::setConnected(bool flag) {
