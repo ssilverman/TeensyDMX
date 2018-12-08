@@ -152,8 +152,8 @@ class Receiver final : public TeensyDMX {
   // Destructs Receiver. This calls end().
   ~Receiver() override;
 
-  // Call setSetRXNotTXFunc to set an appropriate pin toggle function
-  // before calling begin.
+  // Call setSetRXNotTXFunc to set an appropriate pin toggle function before
+  // calling begin. If one is set, this will call it to enable receive.
   void begin() override;
 
   void end() override;
