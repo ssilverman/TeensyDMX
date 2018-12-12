@@ -876,15 +876,23 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 //  UART0 RX ISR
 // ---------------------------------------------------------------------------
 
+#ifdef HAS_KINETISL_UART0
+#define UART_RX_CLEAR_ERRORS_0 UART0_S1 |= (UART_S1_FE | UART_S1_IDLE);
+#else
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_0
+#endif  // HAS_KINETISL_UART0
 #ifdef HAS_KINETISK_UART0_FIFO
 #define UART_RX_ERROR_FLUSH_FIFO_0 UART_RX_ERROR_FLUSH_FIFO(0)
 #define UART_RX_0 UART_RX_WITH_FIFO(0)
 #else
 #define UART_RX_ERROR_FLUSH_FIFO_0
 #define UART_RX_0 UART_RX_NO_FIFO(0, UART_S1, UART0_D)
+#ifdef HAS_KINETISL_UART0
+#define UART_RX_CLEAR_IDLE_0 UART0_S1 |= UART_S1_IDLE;
+#else
 #define UART_RX_CLEAR_IDLE_0 b = UART0_D;
+#endif  // HAS_KINETISL_UART0
 #endif  // HAS_KINETISK_UART0_FIFO
 
 void uart0_rx_isr() {
