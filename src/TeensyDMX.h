@@ -152,6 +152,8 @@ class Receiver final : public TeensyDMX {
   // Destructs Receiver. This calls end().
   ~Receiver() override;
 
+  // Starts up the serial port.
+  //
   // Call setSetTXNotRXFunc to set an appropriate pin toggle function before
   // calling begin. If one is set, this will call it to enable receive.
   void begin() override;
@@ -408,6 +410,7 @@ class Sender final : public TeensyDMX {
   // Destructs Sender. This calls end().
   ~Sender() override;
 
+  // Starts up the serial port.
   void begin() override;
 
   // Ends sending. Note that this does not wait for the current packet
