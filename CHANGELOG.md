@@ -2,6 +2,22 @@
 
 This document details the changes between each release.
 
+## [3.0.0-alpha.1]
+
+### Added
+* New document describing BREAK timing in relation to serial ports.
+
+### Changed
+* Unified the RX status and error ISRs because framing errors and data should
+  have the same priority.
+* Refactored all the synchronous UART TX routines in `Receiver` to common
+  \#defines.
+* Minor documentation updates.
+* `setRXNotTX` concept renamed to `setTXNotRX`, in `Receiver`.
+
+### Fixed
+* ISR-triggering status bits are now cleared properly for Teensy LC.
+
 ## [3.0.0-alpha]
 
 ### Added
