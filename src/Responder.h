@@ -24,7 +24,9 @@ class Responder {
   // does not respond with any data. This returns zero by default.
   virtual int outputBufferSize() const { return 0; };
 
-  // Gets the BREAK length, in 11-bit characters. This returns zero by default.
+  // Gets the BREAK length, in 11-bit characters at 250kbps, i.e. 44us per
+  // character. For example, returning 4 would mean the break length would be
+  // 4*44us=176us. This returns zero by default.
   virtual uint32_t breakLength() const { return 0; };
 
   // Gets the mark after break time, in microseconds. This returns zero
