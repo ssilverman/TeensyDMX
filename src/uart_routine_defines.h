@@ -4,6 +4,10 @@
 #ifndef UART_ROUTINE_DEFINES_H_
 #define UART_ROUTINE_DEFINES_H_
 
+// ---------------------------------------------------------------------------
+//  UART TX routines, for Sender
+// ---------------------------------------------------------------------------
+
 #define UART_TX_DATA_STATE_WITH_FIFO(N)                              \
   do {                                                               \
     if (instance->outputBufIndex_ >= instance->packetSize_) {        \
@@ -101,6 +105,10 @@
     CTRL = CTRL_PREFIX##_TX_ACTIVE;                      \
   }
 
+// ---------------------------------------------------------------------------
+//  UART RX routines, for Receiver
+// ---------------------------------------------------------------------------
+
 // Assumes status = UARTx_S1
 #define UART_RX_WITH_FIFO(N)                                               \
   /* If the receive buffer is full or there's an idle condition */         \
@@ -180,8 +188,12 @@
     }                                \
   }
 
+// ---------------------------------------------------------------------------
+//  Synchronous TX routines, for Receiver
+// ---------------------------------------------------------------------------
+
 // Synchronous TX, used in Receiver.
-// Needs to have UART_TX_FLUSH_FIFO_N defined.
+// Needs to have UART_SYNC_TX_SEND_FIFO_N defined.
 #define UART_SYNC_TX(N, STAT, STAT_PREFIX, DATA) \
   if (len <= 0) {                                \
     return;                                      \
