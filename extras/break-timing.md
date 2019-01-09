@@ -7,7 +7,7 @@ using [serial port](https://en.wikipedia.org/wiki/Serial_port) terms.
 A BREAK can be represented by sending a zero (SPACE bits, in serial port terms)
 to a serial port that's configured for a specific baud rate, parity setting, and
 stop-bit setting. For no parity, only the START bit joins the data bits as part
-part of the SPACE bits, and the STOP bit(s) become part of the MAB.
+of the SPACE bits, and the STOP bit(s) become part of the MAB.
 
 For EVEN parity, when sending a zero, the start bit and the parity bit become
 part of the SPACE bits, and the STOP bit(s) become part of the MAB. For ODD
@@ -136,8 +136,8 @@ If we are limited to only one stop bit (8N1 or 8E1), then the largest baud rate
 is 1/12µs, about 83333.33.
 
 Remember that with a serial port, we can only create a BREAK plus MAB using a
-single zero character (unless there's built-in BREAK support), and using the bit
-layout constraints outlined in Table&nbsp;1.
+single zero character plus a delay, unless there's built-in BREAK support, and
+using the bit layout constraints outlined in Table&nbsp;1.
 
 ### Baud rate error
 
