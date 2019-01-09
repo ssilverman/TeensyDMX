@@ -1,11 +1,5 @@
 #include "TextPacketHandler.h"
 
-#include <cstring>
-
-// These functions are defined elsewhere
-void setText(uint8_t page, uint8_t charsPerLine, const char *text, int len);
-void setUTF8Text(uint8_t page, uint8_t charsPerLine, const char *text, int len);
-
 void TextPacketHandler::receivePacket(const uint8_t *buf, int len) {
     // The packet must contain at least 3 bytes (plus the start code)
     if (len < 4) {

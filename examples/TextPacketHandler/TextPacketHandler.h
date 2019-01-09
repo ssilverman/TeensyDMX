@@ -9,6 +9,16 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
+// These functions are defined elsewhere. Note that they could be defined by
+// passing function pointers to the TextPacketHandler object.
+//
+// page: the page number
+// charsPerLine: number of characters per line, for formatting, zero to ignore
+// text: the NUL-terminated string
+// len: the string length, not including the terminating NUL
+void setText(uint8_t page, uint8_t charsPerLine, const char *text, int len);
+void setUTF8Text(uint8_t page, uint8_t charsPerLine, const char *text, int len);
+
 // TextPacketHandler processes ASCII and UTF-8 Text Packets.
 class TextPacketHandler final : public teensydmx::Responder {
  public:

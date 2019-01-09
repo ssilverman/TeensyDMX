@@ -37,7 +37,11 @@ void setup() {
 void loop() {
 }
 
-// Receives a NUL-terminated string plus its length.
+// In this example, TextPacketHandler expects the following functions to be
+// defined. There are other ways to define these functions, for example by
+// giving function pointers to the TextPacketHandler object.
+
+// Receives a NUL-terminated string plus its length (not including the NUL).
 //
 // If charsPerLine is zero then it should be ignored.
 void setText(uint8_t page, uint8_t charsPerLine, const char *text, int len) {
@@ -60,7 +64,8 @@ void setText(uint8_t page, uint8_t charsPerLine, const char *text, int len) {
   }
 }
 
-// Receives a NUL-terminated UTF-8 string plus its length.
+// Receives a NUL-terminated UTF-8 string plus its length (not including the
+// NUL).
 //
 // If charsPerLine is zero then it should be ignored.
 void setUTF8Text(uint8_t page, uint8_t charsPerLine,
