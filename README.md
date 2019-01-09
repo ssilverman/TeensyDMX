@@ -378,7 +378,8 @@ Inspirations for this library:
 1. Chris Staite's [TeensyDmx](https://github.com/chrisstaite/TeensyDmx)
    library, which is further based on
    Matthias Hertel's [DMXSerial2](https://github.com/mathertel/DmxSerial2),
-   Ward's [DmxReceive](http://forum.pjrc.com/threads/19662-Arduinoesque-overriding-of-core-functionality?p=24993&viewfull=1#post24993),
+   Ward's
+   [DmxReceive](http://forum.pjrc.com/threads/19662-Arduinoesque-overriding-of-core-functionality?p=24993&viewfull=1#post24993),
    and
    Paul Stoffregen's [DmxSimple](https://github.com/PaulStoffregen/DmxSimple).
 2. Claude Heintz's
@@ -386,4 +387,4 @@ Inspirations for this library:
 
 ---
 
-Copyright (c) 2017-2018 Shawn Silverman
+Copyright (c) 2017-2019 Shawn Silverman

@@ -156,4 +156,4 @@ Initial public release.
 
 ---
 
-Copyright (c) 2017-2018 Shawn Silverman
+Copyright (c) 2017-2019 Shawn Silverman
