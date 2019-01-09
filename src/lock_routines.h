@@ -1,5 +1,8 @@
 // Routines for concurrency.
 
+#ifndef LOCK_ROUTINES_H_
+#define LOCK_ROUTINES_H_
+
 #include <Arduino.h>
 
 // Grabs a mutex. This isn't reentrant, nor is it safe across function calls.
@@ -20,3 +23,5 @@ static void releaseMutex(volatile bool *m) {
   *m = false;
   __enable_irq();
 }
+
+#endif  // LOCK_ROUTINES_H_
