@@ -214,23 +214,23 @@
   }
 
 // Needs to have UART_TX_FLUSH_FIFO_N defined.
-#define UART_TX_BREAK(N)                                   \
-  if (count <= 0) {                                        \
-    return;                                                \
-  }                                                        \
-                                                           \
-  UART_TX_FLUSH_FIFO_##N                                   \
-                                                           \
-  while ((UART##N##_S1 & UART_S1_TDRE) == 0) {             \
-    /* Wait until we can transmit */                       \
-  }                                                        \
-  UART##N##_C2 |= UART_C2_SBK; /* Enable BREAK transmit */ \
-  /* Turn off in the middle of the last BREAK */           \
-  delayMicroseconds((count - 1)*kCharTime + kBitTime);     \
-  UART##N##_C2 &= ~UART_C2_SBK;                            \
-                                                           \
-  /* Account for the shift register time by 1 character;   \
-   * this overlaps */                                      \
+#define UART_TX_BREAK(N)                                    \
+  if (count <= 0) {                                         \
+    return;                                                 \
+  }                                                         \
+                                                            \
+  UART_TX_FLUSH_FIFO_##N                                    \
+                                                            \
+  while ((UART##N##_S1 & UART_S1_TDRE) == 0) {              \
+    /* Wait until we can transmit */                        \
+  }                                                         \
+  UART##N##_C2 |= UART_C2_SBK;  /* Enable BREAK transmit */ \
+  /* Turn off in the middle of the last BREAK */            \
+  delayMicroseconds((count - 1)*kCharTime + kBitTime);      \
+  UART##N##_C2 &= ~UART_C2_SBK;                             \
+                                                            \
+  /* Account for the shift register time by 1 character;    \
+   * this overlaps */                                       \
   delayMicroseconds(kCharTime - kBitTime + mabTime);
 
 #endif  // UART_ROUTINE_DEFINES_H_
