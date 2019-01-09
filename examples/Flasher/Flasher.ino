@@ -73,11 +73,11 @@ void loop() {
     int32_t v = -(phi - t)%period;
 
     if (v < period/2) {
-      digitalWrite(kLEDPin, HIGH);
+      digitalWriteFast(kLEDPin, HIGH);
     } else {
-      digitalWrite(kLEDPin, LOW);
+      digitalWriteFast(kLEDPin, LOW);
     }
   } else {
-    digitalWrite(kLEDPin, LOW);
+    digitalWriteFast(kLEDPin, LOW);
   }
 }
