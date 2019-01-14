@@ -28,7 +28,7 @@
     }                                                         \
   }
 
-// Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent)
+// Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Needs to have UART_TX_DATA_STATE_N defined.
 #define UART_TX(N, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)              \
   /* If the transmit buffer is empty */                               \
@@ -85,7 +85,7 @@
     }                                                                 \
   }
 
-// Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent)
+// Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 #define UART_TX_COMPLETE(CTRL, CTRL_PREFIX, STAT_PREFIX) \
   /* If transmission is complete */                      \
   if ((control & CTRL_PREFIX##_TCIE) != 0 &&             \
@@ -109,7 +109,7 @@
 //  UART RX routines, for Receiver
 // ---------------------------------------------------------------------------
 
-// Assumes status = UARTx_S1
+// Assumes status = UARTx_S1.
 #define UART_RX_WITH_FIFO(N)                                               \
   /* If the receive buffer is full or there's an idle condition */         \
   if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {                     \
@@ -154,6 +154,7 @@
     instance->checkPacketTimeout();                \
   }
 
+// Assumes status = UARTx_S1.
 // Needs to have UART_RX_CLEAR_ERRORS_N defined.
 // Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
 // Needs to have UART_RX_N defined.
