@@ -13,6 +13,9 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
+// The pin for which to flash the LED.
+constexpr uint8_t kLEDPin = LED_BUILTIN;
+
 // Create the DMX transmitter on Serial1.
 teensydmx::Sender dmxTx{Serial1};
 
@@ -51,7 +54,7 @@ void setup() {
   Serial.println("Starting.");
 
   // Set up any pins
-  pinMode(LED_BUILTIN, OUTPUT);
+  pinMode(kLEDPin, OUTPUT);
   // NOTE: Don't forget to set any pin that enables the transmitter
 
   // Initialize the SIP data
@@ -96,7 +99,7 @@ void doneTransmitting(teensydmx::Sender *s) {
 
 // Fills the current packet with desired data.
 void fillRegularData() {
-  digitalWriteFast(LED_BUILTIN, HIGH);
+  digitalWriteFast(kLEDPin, HIGH);
 
   // Set other dynamic data here too
   packetData[1] = 128;
@@ -109,7 +112,7 @@ void fillRegularData() {
 // Fills the current packet with the SIP data. This assumes that the current
 // packet data is in the 'packetData' variable.
 void fillSIPData() {
-  digitalWriteFast(LED_BUILTIN, LOW);
+  digitalWriteFast(kLEDPin, LOW);
 
   // Calculate data checksum
   uint16_t checksum = 0;

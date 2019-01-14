@@ -11,6 +11,9 @@
 // 512 * 0.02s = 10.24 seconds.
 constexpr unsigned long kChaseInterval = 20;
 
+// The pin for which to flash the LED.
+constexpr uint8_t kLEDPin = LED_BUILTIN;
+
 namespace teensydmx = ::qindesign::teensydmx;
 
 // Create the DMX transmitter on Serial1.
@@ -26,6 +29,11 @@ void setup() {
     // Wait for initialization to complete or a time limit
   }
   Serial.println("Starting.");
+
+  // Set up any pins
+  pinMode(kLEDPin, OUTPUT);
+  digitalWriteFast(kLEDPin, LOW);
+  // NOTE: Don't forget to set any pin that enables the transmitter
 
   dmxTx.begin();
 
@@ -46,5 +54,10 @@ void loop() {
     dmxTx.set(channel, 255);
 
     lastChase = 0;
+
+    // Blink the LED
+    digitalWriteFast(kLEDPin, HIGH);
+    delay(kChaseInterval / 2);
+    digitalWriteFast(kLEDPin, LOW);
   }
 }

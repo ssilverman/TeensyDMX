@@ -14,7 +14,7 @@ constexpr int kChannel = 1;
 constexpr unsigned long kDMXTimeout = 1000;
 
 // The pin for which to flash the LED.
-constexpr uint8_t kLEDPin = 13;
+constexpr uint8_t kLEDPin = LED_BUILTIN;
 
 // Interval between printing received values.
 constexpr unsigned long kPrintInterval = 1000;
@@ -38,6 +38,7 @@ void setup() {
   }
   Serial.println("Starting.");
 
+  // Set up any pins
   pinMode(kLEDPin, OUTPUT);
 
   dmxRx.begin();
