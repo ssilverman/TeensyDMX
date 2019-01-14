@@ -130,7 +130,7 @@
        * reinitialize its pointers.                                        \
        * Do this inside no interrupts to avoid a potential race condition  \
        * between reading RCFIFO and flushing the FIFO. */                  \
-      b = UART##N##_D;                                                     \
+      UART##N##_D;                                                         \
       UART##N##_CFIFO = UART_CFIFO_RXFLUSH;                                \
       __enable_irq();                                                      \
       instance->checkPacketTimeout();                                      \
@@ -142,12 +142,10 @@
        * Section 47.3.5 UART Status Register 1 (UART_S1)                   \
        * In the NOTE part. */                                              \
       while (--avail > 0) {                                                \
-        b = UART##N##_D;                                                   \
-        instance->receiveByte(b);                                          \
+        instance->receiveByte(UART##N##_D);                                \
       }                                                                    \
       status = UART##N##_S1;                                               \
-      b = UART##N##_D;                                                     \
-      instance->receiveByte(b);                                            \
+      instance->receiveByte(UART##N##_D);                                  \
     }                                                                      \
   }
 
@@ -156,8 +154,7 @@
 #define UART_RX_NO_FIFO(N, STAT_PREFIX, DATA)      \
   /* If the receive buffer is full */              \
   if ((status & STAT_PREFIX##_RDRF) != 0) {        \
-    b = DATA;                                      \
-    instance->receiveByte(b);                      \
+    instance->receiveByte(DATA);                   \
   } else if ((status & STAT_PREFIX##_IDLE) != 0) { \
     UART_RX_CLEAR_IDLE_##N                         \
     instance->checkPacketTimeout();                \
@@ -193,14 +190,13 @@
   }                                                                        \
   UART_RX_##N
 
-#define UART_RX_ERROR_FLUSH_FIFO(N)  \
-  /* Flush anything in the buffer */ \
-  uint8_t avail = UART##N##_RCFIFO;  \
-  if (avail > 1) {                   \
-    while (--avail > 0) {            \
-      b = UART##N##_D;               \
-      instance->receiveByte(b);      \
-    }                                \
+#define UART_RX_ERROR_FLUSH_FIFO(N)       \
+  /* Flush anything in the buffer */      \
+  uint8_t avail = UART##N##_RCFIFO;       \
+  if (avail > 1) {                        \
+    while (--avail > 0) {                 \
+      instance->receiveByte(UART##N##_D); \
+    }                                     \
   }
 
 // ---------------------------------------------------------------------------

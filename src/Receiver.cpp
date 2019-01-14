@@ -865,6 +865,7 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_0
 #endif  // HAS_KINETISL_UART0
+
 #ifdef HAS_KINETISK_UART0_FIFO
 #define UART_RX_ERROR_FLUSH_FIFO_0 UART_RX_ERROR_FLUSH_FIFO(0)
 #define UART_RX_0 UART_RX_WITH_FIFO(0)
@@ -874,14 +875,12 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 #ifdef HAS_KINETISL_UART0
 #define UART_RX_CLEAR_IDLE_0 UART0_S1 |= UART_S1_IDLE;
 #else
-#define UART_RX_CLEAR_IDLE_0 b = UART0_D;
+#define UART_RX_CLEAR_IDLE_0 UART0_D;
 #endif  // HAS_KINETISL_UART0
 #endif  // HAS_KINETISK_UART0_FIFO
 
 void uart0_rx_isr() {
-  uint8_t b;
   uint8_t status = UART0_S1;
-
   UART_RX(0, UART_S1, UART0_D)
 }
 
@@ -902,13 +901,11 @@ void uart0_rx_isr() {
 #else
 #define UART_RX_ERROR_FLUSH_FIFO_1
 #define UART_RX_1 UART_RX_NO_FIFO(1, UART_S1, UART1_D)
-#define UART_RX_CLEAR_IDLE_1 b = UART1_D;
+#define UART_RX_CLEAR_IDLE_1 UART1_D;
 #endif  // HAS_KINETISK_UART1_FIFO
 
 void uart1_rx_isr() {
-  uint8_t b;
   uint8_t status = UART1_S1;
-
   UART_RX(1, UART_S1, UART1_D)
 }
 
@@ -929,13 +926,11 @@ void uart1_rx_isr() {
 #else
 #define UART_RX_ERROR_FLUSH_FIFO_2
 #define UART_RX_2 UART_RX_NO_FIFO(2, UART_S1, UART2_D)
-#define UART_RX_CLEAR_IDLE_2 b = UART2_D;
+#define UART_RX_CLEAR_IDLE_2 UART2_D;
 #endif  // HAS_KINETISK_UART2_FIFO
 
 void uart2_rx_isr() {
-  uint8_t b;
   uint8_t status = UART2_S1;
-
   UART_RX(2, UART_S1, UART2_D)
 }
 
@@ -954,12 +949,10 @@ void uart2_rx_isr() {
 #define UART_RX_CLEAR_ERRORS_3
 #define UART_RX_ERROR_FLUSH_FIFO_3
 #define UART_RX_3 UART_RX_NO_FIFO(3, UART_S1, UART3_D)
-#define UART_RX_CLEAR_IDLE_3 b = UART3_D;
+#define UART_RX_CLEAR_IDLE_3 UART3_D;
 
 void uart3_rx_isr() {
-  uint8_t b;
   uint8_t status = UART3_S1;
-
   UART_RX(3, UART_S1, UART3_D)
 }
 
@@ -980,12 +973,10 @@ void uart3_rx_isr() {
 #define UART_RX_CLEAR_ERRORS_4
 #define UART_RX_ERROR_FLUSH_FIFO_4
 #define UART_RX_4 UART_RX_NO_FIFO(4, UART_S1, UART4_D)
-#define UART_RX_CLEAR_IDLE_4 b = UART4_D;
+#define UART_RX_CLEAR_IDLE_4 UART4_D;
 
 void uart4_rx_isr() {
-  uint8_t b;
   uint8_t status = UART4_S1;
-
   UART_RX(4, UART_S1, UART4_D)
 }
 
@@ -1006,12 +997,10 @@ void uart4_rx_isr() {
 #define UART_RX_CLEAR_ERRORS_5
 #define UART_RX_ERROR_FLUSH_FIFO_5
 #define UART_RX_5 UART_RX_NO_FIFO(5, UART_S1, UART5_D)
-#define UART_RX_CLEAR_IDLE_5 b = UART5_D;
+#define UART_RX_CLEAR_IDLE_5 UART5_D;
 
 void uart5_rx_isr() {
-  uint8_t b;
   uint8_t status = UART5_S1;
-
   UART_RX(5, UART_S1, UART5_D)
 }
 
@@ -1035,9 +1024,7 @@ void uart5_rx_isr() {
 #define UART_RX_CLEAR_IDLE_5 LPUART0_STAT |= LPUART_STAT_IDLE;
 
 void lpuart0_rx_isr() {
-  uint8_t b;
   uint32_t status = LPUART0_STAT;
-
   UART_RX(5, LPUART_STAT, LPUART0_DATA)
 }
 
