@@ -31,6 +31,11 @@
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Needs to have UART_TX_DATA_STATE_N defined.
 #define UART_TX(N, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)              \
+  Sender *instance = txInstances[N];                                  \
+  if (instance == nullptr) {                                          \
+    return;                                                           \
+  }                                                                   \
+                                                                      \
   /* If the transmit buffer is empty */                               \
   if ((control & CTRL_PREFIX##_TIE) != 0 &&                           \
       (status & STAT_PREFIX##_TDRE) != 0) {                           \
@@ -69,8 +74,11 @@
             /* Non-infinite break time */                             \
             if (!instance->refreshRateTimer_.begin(                   \
                     []() {                                            \
-                      txInstances[N]->refreshRateTimer_.end();        \
-                      CTRL = CTRL_PREFIX##_TX_ACTIVE;                 \
+                      Sender *s = txInstances[N];                     \
+                      if (s != nullptr) {                             \
+                        s->refreshRateTimer_.end();                   \
+                        CTRL = CTRL_PREFIX##_TX_ACTIVE;               \
+                      }                                               \
                     },                                                \
                     instance->breakToBreakTime_ - timeSinceBreak)) {  \
               /* If starting the timer failed */                      \
@@ -86,6 +94,7 @@
   }
 
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
+// Assumes instance is defined.
 #define UART_TX_COMPLETE(CTRL, CTRL_PREFIX, STAT_PREFIX) \
   /* If transmission is complete */                      \
   if ((control & CTRL_PREFIX##_TCIE) != 0 &&             \
@@ -154,11 +163,16 @@
     instance->checkPacketTimeout();                \
   }
 
-// Assumes status = UARTx_S1.
+// Assumes status = UARTx_S1 (or equivalent).
 // Needs to have UART_RX_CLEAR_ERRORS_N defined.
 // Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
 // Needs to have UART_RX_N defined.
 #define UART_RX(N, STAT_PREFIX, DATA)                                      \
+  Receiver *instance = rxInstances[N];                                     \
+  if (instance == nullptr) {                                               \
+    return;                                                                \
+  }                                                                        \
+                                                                           \
   /* A framing error likely indicates a break */                           \
   if ((status & STAT_PREFIX##_FE) != 0) {                                  \
     /* Only allow a packet whose framing error actually indicates a break. \

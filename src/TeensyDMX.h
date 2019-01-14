@@ -77,7 +77,9 @@ class TeensyDMX {
 
   // Returns the total number of packets received or transmitted since
   // the reciever was started.
-  uint32_t packetCount() const { return packetCount_; }
+  uint32_t packetCount() const {
+    return packetCount_;
+  }
 
  protected:
   // Creates a new DMX receiver or transmitter using the given hardware UART.
@@ -326,15 +328,15 @@ class Receiver final : public TeensyDMX {
   // This is separate from breakStartTime_ because the measurement is done
   // right when the framing error is detected, and before any logic that
   // might consume some time.
-  volatile uint32_t feStartTime_;
+  uint32_t feStartTime_;
 
-  volatile uint8_t buf1_[kMaxDMXPacketSize];
-  volatile uint8_t buf2_[kMaxDMXPacketSize];
-  volatile uint8_t *volatile activeBuf_;
+  uint8_t buf1_[kMaxDMXPacketSize];
+  uint8_t buf2_[kMaxDMXPacketSize];
+  uint8_t *activeBuf_;
   // Read-only shared memory buffer, make const volatile
   // https://embeddedgurus.com/barr-code/2012/01/combining-cs-volatile-and-const-keywords/
-  const volatile uint8_t *volatile inactiveBuf_;
-  volatile int activeBufIndex_;
+  const uint8_t *volatile inactiveBuf_;
+  int activeBufIndex_;
 
   // The size of the last received packet.
   volatile int packetSize_;
@@ -347,10 +349,10 @@ class Receiver final : public TeensyDMX {
   // and the current start time isn't set until it's confirmed that there's
   // been a valid BREAK.
   uint32_t lastBreakStartTime_;
-  volatile uint32_t breakStartTime_;
+  uint32_t breakStartTime_;
 
   // Last time a slot ended, in microseconds.
-  volatile uint32_t lastSlotEndTime_;
+  uint32_t lastSlotEndTime_;
 
   // Indicates whether we are connected to a DMX transmitter. Disconnection
   // is considered to have occurred when a timeout, framing error, or short

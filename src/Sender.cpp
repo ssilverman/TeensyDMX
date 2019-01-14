@@ -5,7 +5,6 @@
 #include <cstring>
 
 // Project includes
-#include "lock_routines.h"
 #include "uart_routine_defines.h"
 
 namespace qindesign {
@@ -46,7 +45,6 @@ static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
 
 // Used by the TX ISRs
 static Sender *volatile txInstances[6]{nullptr};
-static volatile bool txInstancesMutex{false};
 
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
@@ -80,10 +78,8 @@ void Sender::begin() {
   }
 
   // Set up the instance for the ISRs
-  grabMutex(&txInstancesMutex);
   Sender *s = txInstances[serialIndex_];
   txInstances[serialIndex_] = this;
-  releaseMutex(&txInstancesMutex);
   if (s != nullptr && s != this) {  // NOTE: Shouldn't be able to be 'this'
     s->end();
   }
@@ -142,14 +138,13 @@ void Sender::end() {
   // so disable the IRQs first
 
   uart_.end();
+  refreshRateTimer_.end();
 
   // Remove the reference from the instances,
   // but only if we're the ones who added it
-  grabMutex(&txInstancesMutex);
   if (txInstances[serialIndex_] == this) {
     txInstances[serialIndex_] = nullptr;
   }
-  releaseMutex(&txInstancesMutex);
 }
 
 // memcpy implementation that accepts a volatile destination.
@@ -188,9 +183,9 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
   }
 
   if (!paused_) {
-    memcpy(outputBuf_ + startChannel, values, len);
+    memcpy(&outputBuf_[startChannel], values, len);
   }
-  memcpy(pausedBuf_ + startChannel, values, len);
+  memcpy(&pausedBuf_[startChannel], values, len);
 }
 
 void Sender::setRefreshRate(float rate) {
@@ -359,8 +354,6 @@ void Sender::enableIRQs() const {
 #endif  // HAS_KINETISK_UART0_FIFO
 
 void uart0_tx_isr() {
-  Sender *instance = txInstances[0];
-
   uint8_t status = UART0_S1;
   uint8_t control = UART0_C2;
 
@@ -383,8 +376,6 @@ void uart0_tx_isr() {
 #endif  // HAS_KINETISK_UART1_FIFO
 
 void uart1_tx_isr() {
-  Sender *instance = txInstances[1];
-
   uint8_t status = UART1_S1;
   uint8_t control = UART1_C2;
 
@@ -407,8 +398,6 @@ void uart1_tx_isr() {
 #endif  // HAS_KINETISK_UART2_FIFO
 
 void uart2_tx_isr() {
-  Sender *instance = txInstances[2];
-
   uint8_t status = UART2_S1;
   uint8_t control = UART2_C2;
 
@@ -429,8 +418,6 @@ void uart2_tx_isr() {
   UART_TX_DATA_STATE_NO_FIFO(UART3_C2, UART3_D, UART_C2)
 
 void uart3_tx_isr() {
-  Sender *instance = txInstances[3];
-
   uint8_t status = UART3_S1;
   uint8_t control = UART3_C2;
 
@@ -453,8 +440,6 @@ void uart3_tx_isr() {
   UART_TX_DATA_STATE_NO_FIFO(UART4_C2, UART4_D, UART_C2)
 
 void uart4_tx_isr() {
-  Sender *instance = txInstances[4];
-
   uint8_t status = UART4_S1;
   uint8_t control = UART4_C2;
 
@@ -477,8 +462,6 @@ void uart4_tx_isr() {
   UART_TX_DATA_STATE_NO_FIFO(UART5_C2, UART5_D, UART_C2)
 
 void uart5_tx_isr() {
-  Sender *instance = txInstances[5];
-
   uint8_t status = UART5_S1;
   uint8_t control = UART5_C2;
 
@@ -500,8 +483,6 @@ void uart5_tx_isr() {
 
 #ifdef HAS_KINETISK_LPUART0
 void lpuart0_tx_isr() {
-  Sender *instance = txInstances[5];
-
   uint32_t status = LPUART0_STAT;
   uint32_t control = LPUART0_CTRL;
 

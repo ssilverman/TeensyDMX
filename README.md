@@ -366,6 +366,11 @@ receiving. For example, an RS485 transceiver may require enabling or disabling
 specific buffers. That may be accomplished by using one of the GPIO pins.
 Please be sure the logic levels are compatible.
 
+### Thread safety
+
+This code is not thread-safe and should be handled appropriately if utilized in
+a concurrent context.
+
 ## Code style
 
 Code style for this project mostly follows the

@@ -5,7 +5,6 @@
 #include <cstring>
 
 // Project includes
-#include "lock_routines.h"
 #include "uart_routine_defines.h"
 
 namespace qindesign {
@@ -61,7 +60,6 @@ static void lpuart0_tx_break(int count, uint32_t mabTime);
 
 // Used by the RX ISRs.
 static Receiver *volatile rxInstances[6]{nullptr};
-static volatile bool rxInstancesMutex{false};
 
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
@@ -163,14 +161,13 @@ void Receiver::begin() {
   }
 
   // Set up the instance for the ISRs
-  grabMutex(&rxInstancesMutex);
   Receiver *r = rxInstances[serialIndex_];
   rxInstances[serialIndex_] = this;
-  releaseMutex(&rxInstancesMutex);
   if (r != nullptr && r != this) {  // NOTE: Shouldn't be able to be 'this'
     r->end();
   }
 
+  state_ = RecvStates::kIdle;
   uart_.begin(kSlotsBaud, kSlotsFormat);
 
   // Reset "previous" state
@@ -257,8 +254,6 @@ void Receiver::end() {
     return;
   }
 
-  setConnected(false);
-
   // Remove any chance that our RX ISRs start after end() is called,
   // so disable the IRQs first
 
@@ -307,25 +302,11 @@ void Receiver::end() {
 
   // Remove the reference from the instances,
   // but only if we're the ones who added it
-  grabMutex(&rxInstancesMutex);
   if (rxInstances[serialIndex_] == this) {
     rxInstances[serialIndex_] = nullptr;
   }
-  releaseMutex(&rxInstancesMutex);
-}
 
-// memcpy implementation that accepts a const volatile source.
-// Derived from:
-// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/libc/memcpy.c
-static void *memcpy(void *dst, const volatile void *src, size_t len) {
-  const volatile uint8_t *s = reinterpret_cast<const volatile uint8_t *>(src);
-  uint8_t *d = reinterpret_cast<uint8_t *>(dst);
-
-  while (len-- != 0) {
-    *(d++) = *(s++);
-  }
-
-  return dst;
+  setConnected(false);
 }
 
 int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
@@ -394,8 +375,10 @@ Responder *Receiver::addResponder(uint8_t startCode, Responder *r) {
     responderOutBufLen_ = outBufSize;
   }
 
+  // If a responder is set then the output buffer should be the correct size
   Responder *old = responders_[startCode];
   responders_[startCode] = r;
+
   return old;
 }
 
@@ -423,7 +406,7 @@ void Receiver::completePacket() {
 
   Responder *r = responders_[inactiveBuf_[0]];
   if (r != nullptr) {
-    r->receivePacket(const_cast<const uint8_t *>(inactiveBuf_), packetSize_);
+    r->receivePacket(inactiveBuf_, packetSize_);
     if (r->eatPacket()) {
       packetSize_ = 0;
     }
@@ -512,6 +495,7 @@ void Receiver::receiveByte(uint8_t b) {
       setConnected(true);
       state_ = RecvStates::kData;
       break;
+
     case RecvStates::kData:
       // Checking this here accounts for buffered input, where several
       // bytes come in at the same time
@@ -524,6 +508,7 @@ void Receiver::receiveByte(uint8_t b) {
       // NOTE: Don't need to check for inter-slot MARK time being
       //       too large because the IDLE detection will catch that
       break;
+
     default:
       // Ignore any extra bytes in a packet or any bytes outside a packet
       return;
@@ -556,9 +541,7 @@ void Receiver::receiveByte(uint8_t b) {
     return;
   }
 
-  int respLen = r->processByte(const_cast<const uint8_t*>(activeBuf_),
-                               activeBufIndex_,
-                               responderOutBuf_);
+  int respLen = r->processByte(activeBuf_, activeBufIndex_, responderOutBuf_);
   if (respLen <= 0) {
     if (packetFull) {
       // If the responder isn't done by now, it's too late for this packet
@@ -599,9 +582,9 @@ void Receiver::receiveByte(uint8_t b) {
 
 void Receiver::setConnected(bool flag) {
   if (connected_ != flag) {
-    connected_ = flag;
-    if (connectChangeFunc_ != nullptr) {
-      connectChangeFunc_(this);
+    void (*f)(Receiver *r) = connectChangeFunc_;
+    if (f != nullptr) {
+      f(this);
     }
   }
 }
@@ -898,7 +881,6 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 void uart0_rx_isr() {
   uint8_t b;
   uint8_t status = UART0_S1;
-  Receiver *instance = rxInstances[0];
 
   UART_RX(0, UART_S1, UART0_D)
 }
@@ -926,7 +908,6 @@ void uart0_rx_isr() {
 void uart1_rx_isr() {
   uint8_t b;
   uint8_t status = UART1_S1;
-  Receiver *instance = rxInstances[1];
 
   UART_RX(1, UART_S1, UART1_D)
 }
@@ -954,7 +935,6 @@ void uart1_rx_isr() {
 void uart2_rx_isr() {
   uint8_t b;
   uint8_t status = UART2_S1;
-  Receiver *instance = rxInstances[2];
 
   UART_RX(2, UART_S1, UART2_D)
 }
@@ -979,7 +959,6 @@ void uart2_rx_isr() {
 void uart3_rx_isr() {
   uint8_t b;
   uint8_t status = UART3_S1;
-  Receiver *instance = rxInstances[3];
 
   UART_RX(3, UART_S1, UART3_D)
 }
@@ -1006,7 +985,6 @@ void uart3_rx_isr() {
 void uart4_rx_isr() {
   uint8_t b;
   uint8_t status = UART4_S1;
-  Receiver *instance = rxInstances[4];
 
   UART_RX(4, UART_S1, UART4_D)
 }
@@ -1033,7 +1011,6 @@ void uart4_rx_isr() {
 void uart5_rx_isr() {
   uint8_t b;
   uint8_t status = UART5_S1;
-  Receiver *instance = rxInstances[5];
 
   UART_RX(5, UART_S1, UART5_D)
 }
@@ -1060,7 +1037,6 @@ void uart5_rx_isr() {
 void lpuart0_rx_isr() {
   uint8_t b;
   uint32_t status = LPUART0_STAT;
-  Receiver *instance = rxInstances[5];
 
   UART_RX(5, LPUART_STAT, LPUART0_DATA)
 }
