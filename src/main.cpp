@@ -10,6 +10,12 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
+// The pin for which to flash the LED.
+constexpr uint8_t kLEDPin = LED_BUILTIN;
+
+// The pin to use for enabling the transmitter.
+constexpr uint8_t kTXPin = 17;
+
 // Create the DMX transmitter on Serial1.
 teensydmx::Sender dmxTx{Serial1};
 
@@ -23,10 +29,10 @@ void setup() {
   }
 
   // Set up any pins
-  pinMode(LED_BUILTIN, OUTPUT);
-  digitalWriteFast(LED_BUILTIN, LOW);
-  pinMode(2, OUTPUT);
-  digitalWriteFast(2, HIGH);
+  pinMode(kLEDPin, OUTPUT);
+  digitalWriteFast(kLEDPin, LOW);
+  pinMode(kTXPin, OUTPUT);
+  digitalWriteFast(kTXPin, HIGH);
 
   Serial.println("Hello, DMX World!");
 
@@ -37,14 +43,14 @@ void setup() {
 }
 
 void loop() {
-  digitalWriteFast(LED_BUILTIN, HIGH);
+  digitalWriteFast(kLEDPin, HIGH);
   dmxTx.set(channel++, 0);
   if (channel > 512) {
     channel = 1;
   }
   dmxTx.set(channel, 255);
   delay(20);
-  digitalWriteFast(LED_BUILTIN, LOW);
+  digitalWriteFast(kLEDPin, LOW);
 
   delay(980);
 }
