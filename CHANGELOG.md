@@ -14,6 +14,8 @@ This document details the changes between each release.
   \#defines.
 * Minor documentation updates.
 * `setRXNotTX` concept renamed to `setTXNotRX`, in `Receiver`.
+* Small updates to the examples.
+* Some concurrency improvements.
 
 ### Fixed
 * ISR-triggering status bits are now cleared properly for Teensy LC.
