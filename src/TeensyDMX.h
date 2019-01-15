@@ -85,52 +85,13 @@ class TeensyDMX {
 
  protected:
   // Creates a new DMX receiver or transmitter using the given hardware UART.
-  TeensyDMX(HardwareSerial &uart)
-      : uart_(uart),
-        began_(false),
-        packetCount_(0) {
-    serialIndex_ = serialIndex(uart_);
-  }
+  TeensyDMX(HardwareSerial &uart);
 
   // TeensyDMX is neither copyable nor movable.
   TeensyDMX(const TeensyDMX &) = delete;
   TeensyDMX& operator=(const TeensyDMX &) = delete;
 
   virtual ~TeensyDMX() = default;
-
-  // Returns the index given a serial port, or -1 if the serial port is
-  // not supported.
-  static int serialIndex(HardwareSerial &uart) {
-    if (&uart == &Serial1) {
-      return 0;
-    }
-    if (&uart == &Serial2) {
-      return 1;
-    }
-    if (&uart == &Serial3) {
-      return 2;
-    }
-#ifdef HAS_KINETISK_UART3
-    if (&uart == &Serial4) {
-      return 3;
-    }
-#endif  // HAS_KINETISK_UART3
-#ifdef HAS_KINETISK_UART4
-    if (&uart == &Serial5) {
-      return 4;
-    }
-#endif  // HAS_KINETISK_UART4
-#if defined(HAS_KINETISK_UART5)
-    if (&uart == &Serial6) {
-      return 5;
-    }
-#elif defined(HAS_KINETISK_LPUART0)
-    if (&uart == &Serial6) {
-      return 5;
-    }
-#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
-    return -1;
-  }
 
   HardwareSerial &uart_;
   int serialIndex_;
@@ -581,11 +542,11 @@ class Sender final : public TeensyDMX {
 
  private:
    // State that tracks what to transmit and when.
-   enum class XmitStates {
-     kBreak,  // Need to transmit a break
-     kData,   // Need to transmit data
-     kIdle,   // The end of data for one packet has been reached
-   };
+  enum class XmitStates {
+    kBreak,  // Need to transmit a break
+    kData,   // Need to transmit data
+    kIdle,   // The end of data for one packet has been reached
+  };
 
   // The minimum allowed packet time for senders, either BREAK plus data,
   // or BREAK to BREAK, in microseconds.
