@@ -28,10 +28,10 @@ namespace teensydmx {
 // 8N1: 50000 baud, 180us break, 20us MAB <-- Closer to "typical" in ANSI E1.11
 // 8E1: 45500 baud, 220us break, 22us MAB
 
-static constexpr uint32_t kBreakBaud   = 50000;       // 20us
-static constexpr uint32_t kBreakFormat = SERIAL_8N1;  // 9:1
-static constexpr uint32_t kSlotsBaud   = 250000;      // 4us
-static constexpr uint32_t kSlotsFormat = SERIAL_8N2;  // 9:2
+constexpr uint32_t kBreakBaud   = 50000;       // 20us
+constexpr uint32_t kBreakFormat = SERIAL_8N1;  // 9:1
+constexpr uint32_t kSlotsBaud   = 250000;      // 4us
+constexpr uint32_t kSlotsFormat = SERIAL_8N2;  // 9:2
 
 // TX control states
 #define UART_C2_TX_ENABLE         (UART_C2_TE)
@@ -44,7 +44,7 @@ static constexpr uint32_t kSlotsFormat = SERIAL_8N2;  // 9:2
 #define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
 // Used by the TX ISRs
-static Sender *volatile txInstances[6]{nullptr};
+Sender *volatile txInstances[6]{nullptr};
 
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
@@ -150,7 +150,7 @@ void Sender::end() {
 // memcpy implementation that accepts a volatile destination.
 // Derived from:
 // https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/libc/memcpy.c
-static volatile void *memcpy(volatile void *dst, const void *src, size_t len) {
+volatile void *memcpy(volatile void *dst, const void *src, size_t len) {
   volatile uint8_t *d = reinterpret_cast<volatile uint8_t *>(dst);
   const uint8_t *s = reinterpret_cast<const uint8_t *>(src);
 

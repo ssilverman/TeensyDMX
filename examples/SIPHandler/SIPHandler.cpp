@@ -1,12 +1,12 @@
 #include "SIPHandler.h"
 
 // Gets a uint16_t value from the given array.
-static uint16_t getUint16(const uint8_t *b) {
+uint16_t getUint16(const uint8_t *b) {
   return (uint16_t{b[0]} << 8) | uint16_t{b[1]};
 }
 
 // Checks the SIP data for basic correctness.
-static bool checkSIP(const uint8_t *buf, int len) {
+bool checkSIP(const uint8_t *buf, int len) {
   if (buf[0] != SIPHandler::startCode() || len != 25) {
     return false;
   }
@@ -23,7 +23,7 @@ static bool checkSIP(const uint8_t *buf, int len) {
 }
 
 // Calculates a 16-bit checksum.
-static uint16_t checksum(const uint8_t *buf, int len) {
+uint16_t checksum(const uint8_t *buf, int len) {
   uint16_t c = 0;
   for (int i = 0; i < len; i++) {
     c += buf[i];

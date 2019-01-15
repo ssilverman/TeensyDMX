@@ -10,10 +10,10 @@
 namespace qindesign {
 namespace teensydmx {
 
-static constexpr uint32_t kSlotsBaud = 250000;
-static constexpr uint32_t kSlotsFormat = SERIAL_8N2;
-static constexpr uint32_t kBitTime = 1000000 / 250000;  // In microseconds
-static constexpr uint32_t kCharTime = 11 * kBitTime;  // In microseconds
+constexpr uint32_t kSlotsBaud   = 250000;            // 4us
+constexpr uint32_t kSlotsFormat = SERIAL_8N2;        // 9:2
+constexpr uint32_t kBitTime     = 1000000 / 250000;  // In microseconds
+constexpr uint32_t kCharTime    = 11 * kBitTime;     // In microseconds
 
 // RX control states
 #define UART0_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
@@ -35,31 +35,31 @@ static constexpr uint32_t kCharTime = 11 * kBitTime;  // In microseconds
 
 // Routines that do raw transmit
 // These don't affect the transmitter
-static void uart0_tx(const uint8_t *b, int len);
-static void uart0_tx_break(int count, uint32_t mabTime);
-static void uart1_tx(const uint8_t *b, int len);
-static void uart1_tx_break(int count, uint32_t mabTime);
-static void uart2_tx(const uint8_t *b, int len);
-static void uart2_tx_break(int count, uint32_t mabTime);
+void uart0_tx(const uint8_t *b, int len);
+void uart0_tx_break(int count, uint32_t mabTime);
+void uart1_tx(const uint8_t *b, int len);
+void uart1_tx_break(int count, uint32_t mabTime);
+void uart2_tx(const uint8_t *b, int len);
+void uart2_tx_break(int count, uint32_t mabTime);
 #ifdef HAS_KINETISK_UART3
-static void uart3_tx(const uint8_t *b, int len);
-static void uart3_tx_break(int count, uint32_t mabTime);
+void uart3_tx(const uint8_t *b, int len);
+void uart3_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
-static void uart4_tx(const uint8_t *b, int len);
-static void uart4_tx_break(int count, uint32_t mabTime);
+void uart4_tx(const uint8_t *b, int len);
+void uart4_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART4
 #ifdef HAS_KINETISK_UART5
-static void uart5_tx(const uint8_t *b, int len);
-static void uart5_tx_break(int count, uint32_t mabTime);
+void uart5_tx(const uint8_t *b, int len);
+void uart5_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART5
 #ifdef HAS_KINETISK_LPUART0
-static void lpuart0_tx(const uint8_t *b, int len);
-static void lpuart0_tx_break(int count, uint32_t mabTime);
+void lpuart0_tx(const uint8_t *b, int len);
+void lpuart0_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_LPUART0
 
 // Used by the RX ISRs.
-static Receiver *volatile rxInstances[6]{nullptr};
+Receiver *volatile rxInstances[6]{nullptr};
 
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
