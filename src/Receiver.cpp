@@ -1,10 +1,10 @@
 #include "TeensyDMX.h"
-#include "Responder.h"
 
 // C++ includes
 #include <cstring>
 
 // Project includes
+#include "Responder.h"
 #include "uart_routine_defines.h"
 
 namespace qindesign {
