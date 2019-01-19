@@ -10,10 +10,10 @@
 namespace qindesign {
 namespace teensydmx {
 
-constexpr uint32_t kSlotsBaud   = 250000;            // 4us
-constexpr uint32_t kSlotsFormat = SERIAL_8N2;        // 9:2
-constexpr uint32_t kBitTime     = 1000000 / 250000;  // In microseconds
-constexpr uint32_t kCharTime    = 11 * kBitTime;     // In microseconds
+constexpr uint32_t kSlotsBaud   = 250000;                // 4us
+constexpr uint32_t kSlotsFormat = SERIAL_8N2;            // 9:2
+constexpr uint32_t kBitTime     = 1000000 / kSlotsBaud;  // In microseconds
+constexpr uint32_t kCharTime    = 11 * kBitTime;         // In microseconds
 
 // RX control states
 #define UART0_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
