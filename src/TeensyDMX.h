@@ -482,7 +482,7 @@ class Sender final : public TeensyDMX {
   // Returns whether we are currently paused. This will occur after pause()
   // is called and after any "resumed" messages are sent. Note that it is
   // possible that a packet is still in the middle of being transmitted.
-  bool isPaused() {
+  bool isPaused() const {
     return paused_;
   }
 
@@ -527,7 +527,7 @@ class Sender final : public TeensyDMX {
   //
   // An alternative to this function is to use onDoneTransmitting to be
   // notified when transmission is complete.
-  bool isTransmitting();
+  bool isTransmitting() const;
 
   // Sets the function to call when the sender is paused and transmission
   // of the current packet is done. This can be used instead of polling

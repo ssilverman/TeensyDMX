@@ -251,7 +251,7 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
   enableIRQs();
 }
 
-bool Sender::isTransmitting() {
+bool Sender::isTransmitting() const {
   // Check these both atomically
   disableIRQs();
   //{
