@@ -2,7 +2,7 @@
 
 This document details the changes between each release.
 
-## [3.0.0-alpha.1]
+## [3.0.0-beta]
 
 ### Added
 * New document describing BREAK timing in relation to serial ports.
