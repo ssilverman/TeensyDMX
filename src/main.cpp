@@ -1,3 +1,6 @@
+// This file is part of the TeensyDMX library.
+// (c) 2018-2019 Shawn Silverman
+
 // Basic main program, so it's easy to compile the project.
 
 // Define MAIN_TEST_PROGRAM to use this test program.

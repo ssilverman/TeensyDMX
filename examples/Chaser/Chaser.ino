@@ -1,7 +1,7 @@
 /*
  * Demonstrates outputting DMX by chasing values across all the channels.
  *
- * (c) 2017 Shawn Silverman
+ * (c) 2017-2019 Shawn Silverman
  */
 
 #include "TeensyDMX.h"

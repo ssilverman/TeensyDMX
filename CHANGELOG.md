@@ -1,4 +1,4 @@
-# Changelog
+# Changelog for the TeensyDMX Library
 
 This document details the changes between each release.
 

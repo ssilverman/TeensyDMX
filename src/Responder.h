@@ -1,3 +1,6 @@
+// This file is part of the TeensyDMX library.
+// (c) 2018-2019 Shawn Silverman
+
 // Responder.h defines a generic interface for responding to special DMX
 // packets in a Receiver.
 

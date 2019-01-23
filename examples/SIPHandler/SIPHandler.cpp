@@ -1,3 +1,6 @@
+// This file is part of an example in the TeensyDMX library.
+// (c) 2018 Shawn Silverman
+
 #include "SIPHandler.h"
 
 // Gets a uint16_t value from the given array.

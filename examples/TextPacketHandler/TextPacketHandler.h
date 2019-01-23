@@ -1,3 +1,6 @@
+// This file is part of an example in the TeensyDMX library.
+// (c) 2018 Shawn Silverman
+
 #ifndef TEXTPACKETHANDLER_H_
 #define TEXTPACKETHANDLER_H_
 

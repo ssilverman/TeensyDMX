@@ -1,3 +1,6 @@
+// This file is part of an example in the TeensyDMX library.
+// (c) 2018 Shawn Silverman
+
 #include "TextPacketHandler.h"
 
 void TextPacketHandler::receivePacket(const uint8_t *buf, int len) {
