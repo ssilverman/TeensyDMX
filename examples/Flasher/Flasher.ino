@@ -25,7 +25,7 @@ namespace teensydmx = ::qindesign::teensydmx;
 teensydmx::Receiver dmxRx{Serial1};
 
 // Keeps track of when the last frame was received.
-elapsedMillis lastFrameTime;
+elapsedMillis lastFrameTimer;
 
 // The last value sent to kChannel.
 uint8_t lastValue;
@@ -42,7 +42,7 @@ void setup() {
   pinMode(kLEDPin, OUTPUT);
 
   dmxRx.begin();
-  lastFrameTime = kDMXTimeout;
+  lastFrameTimer = kDMXTimeout;
 }
 
 void loop() {
@@ -50,7 +50,7 @@ void loop() {
   int read = dmxRx.readPacket(buf, kChannel, 1);
   if (read > 0) {
     lastValue = buf[0];
-    lastFrameTime = 0;
+    lastFrameTimer = 0;
 
     // Print the data every so often
     static elapsedMillis p = kPrintInterval;
@@ -60,7 +60,7 @@ void loop() {
     }
   }
 
-  if (lastFrameTime < kDMXTimeout) {
+  if (lastFrameTimer < kDMXTimeout) {
     // Use a wave equation to make the speed-ups and slow-downs smoother
     // using the offset, phi
     static int32_t period = 1000;
