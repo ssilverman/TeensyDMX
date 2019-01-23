@@ -4,7 +4,7 @@
  * (c) 2017-2019 Shawn Silverman
  */
 
-#include "TeensyDMX.h"
+#include <TeensyDMX.h>
 
 // Interval between channel value changes. A value of 20ms was chosen
 // so that all we cycle through all 512 channels every

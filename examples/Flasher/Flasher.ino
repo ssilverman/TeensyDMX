@@ -5,7 +5,7 @@
  * (c) 2017-2019 Shawn Silverman
  */
 
-#include "TeensyDMX.h"
+#include <TeensyDMX.h>
 
 // DMX channel from which to read the flash speed.
 constexpr int kChannel = 1;
