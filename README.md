@@ -12,8 +12,8 @@ Some notable features of this library:
    the DMX buffers from/to the UART ISRs. In other words, the library
    is asynchronous and runs independently; all you need to worry about is
    setting and getting channel data.
-2. Simple API: After setup, there's only one read call (`readPacket`) and two
-   forms of one write call (`set` for single and multiple channels).
+2. Simple API: After setup, there's only two read calls (`readPacket` and `get`)
+   and two forms of one write call (`set` for single and multiple channels).
 3. The library properly handles DMX packets containing less than 513 slots.
 4. The transmitter refresh rate can be changed to something less than
    "maximum rate".
@@ -69,10 +69,9 @@ there's potentially a continuous stream of data being sent or received
 in the background.
 
 The transmitter will keep sending the same data until it's changed externally
-using one of the `Sender::set` functions. Similarly, `Receiver::readPacket`
-and `Receiver::get` will return only the latest data; if more than a small
-amount of time elapses between calls, then the data may have been changed
-more than once.
+using one of the `Sender::set` functions. Similarly, `Receiver::readPacket` and
+`Receiver::get` will return only the latest data; if more than a small amount of
+time elapses between calls, then the data may have been changed more than once.
 
 Both `Sender` and `Receiver` have a mode where they can operate synchronously.
 With `Sender`, the stream can be paused and resumed, and packets inserted at
@@ -114,8 +113,8 @@ Note that channel zero contains the start code, a special value, usually zero,
 that occupies the first byte of the packet. The maximum DMX packet size is
 513, but may be smaller, depending on the system.
 
-Each call to `readPacket` is independent, meaning that if no packet has
-arrived after a call to this function, subsequent calls will return -1.
+Each call to `readPacket` is independent, meaning that if no packet has arrived
+after a call to this function, subsequent calls will return -1.
 
 ### Error counts and disconnection
 
