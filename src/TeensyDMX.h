@@ -60,25 +60,25 @@ void lpuart0_tx_isr();
 // The maximum size of a DMX packet, including the start code.
 constexpr int kMaxDMXPacketSize = 513;
 
-// The minimum size of a DMX packet, including the start code.
-// This value is used for senders and is a guideline for how many
-// slots will fit in a packet, assuming full-speed transmission.
+// The minimum size of a DMX packet, including the start code. This value is
+// used for senders and is a guideline for how many slots will fit in a packet,
+// assuming full-speed transmission.
 constexpr int kMinDMXPacketSize = 25;
 
-// TeensyDMX implements either a receiver or transmitter on one of
-// hardware serial ports 1-6.
+// TeensyDMX implements either a receiver or transmitter on one of hardware
+// serial ports 1-6.
 class TeensyDMX {
  public:
   // Sets up the system for receiving or transmitting DMX on the specified
   // serial port.
   virtual void begin() = 0;
 
-  // Tells the system to stop receiving or transmitting DMX. Call this
-  // to clean up.
+  // Tells the system to stop receiving or transmitting DMX. Call this to
+  // clean up.
   virtual void end() = 0;
 
-  // Returns the total number of packets received or transmitted since
-  // the reciever was started.
+  // Returns the total number of packets received or transmitted since the
+  // receiver was started.
   uint32_t packetCount() const {
     return packetCount_;
   }
@@ -119,8 +119,8 @@ class Receiver final : public TeensyDMX {
 
   // Starts up the serial port.
   //
-  // Call setSetTXNotRXFunc to set an appropriate pin toggle function before
-  // calling begin. If one is set, this will call it to enable receive.
+  // Call setSetTXNotRXFunc() to set an appropriate pin toggle function before
+  // calling begin(). If one is set, this will call it to enable receive.
   void begin() override;
 
   void end() override;
@@ -130,41 +130,40 @@ class Receiver final : public TeensyDMX {
   // kMaxDMXPacketSize, and only reads up to the end of the packet
   // if startChannel + len would go past the end.
   //
-  // This will return the number of bytes actually read into buf, -1 if there
-  // is no packet available since the last call to this function, or zero if
-  // len is negative or zero, or if the requested data is outside the range
-  // of the recieved packet. Differentiating between -1 and zero allows the
-  // caller to determine whether there was no packet received or a packet
-  // was received and did not contain the requested data.
+  // This will return the number of bytes actually read into buf, -1 if there is
+  // no packet available since the last call to this function, or zero if len is
+  // negative or zero, or if the requested data is outside the range of the
+  // received packet. Differentiating between -1 and zero allows the caller to
+  // determine whether there was no packet received or a packet was received and
+  // did not contain the requested data.
   //
-  // The values starting at startChannel will be stored starting at index
-  // zero in buf. buf must have a size of at least len bytes.
+  // The values starting at startChannel will be stored starting at index zero
+  // in buf. buf must have a size of at least len bytes.
   int readPacket(uint8_t *buf, int startChannel, int len);
 
-  // Gets the value for one channel. The start code can be read at
-  // channel zero.
+  // Gets the value for one channel. The start code can be read at channel zero.
   //
   // If the channel is out of range then this will return zero. This is
-  // equivalent to calling readPacket with a buffer size of 1 and returning
+  // equivalent to calling readPacket() with a buffer size of 1, and returning
   // zero for unavailable data or an out of range request.
   uint8_t get(int channel) const;
 
   // Returns the timestamp of the last received packet. Under the covers,
   // millis() is called when a packet is received. Note that this may not
-  // indicate freshness of the channels you're interested in because they
-  // may not have been a part of the last packet received. i.e. the last
-  // packet received may have been smaller than required.
+  // indicate freshness of the channels you're interested in because they may
+  // not have been a part of the last packet received. i.e. the last packet
+  // received may have been smaller than required.
   //
-  // Use of this function is discouraged in favor of making a note of the
-  // time inside the code that checks for the value returned from
-  // readPacket() being at least equal to the number of channels requested.
-  // Use is only suggested in very simple use cases where a timestamp is
-  // needed for *any* packet containing data, not necessarily desired data.
+  // Use of this function is discouraged in favor of making a note of the time
+  // inside the code that checks for the value returned from readPacket() being
+  // at least equal to the number of channels requested. Use is only suggested
+  // in very simple use cases where a timestamp is needed for *any* packet
+  // containing data, not necessarily desired data.
   //
   // Don't use this function to detect timeouts for data on specific channels.
   // For example, unplugging a cable might result in a valid packet, but not
-  // containing the channels you need. Using this value to detect the last
-  // valid data received would give a value that's later than the true value.
+  // containing the channels you need. Using this value to detect the last valid
+  // data received would give a value that's later than the true value.
   uint32_t lastPacketTimestamp() const {
     return packetTimestamp_;
   }
@@ -179,22 +178,22 @@ class Receiver final : public TeensyDMX {
   // was replaced.
   Responder *addResponder(uint8_t startCode, Responder *r);
 
-  // Sets the setTXNotRX implementation function. This should be called
-  // before calling begin().
+  // Sets the setTXNotRX implementation function. This should be called before
+  // calling begin().
   void setSetTXNotRXFunc(void (*f)(bool flag)) {
     setTXNotRXFunc_ = f;
   }
 
-  // Returns whether this is considered to be connected to a DMX transmitter.
-  // A connection is considered to have been broken if a timeout was detected
-  // or a BREAK plus Mark after Break (MAB) was too short.
+  // Returns whether this is considered to be connected to a DMX transmitter. A
+  // connection is considered to have been broken if a timeout was detected or a
+  // BREAK plus Mark after Break (MAB) was too short.
   bool connected() const {
     return connected_;
   }
 
-  // Sets the function to call when the connection state changes. This can
-  // be used instead of polling connected(). The function takes one argument,
-  // a pointer to this Receiver instance.
+  // Sets the function to call when the connection state changes. This can be
+  // used instead of polling connected(). The function takes one argument, a
+  // pointer to this Receiver instance.
   //
   // The function is called when the same conditions checked by connected()
   // occur. It is called from an ISR.
@@ -202,8 +201,8 @@ class Receiver final : public TeensyDMX {
     connectChangeFunc_ = f;
   }
 
-  // Returns the total number of packets received or transmitted since
-  // the reciever was started.
+  // Returns the total number of packets received or transmitted since the
+  // receiver was started.
   uint32_t packetTimeoutCount() const {
     return packetTimeoutCount_;
   }
@@ -261,8 +260,8 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void receivePotentialBreak();
 
-  // An invalid start-of-break was received. There were non-zero bytes
-  // in the framing error.
+  // An invalid start-of-break was received. There were non-zero bytes in the
+  // framing error.
   // This is called from an ISR.
   void receiveBadBreak();
 
@@ -284,13 +283,13 @@ class Receiver final : public TeensyDMX {
   // Keeps track of what we're receiving.
   volatile RecvStates state_;
 
-  // The framing-error start time, in microseconds. This needs to be
-  // accessed from the same interrupt that triggered the framing error
-  // so that there's a guarantee that it doesn't get changed.
+  // The framing-error start time, in microseconds. This needs to be accessed
+  // from the same interrupt that triggered the framing error so that there's
+  // a guarantee that it doesn't get changed.
   //
-  // This is separate from breakStartTime_ because the measurement is done
-  // right when the framing error is detected, and before any logic that
-  // might consume some time.
+  // This is separate from breakStartTime_ because the measurement is done right
+  // when the framing error is detected, and before any logic that might consume
+  // some time.
   uint32_t feStartTime_;
 
   uint8_t buf1_[kMaxDMXPacketSize];
@@ -307,19 +306,18 @@ class Receiver final : public TeensyDMX {
   // The timestamp of the last received packet, in milliseconds.
   volatile uint32_t packetTimestamp_;
 
-  // Current and last BREAK start times, in microseconds. The last start
-  // time is zero if we can consider that there's been no prior packet,
-  // and the current start time isn't set until it's confirmed that there's
-  // been a valid BREAK.
+  // Current and last BREAK start times, in microseconds. The last start time is
+  // zero if we can consider that there's been no prior packet, and the current
+  // start time isn't set until it's confirmed that there's been a valid BREAK.
   uint32_t lastBreakStartTime_;
   uint32_t breakStartTime_;
 
   // Last time a slot ended, in microseconds.
   uint32_t lastSlotEndTime_;
 
-  // Indicates whether we are connected to a DMX transmitter. Disconnection
-  // is considered to have occurred when a timeout, framing error, or short
-  // packet is detected.
+  // Indicates whether we are connected to a DMX transmitter. Disconnection is
+  // considered to have occurred when a timeout, framing error, or short packet
+  // is detected.
   volatile bool connected_;
 
   // This is called when the connection state changes.
@@ -378,18 +376,18 @@ class Sender final : public TeensyDMX {
   // Starts up the serial port.
   void begin() override;
 
-  // Ends sending. Note that this does not wait for the current packet
-  // to finish. To complete the current packet, pause and then check
-  // if transmission is still active. See pause() and isTransmitting().
+  // Ends sending. Note that this does not wait for the current packet to
+  // finish. To complete the current packet, pause and then check if
+  // transmission is still active. See pause() and isTransmitting().
   void end() override;
 
   // Sets the transmit packet size, in number of channels plus the start code.
   // This does nothing if the size is greater than 513 or negative.
   //
-  // When the maximum refresh rate is used, the packet size should be >= 25
-  // so that the total packet time does not fall below 1204us, per the ANSI
-  // E1.11 DMX specification. However, smaller packets can be sent if the
-  // refresh rate is decreased.
+  // When the maximum refresh rate is used, the packet size should be >= 25 so
+  // that the total packet time does not fall below 1204us, per the ANSI E1.11
+  // DMX specification. However, smaller packets can be sent if the refresh rate
+  // is decreased.
   //
   // These limits are contained in kMaxDMXPacketSize and kMinDMXPacketSize.
   //
@@ -409,17 +407,17 @@ class Sender final : public TeensyDMX {
     return packetSize_;
   }
 
-  // Sets a channel's value. Channel zero represents the start code.
-  // The start code should really be zero, but it can be changed here.
-  // This also affects the packet currently being transmitted.
+  // Sets a channel's value. Channel zero represents the start code. The start
+  // code should really be zero, but it can be changed here. This also affects
+  // the packet currently being transmitted.
   //
-  // If the channel is not in the range 0-512 then the call is ignored.
-  // Note that it is possible to set channels outside the range of the
-  // packet size, but these values will not be sent.
+  // If the channel is not in the range 0-512 then the call is ignored. Note
+  // that it is possible to set channels outside the range of the packet size,
+  // but these values will not be sent.
   //
-  // For example, if the packet size is 25 and the channel is anywhere
-  // in the range 25-512, then the value will be set internally but will
-  // not be transmitted until the packet size changes via setPacketSize.
+  // For example, if the packet size is 25 and the channel is anywhere in the
+  // range 25-512, then the value will be set internally but will not be
+  // transmitted until the packet size changes via setPacketSize().
   //
   // After pausing with pause(), it's not necessary to wait until transmission
   // is finished before setting channel values.
@@ -428,8 +426,8 @@ class Sender final : public TeensyDMX {
   // Sets the values for a range of channels. This also affects the packet
   // currently being transmitted.
   //
-  // This does nothing if any part of the channel range is not in the
-  // range 0-512. This limit is equal to kDMXMaxPacketSize-1.
+  // This does nothing if any part of the channel range is not in the range
+  // 0-512. This limit is equal to kDMXMaxPacketSize-1.
   //
   // See the other 'set' function for more information about setting
   // values outside the range of the current packet size (if the size
@@ -439,18 +437,18 @@ class Sender final : public TeensyDMX {
   // is finished before setting channel values.
   void set(int startChannel, const uint8_t *values, int len);
 
-  // Sets the packet refresh rate. Negative and NaN values are ignored.
-  // The default is INFINITY, indicating "as fast as possible".
+  // Sets the packet refresh rate. Negative and NaN values are ignored. The
+  // default is INFINITY, indicating "as fast as possible".
   //
-  // If the rate is too high then this will simply transmit as fast
-  // as possible. Transmitting as fast as possible is also the default.
+  // If the rate is too high then this will simply transmit as fast as possible.
+  // Transmitting as fast as possible is also the default.
   //
-  // If the rate is zero then no packets will be sent. However, the
-  // serial transmitter will still be enabled. A rate of zero is not
-  // equivalent to calling end().
+  // If the rate is zero then no packets will be sent. However, the serial
+  // transmitter will still be enabled. A rate of zero is not equivalent to
+  // calling end().
   //
-  // If the new rate is non-zero and the former rate is zero then this
-  // will call end() and then begin().
+  // If the new rate is non-zero and the former rate is zero then this will call
+  // end() and then begin().
   //
   // For rates slower than the maximum, this uses an IntervalTimer internally.
   void setRefreshRate(float rate);
@@ -461,13 +459,12 @@ class Sender final : public TeensyDMX {
     return refreshRate_;
   }
 
-  // Pauses the ansynchronous packet sending. This allows information
-  // to be inserted at a specific point. This pauses after finishing
-  // transmission of any current packet.
+  // Pauses the ansynchronous packet sending. This allows information to be
+  // inserted at a specific point. This pauses after finishing transmission of
+  // any current packet.
   //
-  // An example where this is useful is for System Information (SIP)
-  // packets, where checksum data needs to be applied to the preceding
-  // packet.
+  // An example where this is useful is for System Information Packets (SIP),
+  // where checksum data needs to be applied to the preceding packet.
   //
   // Note that the current packet does not need to complete before setting
   // channel data with one of the 'set' functions. Use them freely after
@@ -479,9 +476,9 @@ class Sender final : public TeensyDMX {
     paused_ = true;
   }
 
-  // Returns whether we are currently paused. This will occur after pause()
-  // is called and after any "resumed" messages are sent. Note that it is
-  // possible that a packet is still in the middle of being transmitted.
+  // Returns whether we are currently paused. This will occur after pause() is
+  // called and after any "resumed" messages are sent. Note that it is possible
+  // that a packet is still in the middle of being transmitted.
   bool isPaused() const {
     return paused_;
   }
@@ -489,27 +486,27 @@ class Sender final : public TeensyDMX {
   // Resumes continuous asynchronous packet sending.
   void resume();
 
-  // Resumes sending, but pauses again after the specified number of packets
-  // are sent. Values < 0 will be ignored and a value of zero will resume.
+  // Resumes sending, but pauses again after the specified number of packets are
+  // sent. Values < 0 will be ignored and a value of zero will resume.
   //
-  // If sending is not already paused, only the next n packets will be sent,
-  // not including any already in transmission.
+  // If sending is not already paused, only the next n packets will be sent, not
+  // including any already in transmission.
   //
-  // There are two ways to determine when the packets are done being sent.
-  // The first is by polling isTransmitting(). The second is to use a function
-  // that receives transmission-complete notifications. It is called when the
-  // same conditions checked by isTransmitting() occur. onDoneTransmitting
-  // sets this function.
+  // There are two ways to determine when the packets are done being sent. The
+  // first is by polling isTransmitting(). The second is to use a function that
+  // receives transmission-complete notifications. It is called when the same
+  // conditions checked by isTransmitting() occur. onDoneTransmitting() sets
+  // this function.
   void resumeFor(int n);
 
-  // Resumes sending, but pauses again after the specified number of packets
-  // are sent. Values < 0 will be ignored and a value of zero will resume.
+  // Resumes sending, but pauses again after the specified number of packets are
+  // sent. Values < 0 will be ignored and a value of zero will resume.
   //
-  // If sending is not already paused, only the next n packets will be sent,
-  // not including any already in transmission.
+  // If sending is not already paused, only the next n packets will be sent, not
+  // including any already in transmission.
   //
-  // When transmitting is done, the given function will be called. This
-  // replaces any function set by onDoneTransmitting.
+  // When transmitting is done, the given function will be called. This replaces
+  // any function set by onDoneTransmitting().
   void resumeFor(int n, void (*doneTXFunc)(Sender *s));
 
   // Returns the number of packets remaining to be sent before being paused.
@@ -518,14 +515,14 @@ class Sender final : public TeensyDMX {
     return resumeCounter_;
   }
 
-  // Returns if we are currently transmitting a packet or we are not
-  // currently paused. To wait until transmission is complete after pausing,
-  // the following bit of code is useful:
+  // Returns if we are currently transmitting a packet or we are not currently
+  // paused. To wait until transmission is complete after pausing, the following
+  // bit of code is useful:
   //     while (isTransmitting()) { yield(); }
   //
   // Note that this will always return true if we are not paused.
   //
-  // An alternative to this function is to use onDoneTransmitting to be
+  // An alternative to this function is to use onDoneTransmitting() to be
   // notified when transmission is complete.
   bool isTransmitting() const;
 
@@ -534,8 +531,8 @@ class Sender final : public TeensyDMX {
   // isTransmitting(). The function takes one argument, a pointer to this
   // Sender instance.
   //
-  // The function is called when the same conditions checked by
-  // isTransmitting() occur. It is called from an ISR.
+  // The function is called when the same conditions checked by isTransmitting()
+  // occur. It is called from an ISR.
   void onDoneTransmitting(void (*f)(Sender *s)) {
     doneTXFunc_ = f;
   }
@@ -581,8 +578,8 @@ class Sender final : public TeensyDMX {
   float refreshRate_;
   IntervalTimer refreshRateTimer_;  // Accompanying timer
 
-  // The BREAK-to-BREAK timing, matching the refresh rate. This is
-  // specified in microseconds.
+  // The BREAK-to-BREAK timing, matching the refresh rate.
+  // This is specified in microseconds.
   volatile uint32_t breakToBreakTime_;
 
   // Keeps track of the time since the last break.
