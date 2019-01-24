@@ -9,20 +9,20 @@ It follows the
 Some notable features of this library:
 
 1. Teensy's default serial buffer isn't used; the data goes directly to/from
-   the DMX buffers from/to the UART ISRs. In other words, the library
-   is asynchronous and runs independently; all you need to worry about is
-   setting and getting channel data.
+   the DMX buffers from/to the UART ISRs. In other words, the library is
+   asynchronous and runs independently; all you need to worry about is setting
+   and getting channel data.
 2. Simple API: After setup, there's only two read calls (`readPacket` and `get`)
    and two forms of one write call (`set` for single and multiple channels).
 3. The library properly handles DMX packets containing less than 513 slots.
 4. The transmitter refresh rate can be changed to something less than
    "maximum rate".
-5. The transmitter can be paused and resumed to allow for packets that must
-   be adjacent to other packets. In other words, the asynchronous transmitter
-   can be used synchronously. For example, System Information Packets (SIP)
-   require this. See Annex D5 of ANSI E1.11.
-6. The receiver checks for timeouts according the the DMX specification.
-   It knows of the concept of being disconnected from a DMX transmitter when
+5. The transmitter can be paused and resumed to allow for packets that must be
+   adjacent to other packets. In other words, the asynchronous transmitter can
+   be used synchronously. For example, System Information Packets (SIP) require
+   this. See Annex D5 of ANSI E1.11.
+6. The receiver checks for timeouts according the the DMX specification. It
+   knows of the concept of being disconnected from a DMX transmitter when
    timeouts or bad BREAKs are encountered in the data stream.
 7. Error counts are available in the receiver. These can be used to detect
    protocol problems, including timeouts, framing errors and bad BREAKs, and
@@ -36,37 +36,36 @@ Some notable features of this library:
 
 [During beta testing, more limitations are likely to be uncovered.]
 
-There is one exception to timeout handling in the receiver. For BREAK and
-Mark after Break (MAB) times, only their duration sum is checked, and not
-their individual durations. For example, the mininum allowed BREAK and MAB
-durations are 88us and 8us, respectively. This means that the allowed minimum
-of their sum is 96us. If a BREAK comes in having a duration of 44us and then
-a MAB comes in having a duration of 52us, their sum is still 96us, and so the
-packet will be accepted. Note that the receiver does not recognize BREAKs
-smaller than 44us.
+There is one exception to timeout handling in the receiver. For BREAK and Mark
+after Break (MAB) times, only their duration sum is checked, and not their
+individual durations. For example, the mininum allowed BREAK and MAB durations
+are 88us and 8us, respectively. This means that the allowed minimum of their sum
+is 96us. If a BREAK comes in having a duration of 44us and then a MAB comes in
+having a duration of 52us, their sum is still 96us, and so the packet will be
+accepted. Note that the receiver does not recognize BREAKs smaller than 44us.
 
 This exception is solvable if code is added to watch for RX line changes, but
 this likely won't happen until a future release.
 
 ## How to use
 
-The classes you'll need are in the `qindesign::teensydmx` namespace:
-`Receiver` and `Sender`. Complete examples of how to use each are in
-`Flasher` and `Chaser`, respectively.
+The classes you'll need are in the `qindesign::teensydmx` namespace: `Receiver`
+and `Sender`. Complete examples of how to use each are in `Flasher` and
+`Chaser`, respectively.
 
 Other examples that show how to utilize synchronous transmission are in
 `SIPSenderAsync` and `SIPSenderSync`.
 
-Examples that show how to use a synchronous packet handler in a
-receiver are in `SIPHandler` and `TextPacketHandler`.
+Examples that show how to use a synchronous packet handler in a receiver are in
+`SIPHandler` and `TextPacketHandler`.
 
 All class documentation can be found in `src/TeensyDMX.h`.
 
 ### Synchronous vs. asynchronous operation
 
 Both transmission and reception operate asynchronously. This means that
-there's potentially a continuous stream of data being sent or received
-in the background.
+there's potentially a continuous stream of data being sent or received in
+the background.
 
 The transmitter will keep sending the same data until it's changed externally
 using one of the `Sender::set` functions. Similarly, `Receiver::readPacket` and
@@ -149,8 +148,8 @@ dmxRx.onConnectChange([](Receiver *r) {
 
 There is the ability to notify specific instances of `Responder` when packets
 having specific start codes arrive. To implement the simplest form, simply
-extend `Responder`, override the protected `receivePacket` function, and
-attach an instance to one or more start codes using `Receiver::addResponder`.
+extend `Responder`, override the protected `receivePacket` function, and attach
+an instance to one or more start codes using `Receiver::addResponder`.
 `receivePacket` will be called for each packet received that has one of the
 desired start codes.
 
@@ -199,30 +198,30 @@ void setup() {
 
 Responders can be added at any time.
 
-Complete synchronous operation examples using SIP and text packets can be
-found in `SIPHandler` and `TextPacketHandler`.
+Complete synchronous operation examples using SIP and text packets can be found
+in `SIPHandler` and `TextPacketHandler`.
 
 #### Responding
 
 Protocols such as RDM need the ability, not only to process specific packets,
 but to respond to them as well. Timing is important, so a `Responder`
-implementation can also be notified of each byte as it arrives. The function
-of interest is `processByte`.
+implementation can also be notified of each byte as it arrives. The function of
+interest is `processByte`.
 
-As bytes are received, the implementation tracks some internal state. When
-it is decided that a response is necessary, it returns a positive value
-indicating how many bytes it placed into the output buffer, for transmitting
-back to the transmitter. The `Responder` needs to implement `outputBufferSize()`
-in order for any response to be sent. `processByte` will be passed a buffer
-at least as large as the value returned from `outputBufferSize()`.
+As bytes are received, the implementation tracks some internal state. When it is
+decided that a response is necessary, it returns a positive value indicating how
+many bytes it placed into the output buffer, for transmitting back to the
+transmitter. The `Responder` needs to implement `outputBufferSize()` in order
+for any response to be sent. `processByte` will be passed a buffer at least as
+large as the value returned from `outputBufferSize()`.
 
 Some other functions that specify some timings should also be implemented.
 Please consult the `Responder.h` documentation for more details.
 
-Because all processing happens within an interrupt context, it should execute
-as quickly as possible. Any long-running operations should be executed in the
-main loop (or some other execution context). If the protocol allows for it,
-the `Responder` can reply with a "not yet" response, and then return any queued
+Because all processing happens within an interrupt context, it should execute as
+quickly as possible. Any long-running operations should be executed in the main
+loop (or some other execution context). If the protocol allows for it, the
+`Responder` can reply with a "not yet" response, and then return any queued
 processing results when ready.
 
 A more complete example is beyond the scope of this README.
@@ -269,8 +268,8 @@ This can be changed at any time.
 
 ### Transmission rate
 
-The transmission rate can be changed from a maximum of about 44Hz down to as
-low as you wish. See the `setRefreshRate` and `refreshRate()` in `Sender`.
+The transmission rate can be changed from a maximum of about 44Hz down to as low
+as you wish. See the `setRefreshRate` and `refreshRate()` in `Sender`.
 
 Note that the rate won't be higher than the limits dictated by the protocol,
 about 44Hz, no matter how high it's set. The default is, in fact, `INFINITY`.
@@ -284,21 +283,21 @@ To ensure that certain packets are adjacent to others, such as for System
 Information Packets (SIP), the API provides a way to send packets synchronously.
 
 Firstly, the `pause()` function pauses packet transmission, the `resume()`
-function resumes transmission, and `resumeFor(int)` resumes transmission
-for a specific number of packets, after which transmission is paused again.
+function resumes transmission, and `resumeFor(int)` resumes transmission for a
+specific number of packets, after which transmission is paused again.
 
 There are two ways to achieve synchronous operation. The first is with
 `isTransmitting()`. It indicates whether the transmitter is sending anything
 while paused---it always returns `true` when not paused---and can be used
-to determine when it's safe to start filling in packet data after
-a `resumeFor` call.
+to determine when it's safe to start filling in packet data after a
+`resumeFor` call.
 
 The second way is to provide a function to `onDoneTransmitting`. The function
-will be called when the same conditions checked by `isTransmitting()` occur.
-It will be called from inside an ISR, so take this into account.
+will be called when the same conditions checked by `isTransmitting()` occur. It
+will be called from inside an ISR, so take this into account.
 
-Let's say you want to send a SIP packet immediately after a regular packet.
-The following code shows how to accomplish this using the polling approach:
+Let's say you want to send a SIP packet immediately after a regular packet. The
+following code shows how to accomplish this using the polling approach:
 
 ```c++
 // Before the code starts looping, pause the transmitter
@@ -317,13 +316,13 @@ while (dmxTx.isTransmitting()) {  // Wait for this packet to be sent
 }
 ```
 
-Using the asynchronous notification approach requires keeping track of
-some state, and is slightly more complex than the polling approach.
+Using the asynchronous notification approach requires keeping track of some
+state, and is slightly more complex than the polling approach.
 
 Other functions of interest are `isPaused()` and `resumedRemaining()`.
-`isPaused()` indicates whether the transmitter is paused.
-`resumedRemaining()` returns the number of packets that will be sent
-before the transmitter is paused again.
+`isPaused()` indicates whether the transmitter is paused. `resumedRemaining()`
+returns the number of packets that will be sent before the transmitter is
+paused again.
 
 Complete synchronous operation examples using SIP can be found in
 `SIPSenderAsync` and `SIPSenderSync`. The first uses the asynchronous
@@ -333,12 +332,12 @@ notification approach and the second uses the polling approach.
 
 ### Simultaneous transmit and receive
 
-The same serial port can't be used for simultaneous transmit and receive.
-This is because the library uses the serial port hardware for data instead
-of direct pin control. The break portion of a DMX frame needs to be
-transmitted at a different baud rate than the slots (channels), and since
-reception and transmission aren't necessarily synchronized, two different
-serial ports must be used.
+The same serial port can't be used for simultaneous transmit and receive. This
+is because the library uses the serial port hardware for data instead of direct
+pin control. The break portion of a DMX frame needs to be transmitted at a
+different baud rate than the slots (channels), and since reception and
+transmission aren't necessarily synchronized, two different serial ports must
+be used.
 
 Use `qindesign::teensydmx::Receiver` to receive and
 `qindesign::teensydmx::Sender` to transmit.
@@ -362,8 +361,8 @@ internally and the existence of some interrupt and code execution latency.
 
 Some setups may require that an external part be enabled when transmitting or
 receiving. For example, an RS485 transceiver may require enabling or disabling
-specific buffers. That may be accomplished by using one of the GPIO pins.
-Please be sure the logic levels are compatible.
+specific buffers. That may be accomplished by using one of the GPIO pins. Please
+be sure the logic levels are compatible.
 
 ### Thread safety
 
