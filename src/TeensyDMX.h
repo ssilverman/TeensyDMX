@@ -411,6 +411,10 @@ class Sender final : public TeensyDMX {
   // code should really be zero, but it can be changed here. This also affects
   // the packet currently being transmitted.
   //
+  // Values set here are 'sticky'. In other words, the same values are
+  // transmitted until changed. To set a value, this only needs to be
+  // called once.
+  //
   // If the channel is not in the range 0-512 then the call is ignored. Note
   // that it is possible to set channels outside the range of the packet size,
   // but these values will not be sent.
@@ -425,6 +429,10 @@ class Sender final : public TeensyDMX {
 
   // Sets the values for a range of channels. This also affects the packet
   // currently being transmitted.
+  //
+  // Values set here are 'sticky'. In other words, the same values are
+  // transmitted until changed. To set some values, this only needs to be
+  // called once.
   //
   // This does nothing if any part of the channel range is not in the range
   // 0-512. This limit is equal to kDMXMaxPacketSize-1.
