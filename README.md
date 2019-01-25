@@ -50,8 +50,9 @@ this likely won't happen until a future release.
 ## How to use
 
 The classes you'll need are in the `qindesign::teensydmx` namespace: `Receiver`
-and `Sender`. Complete examples of how to use each are in `Flasher` and
-`Chaser`, respectively.
+and `Sender`. `Receiver` examples are in `BasicReceive` and `Flasher`, and
+`Sender` examples are in `BasicSend` and `Chaser`. `Flasher` and `Chaser` are
+more complete examples.
 
 Other examples that show how to utilize synchronous transmission are in
 `SIPSenderAsync` and `SIPSenderSync`.
