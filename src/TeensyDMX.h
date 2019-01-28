@@ -125,10 +125,10 @@ class Receiver final : public TeensyDMX {
 
   void end() override;
 
-  // Reads all or part of a packet into buf. This does nothing if len
-  // is negative or zero, or if startChannel is negative or beyond
-  // kMaxDMXPacketSize, and only reads up to the end of the packet
-  // if startChannel + len would go past the end.
+  // Reads all or part of a packet into buf. This returns zero if len is
+  // negative or zero, or if startChannel is negative or beyond
+  // kMaxDMXPacketSize. This only reads up to the end of the packet if
+  // startChannel+len would go past the end.
   //
   // This will return the number of bytes actually read into buf, -1 if there is
   // no packet available since the last call to this function, or zero if len is
