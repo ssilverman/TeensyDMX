@@ -28,7 +28,7 @@ void setup() {
   // In this case, the handler accepts several packet types
   // This is just for illustration purposes
   for (uint8_t sc : TextPacketHandler::kStartCodes) {
-    dmxRx.addResponder(sc, &textPacketHandler);
+    dmxRx.setResponder(sc, &textPacketHandler);
   }
 
   dmxRx.begin();

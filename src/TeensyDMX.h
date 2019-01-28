@@ -168,15 +168,17 @@ class Receiver final : public TeensyDMX {
     return packetTimestamp_;
   }
 
-  // Adds a responder and uses the supplied start code to deterimine when to
-  // respond to a received packet. This holds on to the pointer, so callers
-  // should take care to not free the object before this Receiver is freed.
-  // This does nothing if r is nullptr.
+  // Sets the responder for the supplied start code. This holds on to the
+  // pointer, so callers should take care to not free the object before this
+  // Receiver is freed or the responder for the start code is set to nullptr.
   //
   // This will replace any responder having the same start code and returns
   // the replaced pointer. Note that this will return nullptr if no responder
   // was replaced.
-  Responder *addResponder(uint8_t startCode, Responder *r);
+  //
+  // Setting the responder for a start code to nullptr will remove any
+  // previously-set responder for that start code.
+  Responder *setResponder(uint8_t startCode, Responder *r);
 
   // Sets the setTXNotRX implementation function. This should be called before
   // calling begin().
@@ -329,7 +331,8 @@ class Receiver final : public TeensyDMX {
   volatile uint32_t shortPacketCount_;
 
   // Responders state
-  Responder *volatile responders_[256];
+  Responder *volatile *volatile responders_;
+  int responderCount_;
   uint8_t *volatile responderOutBuf_;
   int responderOutBufLen_;
 

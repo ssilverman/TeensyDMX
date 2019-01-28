@@ -150,7 +150,7 @@ dmxRx.onConnectChange([](Receiver *r) {
 There is the ability to notify specific instances of `Responder` when packets
 having specific start codes arrive. To implement the simplest form, simply
 extend `Responder`, override the protected `receivePacket` function, and attach
-an instance to one or more start codes using `Receiver::addResponder`.
+an instance to one or more start codes using `Receiver::setResponder`.
 `receivePacket` will be called for each packet received that has one of the
 desired start codes.
 
@@ -190,7 +190,7 @@ TextHandler textHandler;
 
 void setup() {
   // ...
-  dmxRx.addResponder(TextHandler::kStartCode, textHandler)
+  dmxRx.setResponder(TextHandler::kStartCode, textHandler)
   // ...
 
   dmxRx.begin();

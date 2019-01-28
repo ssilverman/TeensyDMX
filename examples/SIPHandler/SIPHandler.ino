@@ -25,8 +25,8 @@ void setup() {
   Serial.println("Starting.");
 
   // Set up the responder
-  dmxRx.addResponder(0, &sipHandler);
-  dmxRx.addResponder(SIPHandler::startCode(), &sipHandler);
+  dmxRx.setResponder(0, &sipHandler);
+  dmxRx.setResponder(SIPHandler::startCode(), &sipHandler);
 
   dmxRx.begin();
 }

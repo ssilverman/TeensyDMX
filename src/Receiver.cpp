@@ -82,7 +82,8 @@ Receiver::Receiver(HardwareSerial &uart)
       packetTimeoutCount_(0),
       framingErrorCount_(0),
       shortPacketCount_(0),
-      responders_{nullptr},
+      responders_(nullptr),
+      responderCount_(0),
       responderOutBuf_(nullptr),
       responderOutBufLen_{0},
       setTXNotRXFunc_(nullptr) {
@@ -133,6 +134,9 @@ Receiver::~Receiver() {
 
   if (responderOutBuf_ != nullptr) {
     delete[] responderOutBuf_;
+  }
+  if (responders_ != nullptr) {
+    delete[] responders_;
   }
 }
 
@@ -363,24 +367,59 @@ uint8_t Receiver::get(int channel) const {
   return b;
 }
 
-Responder *Receiver::addResponder(uint8_t startCode, Responder *r) {
+Responder *Receiver::setResponder(uint8_t startCode, Responder *r) {
+  // For a null responder, delete any current one for this start code
   if (r == nullptr) {
-    return nullptr;
+    if (responders_ == nullptr) {
+      return nullptr;
+    }
+
+    // Replace any previous responder
+    Responder *old = responders_[startCode];
+    if (old != nullptr) {
+      responderCount_--;
+      responders_[startCode] = nullptr;
+    }
+
+    // When no more responders, delete all the buffers
+    if (responderCount_ == 0) {
+      if (responderOutBuf_ != nullptr) {
+        delete[] responderOutBuf_;
+        responderOutBuf_ = nullptr;
+      }
+      delete[] responders_;
+      responders_ = nullptr;
+    }
+
+    return old;
   }
 
-  // First, initialize the output buffer
+  // Allocate this first because it's done once. The output buffer may get
+  // reallocated, and so letting that be the last thing deleted avoids
+  // potential fragmentation.
+  if (responders_ == nullptr) {
+    responders_ = new Responder *[256]{nullptr};
+    // TODO: Manage the case where allocation failed?
+  }
+
+  // Initialize the output buffer
   int outBufSize = r->outputBufferSize();
   if (responderOutBuf_ == nullptr || responderOutBufLen_ < outBufSize) {
     if (responderOutBuf_ != nullptr) {
       delete[] responderOutBuf_;
     }
     responderOutBuf_ = new uint8_t[outBufSize];
+    // TODO: Manage the case where allocation failed?
     responderOutBufLen_ = outBufSize;
   }
 
-  // If a responder is set then the output buffer should be the correct size
+  // If a responder is already set then the output buffer should be the
+  // correct size
   Responder *old = responders_[startCode];
   responders_[startCode] = r;
+  if (old == nullptr) {
+    responderCount_++;
+  }
 
   return old;
 }
@@ -407,11 +446,14 @@ void Receiver::completePacket() {
   packetSize_ = activeBufIndex_;
   packetTimestamp_ = t;
 
-  Responder *r = responders_[inactiveBuf_[0]];
-  if (r != nullptr) {
-    r->receivePacket(inactiveBuf_, packetSize_);
-    if (r->eatPacket()) {
-      packetSize_ = 0;
+  // Let the responder, if any, process the packet
+  if (responders_ != nullptr) {
+    Responder *r = responders_[inactiveBuf_[0]];
+    if (r != nullptr) {
+      r->receivePacket(inactiveBuf_, packetSize_);
+      if (r->eatPacket()) {
+        packetSize_ = 0;
+      }
     }
   }
 
@@ -536,7 +578,10 @@ void Receiver::receiveByte(uint8_t b) {
   }
 
   // See if a responder needs to process the byte and respond
-  Responder *r = responders_[activeBuf_[0]];
+  Responder *r = nullptr;
+  if (responders_ != nullptr) {
+    r = responders_[activeBuf_[0]];
+  }
   if (r == nullptr) {
     if (packetFull) {
       completePacket();
@@ -544,6 +589,7 @@ void Receiver::receiveByte(uint8_t b) {
     return;
   }
 
+  // Let the responder process the data
   int respLen = r->processByte(activeBuf_, activeBufIndex_, responderOutBuf_);
   if (respLen <= 0) {
     if (packetFull) {
@@ -553,8 +599,8 @@ void Receiver::receiveByte(uint8_t b) {
     }
     return;
   }
-  completePacket();  // This is the best option, even though there may be
-                     // more bytes
+  completePacket();  // This is probably the best option, even though there may
+                     // be more bytes
   if (txFunc_ == nullptr) {
     return;
   }

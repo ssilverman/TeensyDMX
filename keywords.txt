@@ -20,7 +20,7 @@ packetCount	KEYWORD2
 readPacket	KEYWORD2
 get	KEYWORD2
 lastPacketTimestamp	KEYWORD2
-addResponder	KEYWORD2
+setResponder	KEYWORD2
 setSetTXNotRXFunc	KEYWORD2
 connected	KEYWORD2
 onConnectChange	KEYWORD2
