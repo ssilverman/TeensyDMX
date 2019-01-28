@@ -22,9 +22,9 @@ class Responder {
   Responder() = default;
   virtual ~Responder() = default;
 
-  // Gets the largest possible size that the output buffer can be when
-  // any packet processing fills it in. If this is zero then the responder
-  // does not respond with any data. This returns zero by default.
+  // Gets the largest possible size that the output buffer can be when any
+  // packet processing fills it in. If this is zero then the responder does not
+  // respond with any data. This returns zero by default.
   virtual int outputBufferSize() const { return 0; };
 
   // Gets the BREAK length, in 11-bit characters at 250kbps, i.e. 44us per
@@ -36,16 +36,16 @@ class Responder {
   // by default.
   virtual uint32_t markAfterBreakTime() const { return 0; }
 
-  // Returns whether we should send a break for the last valid response
-  // packet. An output packet is considered valid if processByte returned
-  // a positive value. The default implementation returns true.
+  // Returns whether we should send a break for the last valid response packet.
+  // An output packet is considered valid if processByte() returned a positive
+  // value. The default implementation returns true.
   virtual bool isSendBreakForLastPacket() const {
     return true;
   }
 
-  // Returns the delay, in microseconds, to wait before enabling the
-  // transmit driver and sending a break. A delay only happens if
-  // isSendBreakForLastPacket returns true. The default implementation
+  // Returns the delay, in microseconds, to wait before enabling the transmit
+  // driver and sending a break. A delay only happens if
+  // isSendBreakForLastPacket() returns true. The default implementation
   // returns zero.
   virtual uint32_t preBreakDelay() const {
     return 0;
@@ -53,33 +53,33 @@ class Responder {
 
   // Returns the delay, in microseconds, to wait after (not sending a break
   // and) enabling the transmit driver. A delay only happens if
-  // isSendBreakForLastPacket returns false. The default implementation
+  // isSendBreakForLastPacket() returns false. The default implementation
   // returns zero.
   virtual uint32_t preNoBreakDelay() const {
     return 0;
   }
 
   // Indicates whether this responder eats the packet and disallows
-  // Receiver::readPacket from accessing the data, or does not eat
-  // it and makes the data available to callers. The default is true.
+  // Receiver::readPacket() from accessing the data, or does not eat it and
+  // makes the data available to callers. The default is true.
   virtual bool eatPacket() const {
     return true;
   }
 
  protected:
-  // Processes single bytes as they are received. This returns a positive
-  // value indicating the output buffer size if a response should be sent.
-  // It may be assumed that 'len' will start at zero and increment
-  // monotonically by one for each call.
+  // Processes single bytes as they are received. This returns a positive value
+  // indicating the output buffer size if a response should be sent. It may be
+  // assumed that 'len' will start at zero and increment monotonically by one
+  // for each call.
   //
-  // A return value of -1 means that the packet is invalid, not understood,
-  // or that a response is not possible or necessary. For example, in the RDM
+  // A return value of -1 means that the packet is invalid, not understood, or
+  // that a response is not possible or necessary. For example, in the RDM
   // protocol, a response is not possible if the device is muted or if we
   // received a packet sent to a broadcast address.
   //
-  // In some cases, a BREAK should not be sent before a response packet.
-  // The isSendBreakForLastPacket method will indicate whether the last
-  // valid output packet should have a BREAK sent before sending its data.
+  // In some cases, a BREAK should not be sent before a response packet. The
+  // isSendBreakForLastPacket() function will indicate whether the last valid
+  // output packet should have a BREAK sent before sending its data.
   //
   // Note that it can be assumed that outBuf has a size of at least the value
   // returned by getOutputBufferSize().
@@ -91,9 +91,9 @@ class Responder {
     return -1;
   };
 
-  // Receives a packet. This doesn't return a response because the end of
-  // a packet is determined heuristically and there's no way to guarantee
-  // that response timing is correct.
+  // Receives a packet. This doesn't return a response because the end of a
+  // packet is determined heuristically and there's no way to guarantee that
+  // response timing is correct.
   //
   // This is useful for processing packet data that doesn't require a response.
   //
