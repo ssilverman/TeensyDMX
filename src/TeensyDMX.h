@@ -426,8 +426,8 @@ class Sender final : public TeensyDMX {
   // range 25-512, then the value will be set internally but will not be
   // transmitted until the packet size changes via setPacketSize().
   //
-  // After pausing with pause(), it's not necessary to wait until transmission
-  // is finished before setting channel values.
+  // After pausing with pause(), it is necessary to wait until transmission is
+  // finished before setting channel values.
   void set(int channel, uint8_t value);
 
   // Sets the values for a range of channels. This also affects the packet
@@ -444,8 +444,8 @@ class Sender final : public TeensyDMX {
   // values outside the range of the current packet size (if the size
   // is less than 513).
   //
-  // After pausing with pause(), it's not necessary to wait until transmission
-  // is finished before setting channel values.
+  // After pausing with pause(), it is necessary to wait until transmission is
+  // finished before setting channel values.
   void set(int startChannel, const uint8_t *values, int len);
 
   // Sets the packet refresh rate. Negative and NaN values are ignored. The
@@ -471,25 +471,26 @@ class Sender final : public TeensyDMX {
   }
 
   // Pauses the ansynchronous packet sending. This allows information to be
-  // inserted at a specific point. This pauses after finishing transmission of
-  // any current packet.
+  // inserted at a specific point. The pause actually occurs after finishing
+  // transmission of the current packet.
   //
-  // An example where this is useful is for System Information Packets (SIP),
-  // where checksum data needs to be applied to the preceding packet.
-  //
-  // Note that the current packet does not need to complete before setting
-  // channel data with one of the 'set' functions. Use them freely after
-  // calling pause().
+  // Note that the current packet needs to complete before setting channel data
+  // with one of the 'set' functions. Use them freely after waiting for
+  // transmission to finish. See isTransmitting() and onDoneTransmitting().
   //
   // Also note that this does not change the number of resumed packets
   // remaining.
+  //
+  // This is useful, for example, for System Information Packets (SIP), where
+  // checksum data needs to be applied to the preceding packet.
   void pause() {
     paused_ = true;
   }
 
   // Returns whether we are currently paused. This will occur after pause() is
   // called and after any "resumed" messages are sent. Note that it is possible
-  // that a packet is still in the middle of being transmitted.
+  // that a packet is still in the middle of being transmitted even if this
+  // returns true; it only reflects the current setting.
   bool isPaused() const {
     return paused_;
   }
@@ -574,10 +575,6 @@ class Sender final : public TeensyDMX {
 
   // Keeps track of what we're transmitting.
   volatile XmitStates state_;
-
-  // Use this buffer while paused. This way, we don't have to worry about
-  // affecting the currently-transmitting packet.
-  uint8_t pausedBuf_[kMaxDMXPacketSize];
 
   volatile uint8_t outputBuf_[kMaxDMXPacketSize];
   int outputBufIndex_;

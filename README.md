@@ -290,12 +290,17 @@ specific number of packets, after which transmission is paused again.
 There are two ways to achieve synchronous operation. The first is with
 `isTransmitting()`. It indicates whether the transmitter is sending anything
 while paused---it always returns `true` when not paused---and can be used
-to determine when it's safe to start filling in packet data after a
-`resumeFor` call.
+to determine when it's safe to start filling in packet data after a `resumeFor`
+or `pause()` call.
 
 The second way is to provide a function to `onDoneTransmitting`. The function
 will be called when the same conditions checked by `isTransmitting()` occur. It
 will be called from inside an ISR, so take this into account.
+
+It is important to note that when utilizing the pause feature, changing data via
+the `set` functions should only be done while not transmitting. Pausing doesn't
+immediately stop transmission; the pause happens after the current packet is
+completely sent. Changing the data may affect this packet.
 
 Let's say you want to send a SIP packet immediately after a regular packet. The
 following code shows how to accomplish this using the polling approach:
@@ -321,9 +326,9 @@ Using the asynchronous notification approach requires keeping track of some
 state, and is slightly more complex than the polling approach.
 
 Other functions of interest are `isPaused()` and `resumedRemaining()`.
-`isPaused()` indicates whether the transmitter is paused. `resumedRemaining()`
-returns the number of packets that will be sent before the transmitter is
-paused again.
+`isPaused()` indicates whether the transmitter is paused (but still potentially
+transmitting). `resumedRemaining()` returns the number of packets that will be
+sent before the transmitter is paused again.
 
 Complete synchronous operation examples using SIP can be found in
 `SIPSenderAsync` and `SIPSenderSync`. The first uses the asynchronous

@@ -168,10 +168,7 @@ void Sender::set(int channel, uint8_t value) {
   if (channel < 0 || kMaxDMXPacketSize <= channel) {
     return;
   }
-  if (!paused_) {
-    outputBuf_[channel] = value;
-  }
-  pausedBuf_[channel] = value;
+  outputBuf_[channel] = value;
 }
 
 void Sender::set(int startChannel, const uint8_t *values, int len) {
@@ -185,10 +182,7 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
     return;
   }
 
-  if (!paused_) {
-    memcpy(&outputBuf_[startChannel], values, len);
-  }
-  memcpy(&pausedBuf_[startChannel], values, len);
+  memcpy(&outputBuf_[startChannel], values, len);
 }
 
 void Sender::setRefreshRate(float rate) {
@@ -243,9 +237,6 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
 #endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
         }
       }
-
-      // Copy whatever's in the paused buffer to the output buffer
-      memcpy(outputBuf_, pausedBuf_, kMaxDMXPacketSize);
 
       paused_ = false;
     }
