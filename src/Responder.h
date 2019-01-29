@@ -25,16 +25,22 @@ class Responder {
   // Gets the largest possible size that the output buffer can be when any
   // packet processing fills it in. If this is zero then the responder does not
   // respond with any data. This returns zero by default.
-  virtual int outputBufferSize() const { return 0; };
+  virtual int outputBufferSize() const {
+    return 0;
+  };
 
   // Gets the BREAK length, in 11-bit characters at 250kbps, i.e. 44us per
   // character. For example, returning 4 would mean the break length would be
   // 4*44us=176us. This returns zero by default.
-  virtual uint32_t breakLength() const { return 0; };
+  virtual uint32_t breakLength() const {
+    return 0;
+  };
 
   // Gets the mark after break time, in microseconds. This returns zero
   // by default.
-  virtual uint32_t markAfterBreakTime() const { return 0; }
+  virtual uint32_t markAfterBreakTime() const {
+    return 0;
+  }
 
   // Returns whether we should send a break for the last valid response packet.
   // An output packet is considered valid if processByte() returned a positive
