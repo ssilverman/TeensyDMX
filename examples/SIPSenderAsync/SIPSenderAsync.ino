@@ -13,7 +13,7 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
-// The pin for which to flash the LED.
+// The LED pin.
 constexpr uint8_t kLEDPin = LED_BUILTIN;
 
 // Create the DMX transmitter on Serial1.
@@ -51,7 +51,7 @@ void setup() {
   while (!Serial && millis() < 4000) {
     // Wait for initialization to complete or a time limit
   }
-  Serial.println("Starting.");
+  Serial.println("Starting SIPSenderAsync.");
 
   // Set up any pins
   pinMode(kLEDPin, OUTPUT);

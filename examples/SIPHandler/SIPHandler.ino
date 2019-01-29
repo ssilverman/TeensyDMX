@@ -10,6 +10,9 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
+// The LED pin.
+constexpr uint8_t kLEDPin = LED_BUILTIN;
+
 // Create the DMX receiver on Serial1.
 teensydmx::Receiver dmxRx{Serial1};
 
@@ -22,7 +25,11 @@ void setup() {
   while (!Serial && millis() < 4000) {
     // Wait for initialization to complete or a time limit
   }
-  Serial.println("Starting.");
+  Serial.println("Starting SIPHandler.");
+
+  // Set up any pins
+  pinMode(kLEDPin, OUTPUT);
+  digitalWriteFast(kLEDPin, HIGH);  // Start with the LED on
 
   // Set up the responder
   dmxRx.setResponder(0, &sipHandler);

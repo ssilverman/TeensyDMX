@@ -11,7 +11,7 @@
 // 512 * 0.02s = 10.24 seconds.
 constexpr unsigned long kChaseInterval = 20;
 
-// The pin for which to flash the LED.
+// The LED pin.
 constexpr uint8_t kLEDPin = LED_BUILTIN;
 
 namespace teensydmx = ::qindesign::teensydmx;
@@ -28,7 +28,7 @@ void setup() {
   while (!Serial && millis() < 4000) {
     // Wait for initialization to complete or a time limit
   }
-  Serial.println("Starting.");
+  Serial.println("Starting Chaser.");
 
   // Set up any pins
   pinMode(kLEDPin, OUTPUT);
