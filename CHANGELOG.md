@@ -24,10 +24,10 @@ This document details the changes between each release.
   process of being sent if pause->set->resume was done quickly. Requiring any
   `set` call to wait until transmission is complete removes having to manage
   the concurrency.
-* On small systems, dynamic memory allocation in `Receiver::setResponder` may
-  fail. This was fixed and the documentation in `TeensyDMX.h` and the README was
-  updated. The caller can check the `ENOMEM` condition in `errno` to detect
-  this condition.
+* On small systems such as the Teensy LC, dynamic memory allocation in
+  `Receiver::setResponder` may fail. This was fixed and the documentation in
+  `TeensyDMX.h` and the README was updated. The caller can check the `ENOMEM`
+  condition in `errno` to detect this condition.
 
 ## [3.0.0-beta]
 
