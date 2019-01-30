@@ -141,11 +141,11 @@ class Receiver final : public TeensyDMX {
   // in buf. buf must have a size of at least len bytes.
   int readPacket(uint8_t *buf, int startChannel, int len);
 
-  // Gets the value for one channel. The start code can be read at channel zero.
+  // Gets the latest value received for one channel. The start code can be read
+  // at channel zero.
   //
-  // If the channel is out of range then this will return zero. This is
-  // equivalent to calling readPacket() with a buffer size of 1, and returning
-  // zero for unavailable data or an out of range request.
+  // If the channel is out of range for the last packet or there is no data then
+  // this will return zero.
   uint8_t get(int channel) const;
 
   // Returns the timestamp of the last received packet. Under the covers,
@@ -309,8 +309,14 @@ class Receiver final : public TeensyDMX {
   const uint8_t *volatile inactiveBuf_;
   int activeBufIndex_;
 
-  // The size of the last received packet.
+  // The size of the last received packet. This will be set to zero when
+  // readPacket() reads data. lastPacketSize_ does not get set to zero when
+  // packet data is read.
   volatile int packetSize_;
+
+  // This is the same as packetSize_, except that it does not get set to zero
+  // when packet data is read with readPacket().
+  volatile int lastPacketSize_;
 
   // The timestamp of the last received packet, in milliseconds.
   volatile uint32_t packetTimestamp_;

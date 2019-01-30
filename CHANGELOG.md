@@ -28,6 +28,10 @@ This document details the changes between each release.
   `Receiver::setResponder` may fail. This was fixed and the documentation in
   `TeensyDMX.h` and the README was updated. The caller can check the `ENOMEM`
   condition in `errno` to detect this condition.
+* The behaviour of `Receiver::get` was changed so that it always returns the
+  last received value for a channel. It is no longer affected by a previous call
+  to `Receiver::readPacket` for the same received packet, where the packet was
+  reset to empty. This change makes the function behave closer to expected.
 
 ## [3.0.0-beta]
 

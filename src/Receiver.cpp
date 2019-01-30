@@ -348,7 +348,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
 }
 
 uint8_t Receiver::get(int channel) const {
-  if (packetSize_ <= 0) {
+  if (lastPacketSize_ <= 0) {
     return 0;
   }
   if (channel < 0 || kMaxDMXPacketSize <= channel) {
@@ -358,8 +358,8 @@ uint8_t Receiver::get(int channel) const {
   uint8_t b = 0;
   disableIRQs();
   //{
-    // Since channel >= 0, packetSize_ > channel implies packetSize_ > 0
-    if (channel < packetSize_) {
+    // Since channel >= 0, lastPacketSize_ > channel implies lastPacketSize_ > 0
+    if (channel < lastPacketSize_) {
       b = inactiveBuf_[channel];
     }
   //}
@@ -455,7 +455,7 @@ void Receiver::completePacket() {
   }
 
   packetCount_++;
-  packetSize_ = activeBufIndex_;
+  lastPacketSize_ = packetSize_ = activeBufIndex_;
   packetTimestamp_ = t;
 
   // Let the responder, if any, process the packet
@@ -464,7 +464,7 @@ void Receiver::completePacket() {
     if (r != nullptr) {
       r->receivePacket(inactiveBuf_, packetSize_);
       if (r->eatPacket()) {
-        packetSize_ = 0;
+        lastPacketSize_ = packetSize_ = 0;
       }
     }
   }
