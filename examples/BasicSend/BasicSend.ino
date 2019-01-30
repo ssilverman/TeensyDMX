@@ -18,6 +18,10 @@ teensydmx::Sender dmxTx{Serial1};
 uint8_t data[3]{0x44, 0x88, 0xcc};
 
 void setup() {
+  // Turn on the LED, for indicating activity
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWriteFast(LED_BUILTIN, HIGH);
+
   // Set the pin that enables the transmitter
   pinMode(kTXPin, OUTPUT);
   digitalWriteFast(kTXPin, HIGH);

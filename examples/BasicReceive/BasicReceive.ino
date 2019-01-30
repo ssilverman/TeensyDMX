@@ -31,6 +31,10 @@ void setup() {
   }
   Serial.println("Starting BasicReceive.");
 
+  // Turn on the LED, for indicating activity
+  pinMode(LED_BUILTIN, OUTPUT);
+  digitalWriteFast(LED_BUILTIN, HIGH);
+
   // Start the receiver
   dmxRx.begin();
 
