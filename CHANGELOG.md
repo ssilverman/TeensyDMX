@@ -25,8 +25,9 @@ This document details the changes between each release.
   `set` call to wait until transmission is complete removes having to manage
   the concurrency.
 * On small systems, dynamic memory allocation in `Receiver::setResponder` may
-  fail. This was fixed and the documentation in `TeensyDMX.h` was updated. The
-  caller can check the `ENOMEM` condition in `errno` to detect this condition.
+  fail. This was fixed and the documentation in `TeensyDMX.h` and the README was
+  updated. The caller can check the `ENOMEM` condition in `errno` to detect
+  this condition.
 
 ## [3.0.0-beta]
 
