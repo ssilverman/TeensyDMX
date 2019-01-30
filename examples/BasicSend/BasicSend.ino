@@ -8,6 +8,9 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
+// Pin for enabling or disabling the transmitter.
+constexpr uint8_t kTXPin = 17;
+
 // Create the DMX sender on Serial1.
 teensydmx::Sender dmxTx{Serial1};
 
@@ -15,7 +18,9 @@ teensydmx::Sender dmxTx{Serial1};
 uint8_t data[3]{0x44, 0x88, 0xcc};
 
 void setup() {
-  // NOTE: Don't forget to set any pin that enables the transmitter
+  // Set the pin that enables the transmitter
+  pinMode(kTXPin, OUTPUT);
+  digitalWriteFast(kTXPin, HIGH);
 
   dmxTx.begin();
 
