@@ -375,6 +375,14 @@ be sure the logic levels are compatible.
 This code is not thread-safe and should be handled appropriately if utilized in
 a concurrent context.
 
+### Dynamic memory allocation failures
+
+The `Receiver::setResponder` function dynamically allocates memory. On small
+systems, this may fail. The caller can check for this condition by examining
+`errno` for `ENOMEM`. If this occurs, then the function will return `nullptr`,
+but otherwise fails silently. Additionally, all responders are wiped out,
+including any previously-set responders.
+
 ## Code style
 
 Code style for this project mostly follows the

@@ -178,6 +178,13 @@ class Receiver final : public TeensyDMX {
   //
   // Setting the responder for a start code to nullptr will remove any
   // previously-set responder for that start code.
+  //
+  // This function dynamically allocates memory. On small systems, the memory
+  // may not be available, so it is possible that this will silently fail. To
+  // detect this condition, you can check `errno` for the ENOMEM condition. If
+  // this case occurs, then all responders can be considered wiped out; this
+  // includes all previously-set responders. This will return nullptr if this
+  // happens.
   Responder *setResponder(uint8_t startCode, Responder *r);
 
   // Sets the setTXNotRX implementation function. This should be called before

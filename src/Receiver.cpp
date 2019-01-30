@@ -398,8 +398,15 @@ Responder *Receiver::setResponder(uint8_t startCode, Responder *r) {
   // reallocated, and so letting that be the last thing deleted avoids
   // potential fragmentation.
   if (responders_ == nullptr) {
-    responders_ = new Responder *[256]{nullptr};
-    // TODO: Manage the case where allocation failed?
+    responders_ = new Responder *[256];
+    // Allocation may have failed on small systems
+    if (responders_ == nullptr) {
+      return nullptr;
+    }
+    // Initialize the array
+    for (int i = 0; i < 256; i++) {
+      responders_[i] = nullptr;
+    }
   }
 
   // Initialize the output buffer
@@ -409,7 +416,12 @@ Responder *Receiver::setResponder(uint8_t startCode, Responder *r) {
       delete[] responderOutBuf_;
     }
     responderOutBuf_ = new uint8_t[outBufSize];
-    // TODO: Manage the case where allocation failed?
+    // Allocation may have failed on small systems
+    if (responderOutBuf_ == nullptr) {
+      responderOutBufLen_ = 0;
+      delete[] responders_;
+      return nullptr;
+    }
     responderOutBufLen_ = outBufSize;
   }
 
