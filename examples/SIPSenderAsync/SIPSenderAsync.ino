@@ -6,7 +6,7 @@
  * This uses the asynchronous notification approach to determine when to
  * send the next packet.
  *
- * (c) 2018 Shawn Silverman
+ * (c) 2018-2019 Shawn Silverman
  */
 
 #include "TeensyDMX.h"

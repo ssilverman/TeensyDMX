@@ -1,5 +1,5 @@
 // This file is part of an example in the TeensyDMX library.
-// (c) 2018 Shawn Silverman
+// (c) 2018-2019 Shawn Silverman
 
 #ifndef SIPHANDLER_H_
 #define SIPHANDLER_H_

@@ -2,7 +2,7 @@
  * SIPHandler shows how to implement a Responder to make use of
  * System Information Packets (SIP).
  *
- * (c) 2018 Shawn Silverman
+ * (c) 2018-2019 Shawn Silverman
  */
 
 #include <TeensyDMX.h>
