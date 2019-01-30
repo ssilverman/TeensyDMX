@@ -16,6 +16,9 @@ namespace teensydmx = ::qindesign::teensydmx;
 // The LED pin.
 constexpr uint8_t kLEDPin = LED_BUILTIN;
 
+// Pin for enabling or disabling the transmitter.
+constexpr uint8_t kTXPin = 17;
+
 // Create the DMX transmitter on Serial1.
 teensydmx::Sender dmxTx{Serial1};
 
@@ -55,7 +58,11 @@ void setup() {
 
   // Set up any pins
   pinMode(kLEDPin, OUTPUT);
-  // NOTE: Don't forget to set any pin that enables the transmitter
+  digitalWriteFast(kLEDPin, HIGH);
+  pinMode(kTXPin, OUTPUT);
+
+  // Set the pin that enables the transmitter
+  digitalWriteFast(kTXPin, HIGH);
 
   // Initialize the SIP data
   sipData[0] = 0xcf;  // SIP start code

@@ -6,21 +6,27 @@
 
 #include <TeensyDMX.h>
 
+namespace teensydmx = ::qindesign::teensydmx;
+
 // Interval between channel value changes. A value of 20ms was chosen
 // so that all we cycle through all 512 channels every
 // 512 * 0.02s = 10.24 seconds.
-constexpr unsigned long kChaseInterval = 20;
+constexpr unsigned long kChaseInterval = 20;  // 20ms
 
 // The LED pin.
 constexpr uint8_t kLEDPin = LED_BUILTIN;
 
-namespace teensydmx = ::qindesign::teensydmx;
+// Pin for enabling or disabling the transmitter.
+constexpr uint8_t kTXPin = 17;
 
 // Create the DMX transmitter on Serial1.
 teensydmx::Sender dmxTx{Serial1};
 
 // The current channel outputting a value.
 int channel;
+
+// Elapsed time since the last chase.
+elapsedMillis sinceLastChase;
 
 void setup() {
   // Initialize the serial port
@@ -33,7 +39,10 @@ void setup() {
   // Set up any pins
   pinMode(kLEDPin, OUTPUT);
   digitalWriteFast(kLEDPin, LOW);
-  // NOTE: Don't forget to set any pin that enables the transmitter
+  pinMode(kTXPin, OUTPUT);
+
+  // Set the pin that enables the transmitter
+  digitalWriteFast(kTXPin, HIGH);
 
   dmxTx.begin();
 
@@ -42,22 +51,22 @@ void setup() {
 }
 
 void loop() {
-  static elapsedMillis lastChase = 0;
-  if (lastChase >= kChaseInterval) {
-    // Set the current channel to zero, advance it, and then set the
-    // new channel to 255
-    dmxTx.set(channel, 0);
-    channel++;
-    if (channel > 512) {
-      channel = 1;
-    }
-    dmxTx.set(channel, 255);
-
-    lastChase = 0;
-
-    // Blink the LED
-    digitalWriteFast(kLEDPin, HIGH);
-    delay(kChaseInterval / 2);
-    digitalWriteFast(kLEDPin, LOW);
+  if (sinceLastChase < kChaseInterval) {
+    return;
   }
+  sinceLastChase = 0;
+
+  // Set the current channel to zero, advance it, and then set the new channel
+  // to 255
+  dmxTx.set(channel, 0);
+  channel++;
+  if (channel > 512) {
+    channel = 1;
+  }
+  dmxTx.set(channel, 255);
+
+  // Blink the LED
+  digitalWriteFast(kLEDPin, HIGH);
+  delay(kChaseInterval / 2);
+  digitalWriteFast(kLEDPin, LOW);
 }
