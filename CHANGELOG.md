@@ -2,6 +2,32 @@
 
 This document details the changes between each release.
 
+## [3.0.0]
+
+### Added
+* Two new examples, `BasicSend` and `BasicReceive`.
+
+### Changed
+* Updated `keywords.txt`.
+* The internal array that keeps track of responders in `Receiver` is now
+  dynamically allocated; this saves about 1k of memory.
+* Changed `Receiver::addResponder` to `Receiver::setResponder`; also changed
+  its behaviour so that setting a responder to `nullptr` removes any responder
+  for the given start code.
+* Changed the behaviour of `Sender::pause` so that the caller must wait until
+  transmission is complete before setting any values with one of the `set`
+  functions. Instances of `Sender` are smaller by about 0.5k because there's no
+  need to hold an internal "paused" array.
+
+### Fixed
+* It was technically possible to overrwrite the contents of a packet in the
+  process of being sent if pause->set->resume was done quickly. Requiring any
+  `set` call to wait until transmission is complete removes having to manage
+  the concurrency.
+* On small systems, dynamic memory allocation in `Receiver::setResponder` may
+  fail. This was fixed and the documentation in `TeensyDMX.h` was updated. The
+  caller can check the `ENOMEM` condition in `errno` to detect this condition.
+
 ## [3.0.0-beta]
 
 ### Added
