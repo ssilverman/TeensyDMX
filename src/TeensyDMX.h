@@ -185,10 +185,14 @@ class Receiver final : public TeensyDMX {
   // this case occurs, then all responders can be considered wiped out; this
   // includes all previously-set responders. This will return nullptr if this
   // happens.
+  //
+  // Responder functions are called from an ISR.
   Responder *setResponder(uint8_t startCode, Responder *r);
 
   // Sets the setTXNotRX implementation function. This should be called before
   // calling begin().
+  //
+  // The given function may be called from an ISR.
   void setSetTXNotRXFunc(void (*f)(bool flag)) {
     setTXNotRXFunc_ = f;
   }
