@@ -6,7 +6,6 @@
 
 // C++ includes
 #include <cstdint>
-#include <cstring>
 
 // Other includes
 #include <TeensyDMX.h>

@@ -3,6 +3,9 @@
 
 #include "SIPHandler.h"
 
+// C++ includes
+#include <cstring>
+
 // Gets a uint16_t value from the given array.
 uint16_t getUint16(const uint8_t *b) {
   return (uint16_t{b[0]} << 8) | uint16_t{b[1]};
