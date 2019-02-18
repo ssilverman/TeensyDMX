@@ -34,8 +34,6 @@ Some notable features of this library:
 
 ### Limitations
 
-[During beta testing, more limitations are likely to be uncovered.]
-
 There is one exception to timeout handling in the receiver. For BREAK and Mark
 after Break (MAB) times, only their duration sum is checked, and not their
 individual durations. For example, the mininum allowed BREAK and MAB durations
