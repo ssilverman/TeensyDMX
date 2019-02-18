@@ -20,7 +20,7 @@ This document details the changes between each release.
   need to hold an internal "paused" array.
 
 ### Fixed
-* It was technically possible to overrwrite the contents of a packet in the
+* It was technically possible to overwrite the contents of a packet in the
   process of being sent if pause->set->resume was done quickly. Requiring any
   `set` call to wait until transmission is complete removes having to manage
   the concurrency.
