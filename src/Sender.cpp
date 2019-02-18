@@ -154,8 +154,8 @@ void Sender::end() {
 // Derived from:
 // https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/libc/memcpy.c
 volatile void *memcpy(volatile void *dst, const void *src, size_t len) {
-  volatile uint8_t *d = reinterpret_cast<volatile uint8_t *>(dst);
-  const uint8_t *s = reinterpret_cast<const uint8_t *>(src);
+  volatile char *d = reinterpret_cast<volatile char *>(dst);
+  const char *s = reinterpret_cast<const char *>(src);
 
   while (len-- != 0) {
     *(d++) = *(s++);
