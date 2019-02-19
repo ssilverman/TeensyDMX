@@ -130,8 +130,8 @@ class Receiver final : public TeensyDMX {
 
   void end() override;
 
-  // Reads all or part of a packet into buf. This returns zero if len is
-  // negative or zero, or if startChannel is negative or beyond
+  // Reads all or part of the latest packet into buf. This returns zero if len
+  // is negative or zero, or if startChannel is negative or beyond
   // kMaxDMXPacketSize. This only reads up to the end of the packet if
   // startChannel+len would go past the end.
   //
@@ -144,6 +144,9 @@ class Receiver final : public TeensyDMX {
   //
   // The values starting at startChannel will be stored starting at index zero
   // in buf. buf must have a size of at least len bytes.
+  //
+  // Note that this returns the latest data received, even if the receiver has
+  // been stopped.
   int readPacket(uint8_t *buf, int startChannel, int len);
 
   // Gets the latest value received for one channel. The start code can be read
@@ -151,6 +154,9 @@ class Receiver final : public TeensyDMX {
   //
   // If the channel is out of range for the last packet or there is no data then
   // this will return zero.
+  //
+  // Note that this returns the latest value received, even if the receiver has
+  // been stopped.
   uint8_t get(int channel) const;
 
   // Returns the timestamp of the last received packet. Under the covers,
