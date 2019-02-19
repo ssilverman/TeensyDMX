@@ -418,6 +418,12 @@ class Sender final : public TeensyDMX {
   // transmission is still active. See pause() and isTransmitting().
   void end() override;
 
+  // Returns this sender's BREAK time, in microseconds.
+  uint32_t breakTime() const;
+
+  // Returns this sender's MARK after BREAK (MAB) time, in microseconds.
+  uint32_t mabTime() const;
+
   // Sets the transmit packet size, in number of channels plus the start code.
   // This does nothing if the size is greater than 513 or negative.
   //

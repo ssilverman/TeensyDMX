@@ -36,6 +36,9 @@ constexpr uint32_t kBreakFormat = SERIAL_8N1;  // 9:1
 constexpr uint32_t kSlotsBaud   = 250000;      // 4us
 constexpr uint32_t kSlotsFormat = SERIAL_8N2;  // 9:2
 
+constexpr uint32_t kBreakTime = 1000000/kBreakBaud * 9;  // In us
+constexpr uint32_t kMABTime   = 1000000/kBreakBaud * 1;  // In us
+
 // TX control states
 #define UART_C2_TX_ENABLE         (UART_C2_TE)
 #define UART_C2_TX_ACTIVE         ((UART_C2_TX_ENABLE) | (UART_C2_TIE))
@@ -149,6 +152,14 @@ void Sender::end() {
   if (txInstances[serialIndex_] == this) {
     txInstances[serialIndex_] = nullptr;
   }
+}
+
+uint32_t Sender::breakTime() const {
+  return kBreakTime;
+}
+
+uint32_t Sender::mabTime() const {
+  return kMABTime;
 }
 
 // memcpy implementation that accepts a volatile destination.
