@@ -90,6 +90,9 @@ class Responder {
   // Note that it can be assumed that outBuf has a size of at least the value
   // returned by getOutputBufferSize().
   //
+  // This may be called from inside an interrupt routine, so it's important to
+  // execute as quickly as possible.
+  //
   // @param buf a buffer containing the latest received byte
   // @param len the current accumulated length of the packet
   // @param outBuf buffer for output, at least getOutputBufferSize() bytes
@@ -105,6 +108,9 @@ class Responder {
   //
   // The packet length will always be greater than zero because there will
   // always at least be a start code.
+  //
+  // This may be called from inside an interrupt routine, so it's important to
+  // execute as quickly as possible.
   //
   // @param buf a buffer containing the packet
   // @param len the packet length, greater than zero, includes the start code
