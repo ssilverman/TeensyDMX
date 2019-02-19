@@ -9,7 +9,7 @@
  * (c) 2018-2019 Shawn Silverman
  */
 
-#include "TeensyDMX.h"
+#include <TeensyDMX.h>
 
 namespace teensydmx = ::qindesign::teensydmx;
 
