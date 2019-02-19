@@ -96,9 +96,15 @@ class TeensyDMX {
   // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-dtor-virtual
   // Don't have to define the destructor.
 
+  // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rh-protected
+  void incPacketCount() {
+    packetCount_++;
+  }
+
   HardwareSerial &uart_;
   const int serialIndex_;
 
+ private:
   // The number of packets sent or received. Subclasses must manage this.
   volatile uint32_t packetCount_;
 };

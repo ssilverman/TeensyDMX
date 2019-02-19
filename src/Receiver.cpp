@@ -455,7 +455,7 @@ void Receiver::completePacket() {
     inactiveBuf_ = buf2_;
   }
 
-  packetCount_++;
+  incPacketCount();
   lastPacketSize_ = packetSize_ = activeBufIndex_;
   packetTimestamp_ = t;
 

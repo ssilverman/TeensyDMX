@@ -257,7 +257,7 @@ bool Sender::isTransmitting() const {
 }
 
 void Sender::completePacket() {
-  packetCount_++;
+  incPacketCount();
   outputBufIndex_ = 0;
   transmitting_ = false;
   state_ = XmitStates::kIdle;
