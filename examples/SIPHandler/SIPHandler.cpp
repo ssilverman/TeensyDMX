@@ -1,4 +1,4 @@
-// This file is part of an example in the TeensyDMX library.
+// This file is part of the SIPHandler example in the TeensyDMX library.
 // (c) 2018-2019 Shawn Silverman
 
 #include "SIPHandler.h"
