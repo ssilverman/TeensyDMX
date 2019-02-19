@@ -190,6 +190,17 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
   enableIRQs();
 }
 
+void Sender::clear() {
+  disableIRQs();
+  //{
+    volatile uint8_t *b = outputBuf_;
+    for (int i = 0; i < kMaxDMXPacketSize; i++) {
+      *(b++) = 0;
+    }
+  //}
+  enableIRQs();
+}
+
 void Sender::setRefreshRate(float rate) {
   if ((rate != rate) || rate < 0.0f) {  // NaN or negative
     return;

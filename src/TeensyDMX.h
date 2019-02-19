@@ -482,6 +482,9 @@ class Sender final : public TeensyDMX {
   // finished before setting channel values.
   void set(int startChannel, const uint8_t *values, int len);
 
+  // Clears all channels to zero. The behaviour is atomic.
+  void clear();
+
   // Sets the packet refresh rate. Negative and NaN values are ignored. The
   // default is INFINITY, indicating "as fast as possible".
   //
