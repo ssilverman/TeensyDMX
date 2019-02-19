@@ -97,7 +97,7 @@ class TeensyDMX {
   // Don't have to define the destructor.
 
   HardwareSerial &uart_;
-  int serialIndex_;
+  const int serialIndex_;
 
   // Tracks whether the system has been configured. Subclasses must manage
   // this state.
