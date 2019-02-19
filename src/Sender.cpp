@@ -51,6 +51,7 @@ Sender *volatile txInstances[6]{nullptr};
 
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
+      began_(false),
       state_(XmitStates::kIdle),
       outputBuf_{0},
       outputBufIndex_(0),

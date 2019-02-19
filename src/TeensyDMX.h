@@ -99,10 +99,6 @@ class TeensyDMX {
   HardwareSerial &uart_;
   const int serialIndex_;
 
-  // Tracks whether the system has been configured. Subclasses must manage
-  // this state.
-  volatile bool began_;
-
   // The number of packets sent or received. Subclasses must manage this.
   volatile uint32_t packetCount_;
 };
@@ -295,6 +291,9 @@ class Receiver final : public TeensyDMX {
     }
     setTXNotRXFunc_(flag);
   }
+
+  // Tracks whether the system has been configured.
+  volatile bool began_;
 
   // Keeps track of what we're receiving.
   volatile RecvStates state_;
@@ -593,6 +592,9 @@ class Sender final : public TeensyDMX {
   //
   // This is called from an ISR.
   void completePacket();
+
+  // Tracks whether the system has been configured.
+  volatile bool began_;
 
   // Keeps track of what we're transmitting.
   volatile XmitStates state_;

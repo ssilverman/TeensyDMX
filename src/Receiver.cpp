@@ -66,6 +66,7 @@ Receiver *volatile rxInstances[6]{nullptr};
 
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
+      began_(false),
       state_{RecvStates::kIdle},
       buf1_{0},
       buf2_{0},

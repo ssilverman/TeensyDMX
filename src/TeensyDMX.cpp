@@ -46,7 +46,6 @@ int serialIndex(HardwareSerial &uart) {
 TeensyDMX::TeensyDMX(HardwareSerial &uart)
     : uart_(uart),
       serialIndex_(serialIndex(uart_)),
-      began_(false),
       packetCount_(0) {}
 
 }  // namespace teensydmx
