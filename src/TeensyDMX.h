@@ -69,6 +69,10 @@ constexpr int kMinDMXPacketSize = 25;
 // serial ports 1-6.
 class TeensyDMX {
  public:
+  // TeensyDMX is neither copyable nor movable.
+  TeensyDMX(const TeensyDMX &) = delete;
+  TeensyDMX &operator=(const TeensyDMX &) = delete;
+
   // Sets up the system for receiving or transmitting DMX on the specified
   // serial port.
   virtual void begin() = 0;
@@ -85,13 +89,12 @@ class TeensyDMX {
 
  protected:
   // Creates a new DMX receiver or transmitter using the given hardware UART.
-  TeensyDMX(HardwareSerial &uart);
+  // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-explicit
+  explicit TeensyDMX(HardwareSerial &uart);
 
-  // TeensyDMX is neither copyable nor movable.
-  TeensyDMX(const TeensyDMX &) = delete;
-  TeensyDMX& operator=(const TeensyDMX &) = delete;
-
-  virtual ~TeensyDMX() = default;
+  // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-zero
+  // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-dtor-virtual
+  // Don't have to define the destructor.
 
   HardwareSerial &uart_;
   int serialIndex_;
@@ -112,10 +115,10 @@ class TeensyDMX {
 class Receiver final : public TeensyDMX {
  public:
   // Creates a new receiver and uses the given UART for communication.
-  Receiver(HardwareSerial &uart);
+  explicit Receiver(HardwareSerial &uart);
 
   // Destructs Receiver. This calls end().
-  ~Receiver() override;
+  ~Receiver();
 
   // Starts up the serial port.
   //
@@ -388,10 +391,11 @@ class Receiver final : public TeensyDMX {
 // A DMX transmitter. This sends packets asynchronously.
 class Sender final : public TeensyDMX {
  public:
-  Sender(HardwareSerial &uart);
+  // Creates a new transmitter and uses the given UART for communication.
+  explicit Sender(HardwareSerial &uart);
 
   // Destructs Sender. This calls end().
-  ~Sender() override;
+  ~Sender();
 
   // Starts up the serial port.
   void begin() override;
