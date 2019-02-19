@@ -656,6 +656,9 @@ void Receiver::setConnected(bool flag) {
 // ---------------------------------------------------------------------------
 
 void Receiver::disableIRQs() const {
+  if (!began_) {
+    return;
+  }
   switch (serialIndex_) {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
@@ -701,6 +704,9 @@ void Receiver::disableIRQs() const {
 }
 
 void Receiver::enableIRQs() const {
+  if (!began_) {
+    return;
+  }
   switch (serialIndex_) {
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);

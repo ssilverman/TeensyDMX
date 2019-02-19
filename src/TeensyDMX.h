@@ -258,9 +258,11 @@ class Receiver final : public TeensyDMX {
   static constexpr uint32_t kMaxDMXIdleTime = 1000000;
 
   // Disables all the UART IRQs so that variables can be accessed concurrently.
+  // The IRQs are not disabled if began_ is false.
   void disableIRQs() const;
 
   // Enables all the UART IRQs.
+  // The IRQs are not enabled if began_ is false.
   void enableIRQs() const;
 
   // Called when the connection state changes.
@@ -457,7 +459,7 @@ class Sender final : public TeensyDMX {
   void set(int channel, uint8_t value);
 
   // Sets the values for a range of channels. This also affects the packet
-  // currently being transmitted.
+  // currently being transmitted. The behaviour is atomic.
   //
   // Values set here are 'sticky'. In other words, the same values are
   // transmitted until changed. To set some values, this only needs to be
@@ -588,9 +590,11 @@ class Sender final : public TeensyDMX {
   static constexpr uint32_t kMinDMXPacketTime = 1204;
 
   // Disables all the UART IRQs so that variables can be accessed concurrently.
+  // The IRQs are not disabled if began_ is false.
   void disableIRQs() const;
 
   // Enables all the UART IRQs.
+  // The IRQs are not enabled if began_ is false.
   void enableIRQs() const;
 
   // Completes a sent packet. This increments the packet count, resets the

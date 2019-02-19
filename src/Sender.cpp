@@ -183,7 +183,11 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
     return;
   }
 
-  memcpy(&outputBuf_[startChannel], values, len);
+  disableIRQs();
+  //{
+    memcpy(&outputBuf_[startChannel], values, len);
+  //}
+  enableIRQs();
 }
 
 void Sender::setRefreshRate(float rate) {
@@ -272,6 +276,9 @@ void Sender::completePacket() {
 // ---------------------------------------------------------------------------
 
 void Sender::disableIRQs() const {
+  if (!began_) {
+    return;
+  }
   switch (serialIndex_) {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
@@ -305,6 +312,9 @@ void Sender::disableIRQs() const {
 }
 
 void Sender::enableIRQs() const {
+  if (!began_) {
+    return;
+  }
   switch (serialIndex_) {
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
