@@ -644,6 +644,7 @@ void Receiver::receiveByte(uint8_t b) {
 
 void Receiver::setConnected(bool flag) {
   if (connected_ != flag) {
+    connected_ = flag;
     void (*f)(Receiver *r) = connectChangeFunc_;
     if (f != nullptr) {
       f(this);
