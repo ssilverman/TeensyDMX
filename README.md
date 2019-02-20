@@ -196,6 +196,10 @@ void loop() {
 }
 ```
 
+In summary, the _connected_ concept here has more to do with line noise and bad
+timing than it does with a physical connection. Perhaps a future release will
+rename this...
+
 ### Synchronous operation by using custom responders
 
 There is the ability to notify specific instances of `Responder` when packets
