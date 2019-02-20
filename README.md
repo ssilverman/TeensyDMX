@@ -143,6 +143,59 @@ dmxRx.onConnectChange([](Receiver *r) {
 });
 ```
 
+#### The truth about connection detection
+
+In actual fact, the connection detection only works for _some_ of the cases
+where timeouts occur or when bad BREAKs happen. The one thing it can't do is
+detect when BREAK or IDLE conditions occur "permanently". Unless more data comes
+in, no further UART interrupts will be generated, so it is up to the user's code
+to detect this case.
+
+The `Flasher` example contains an example of how to do this. In essence, the
+`readPacket` function will return a positive value if the desired data is
+available in the last packet received. A timer can be reset when valid data is
+received, and then subsequent code can use the difference between the current
+time and the timer value to determine if there's been a timeout.
+
+An example that uses `elapsedMillis` to encapsulate the current time call:
+
+```c++
+constexpr uint32_t kTimeout = 1000;  // In milliseconds
+
+elapsedMillis lastPacketTimer{0};
+uint8_t buf[250];
+
+void loop() {
+  int read = dmxRx.readPacket(buf, 0, 217);
+  if (read == 217) {  // Comparing to > 0 means that _some_ data was received
+    // All the requested data was received
+    // Do stuff with it
+    lastPacketTimer = 0;
+  }
+
+  if (lastPacketTimer <= kTimeout) {
+    // Do work
+  } else {
+    // No connection
+  }
+}
+```
+
+A second technique would be to use the value returned from
+`lastPacketTimestamp()` as something that closely approximates the true latest
+timestamp. For example:
+
+```c++
+constexpr uint32_t kTimeout = 1000;  // In milliseconds
+
+void loop() {
+  if (millis() - dmxRx.lastPacketTimestamp() > kTimeout) {
+    // Respond to the timeout
+  }
+  // Do work
+}
+```
+
 ### Synchronous operation by using custom responders
 
 There is the ability to notify specific instances of `Responder` when packets
