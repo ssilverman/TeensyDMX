@@ -196,9 +196,13 @@ void loop() {
 }
 ```
 
+In actuality, a timer could be used to detect this condition, but it was chosen
+to not do this because it would use up a timer, add one extra timeout-specifying
+method, and the user code is probably good enough.
+
 In summary, the _connected_ concept here has more to do with line noise and bad
 timing than it does with a physical connection. Perhaps a future release will
-rename this...
+rename this API concept or address it with the timer...
 
 ### Synchronous operation by using custom responders
 
