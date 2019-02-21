@@ -97,7 +97,6 @@ class TeensyDMX {
   // Don't have to define the destructor.
 
   // Increments the packet count.
-  // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rh-protected
   void incPacketCount() {
     packetCount_++;
   }
@@ -111,7 +110,9 @@ class TeensyDMX {
   const int serialIndex_;
 
  private:
-  // The number of packets sent or received. Subclasses must manage this.
+  // The number of packets sent or received. Subclasses must manage this via
+  // incPacketCount() and resetPacketCount().
+  // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rh-protected
   volatile uint32_t packetCount_;
 };
 
