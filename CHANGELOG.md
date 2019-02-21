@@ -2,6 +2,32 @@
 
 This document details the changes between each release.
 
+## [3.1.0]
+
+### Added
+* New `Sender::clear()` method that sets all the channels to zero.
+* New `Sender::breakTime()` and `Sender::mabTime()` methods that return the
+  BREAK and MARK after BREAK (MAB) times in microseconds, respectively.
+* Added a section to the README that describes when connection detection doesn't
+  work and what to do about it.
+* Added the concept of BREAK-less packets to the receiver to help with RDM
+  discovery responses; these are packets that do not begin with a BREAK.
+
+### Changed
+* Made the constructors `explicit` because they're single-argument.
+* There's now less protected data in the base `TeensyDMX` class.
+* Made `Sender::set` behave atomically.
+* Class documentation updates.
+* The packet count is now reset to zero when the receiver or transmitter
+  is either started for the first time or restarted.
+
+### Fixed
+* Interrupts are now correctly not enabled if an instance of `Sender` or
+  `Receiver` is stopped, i.e. never started or had its `end()` method called.
+* `Receiver::setConnected` wasn't actually changing the internal connected
+  state. The state is now updated correctly so that `Receiver::connected()`
+  returns the correct value.
+
 ## [3.0.0]
 
 ### Added
