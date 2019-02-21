@@ -84,6 +84,8 @@ void Sender::begin() {
     return;
   }
 
+  resetPacketCount();
+
   // Set up the instance for the ISRs
   Sender *s = txInstances[serialIndex_];
   txInstances[serialIndex_] = this;

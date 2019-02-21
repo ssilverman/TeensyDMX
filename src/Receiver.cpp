@@ -168,6 +168,8 @@ void Receiver::begin() {
     return;
   }
 
+  resetPacketCount();
+
   // Set up the instance for the ISRs
   Receiver *r = rxInstances[serialIndex_];
   rxInstances[serialIndex_] = this;

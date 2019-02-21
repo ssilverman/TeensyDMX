@@ -82,7 +82,7 @@ class TeensyDMX {
   virtual void end() = 0;
 
   // Returns the total number of packets received or transmitted since the
-  // receiver was started.
+  // instance was started. This is reset when begin() is called.
   uint32_t packetCount() const {
     return packetCount_;
   }
@@ -96,9 +96,15 @@ class TeensyDMX {
   // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-dtor-virtual
   // Don't have to define the destructor.
 
+  // Increments the packet count.
   // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rh-protected
   void incPacketCount() {
     packetCount_++;
+  }
+
+  // Resets the packet count to zero.
+  void resetPacketCount() {
+    packetCount_ = 0;
   }
 
   HardwareSerial &uart_;
