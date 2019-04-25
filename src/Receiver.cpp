@@ -68,6 +68,8 @@ Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
       began_(false),
       state_{RecvStates::kIdle},
+      allowBreaklessPackets_(false),
+      breaklessStartTime_(0),
       buf1_{0},
       buf2_{0},
       activeBuf_(buf1_),
@@ -178,6 +180,7 @@ void Receiver::begin() {
   }
 
   state_ = RecvStates::kIdle;
+  activeBufIndex_ = 0;
   uart_.begin(kSlotsBaud, kSlotsFormat);
 
   // Reset "previous" state
@@ -476,10 +479,23 @@ void Receiver::completePacket() {
 }
 
 void Receiver::checkPacketTimeout() {
+  // Breakless packets
+  if (state_ == RecvStates::kBreaklessData) {
+    uint32_t t = micros();
+    if ((t - breaklessStartTime_) > kMaxBreaklessPacketTime ||
+        (t - lastSlotEndTime_) > kMaxBreaklessIdleTime) {
+      // Don't count as a timeout because that's how we detect end-of-packet
+      // for breakless packets
+      completePacket();
+    }
+    return;
+  }
+
   if (state_ != RecvStates::kData) {
     return;
   }
-  uint32_t t = micros();
+  uint32_t t = micros();  // It's not clear what to subtract to get the IDLE
+                          // start time
   if ((t - breakStartTime_) > kMaxDMXPacketTime ||
       (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
     packetTimeoutCount_++;
@@ -550,6 +566,8 @@ void Receiver::receiveByte(uint8_t b) {
           // Keep the data
         }
         completePacket();
+      } else {
+        activeBufIndex_ = 0;
       }
       lastBreakStartTime_ = breakStartTime_;
       setConnected(true);
@@ -568,6 +586,38 @@ void Receiver::receiveByte(uint8_t b) {
       // NOTE: Don't need to check for inter-slot MARK time being
       //       too large because the IDLE detection will catch that
       break;
+
+    case RecvStates::kIdle:
+      if (allowBreaklessPackets_) {
+        // First byte: Set packet start time
+        breaklessStartTime_ = eopTime - 44;
+        activeBufIndex_ = 0;
+        lastSlotEndTime_ = eopTime;
+        activeBuf_[activeBufIndex_++] = b;
+        if (activeBufIndex_ == kMaxDMXPacketSize) {
+          completePacket();
+          state_ = RecvStates::kSkipBreaklessData;
+        } else {
+          state_ = RecvStates::kBreaklessData;
+        }
+      }
+      return;
+
+    case RecvStates::kBreaklessData:
+      lastSlotEndTime_ = eopTime;
+      if ((eopTime - breaklessStartTime_) > kMaxBreaklessPacketTime) {
+        // Don't count as a timeout because that's how we detect end-of-packet
+        // for breakless packets
+        completePacket();
+        state_ = RecvStates::kSkipBreaklessData;
+      } else {
+        activeBuf_[activeBufIndex_++] = b;
+        if (activeBufIndex_ == kMaxDMXPacketSize) {
+          completePacket();
+          state_ = RecvStates::kSkipBreaklessData;
+        }
+      }
+      return;
 
     default:
       // Ignore any extra bytes in a packet or any bytes outside a packet

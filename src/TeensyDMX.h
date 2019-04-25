@@ -137,6 +137,18 @@ class Receiver final : public TeensyDMX {
 
   void end() override;
 
+  // Sets the receiver to allow BREAK-less packets. This supports RDM's
+  // discovery responses. By default, the maximum packet time is the same as for
+  // DMX and the maximum inter-slot idle time is 2.0ms.
+  void setAllowBreaklessPackets(bool flag) {
+    allowBreaklessPackets_ = flag;
+  }
+
+  // Returns whether the receiver allows BREAK-less packets.
+  bool allowBreaklessPackets() const {
+    return allowBreaklessPackets_;
+  }
+
   // Reads all or part of the latest packet into buf. This returns zero if len
   // is negative or zero, or if startChannel is negative or beyond
   // kMaxDMXPacketSize. This only reads up to the end of the packet if
@@ -256,6 +268,8 @@ class Receiver final : public TeensyDMX {
     kMAB,    // Mark after break
     kData,   // Packet data
     kIdle,   // The end of data for one packet has been reached
+    kBreaklessData,      // Breakless packet data
+    kSkipBreaklessData,  // Skip data beyond the packet length
   };
 
   // The maximum allowed packet time for receivers, either BREAK plus data,
@@ -269,6 +283,10 @@ class Receiver final : public TeensyDMX {
   // The maximum allowed IDLE and Mark Before Break (MBB) time,
   // in microseconds, exclusive.
   static constexpr uint32_t kMaxDMXIdleTime = 1000000;
+
+  // Breakless packet timeout parameters, RDM Controller timings
+  static constexpr uint32_t kMaxBreaklessPacketTime = kMaxDMXPacketTime;
+  static constexpr uint32_t kMaxBreaklessIdleTime = 2100;
 
   // Disables all the UART IRQs so that variables can be accessed concurrently.
   // The IRQs are not disabled if began_ is false.
@@ -285,7 +303,7 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void completePacket();
 
-  // Look for potential packet timeouts.
+  // Look for potential packet timeouts when an IDLE condition was detected.
   // This is called from an ISR.
   void checkPacketTimeout();
 
@@ -318,6 +336,12 @@ class Receiver final : public TeensyDMX {
 
   // Keeps track of what we're receiving.
   volatile RecvStates state_;
+
+  // Whether we allow BREAK-less packet.
+  volatile bool allowBreaklessPackets_;
+
+  // A BREAK-less packet's start time.
+  uint32_t breaklessStartTime_;
 
   // The framing-error start time, in microseconds. This needs to be accessed
   // from the same interrupt that triggered the framing error so that there's
