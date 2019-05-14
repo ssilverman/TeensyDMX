@@ -10,8 +10,6 @@ This document details the changes between each release.
   BREAK and MARK after BREAK (MAB) times in microseconds, respectively.
 * Added a section to the README that describes when connection detection doesn't
   work and what to do about it.
-* Added the concept of BREAK-less packets to the receiver to help with RDM
-  discovery responses; these are packets that do not begin with a BREAK.
 
 ### Changed
 * Made the constructors `explicit` because they're single-argument.
