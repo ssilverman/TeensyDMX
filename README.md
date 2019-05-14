@@ -31,9 +31,6 @@ Some notable features of this library:
    API. Alternate start codes can not only be handled, for example, for Text
    Packets or System Information Packets (SIP), but responses can be sent back
    to the transmitter, for example for RDM.
-9. The receiver can, if configured to do so, handle BREAK-less packets. That is,
-   packets that don't start with a BREAK character. This is useful for receiving
-   RDM discovery response packets.
 
 ### Limitations
 
@@ -288,13 +285,6 @@ loop (or some other execution context). If the protocol allows for it, the
 processing results when ready.
 
 A more complete example is beyond the scope of this README.
-
-### Receiving BREAK-less packets
-
-Protocols such as RDM require listening for packets that don't start with a
-BREAK character. The receiver can be configured to receive these packets by
-calling `Receiver::setAllowBreaklessPackets`. See also
-`Receiver::allowBreaklessPackets` to determine whether this mode is enabled.
 
 ## DMX transmit
 
