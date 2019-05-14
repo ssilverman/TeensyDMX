@@ -7,8 +7,8 @@
 #######################################
 
 Receiver	KEYWORD1
-Responder	KEYWORD1
 Sender	KEYWORD1
+Responder	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -27,9 +27,12 @@ onConnectChange	KEYWORD2
 packetTimeoutCount	KEYWORD2
 framingErrorCount	KEYWORD2
 shortPacketCount	KEYWORD2
+breakTime	KEYWORD2
+mabTime	KEYWORD2
 setPacketSize	KEYWORD2
 packetSize	KEYWORD2
 set	KEYWORD2
+clear	KEYWORD2
 setRefreshRate	KEYWORD2
 refreshRate	KEYWORD2
 pause	KEYWORD2
