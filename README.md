@@ -21,7 +21,7 @@ Some notable features of this library:
    adjacent to other packets. In other words, the asynchronous transmitter can
    be used synchronously. For example, System Information Packets (SIP) require
    this. See Annex D5 of ANSI E1.11.
-6. The receiver checks for timeouts according the the DMX specification. It
+6. The receiver checks for timeouts according to the DMX specification. It
    knows of the concept of being disconnected from a DMX transmitter when
    timeouts or bad BREAKs are encountered in the data stream.
 7. Error counts are available in the receiver. These can be used to detect
