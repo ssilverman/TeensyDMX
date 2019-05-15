@@ -442,6 +442,26 @@ systems, this may fail. The caller can check for this condition by examining
 but otherwise fails silently. Additionally, all responders are wiped out,
 including any previously-set responders.
 
+### Hardware connection
+
+DMX uses RS-485 differential signalling. This means that a transceiver is needed
+between the Teensy and the DMX lines. See
+[DMX512](https://en.wikipedia.org/wiki/DMX512) for DMX connector pin guidance.
+
+1. Basically, DMX uses A, B, and ground, and the Teensy serial ports use RX, TX,
+   and ground. After choosing a serial port on the Teensy, connect TX to the
+   _Driver Input_ and RX to the _Receiver Output_ of the transceiver.
+2. Since RS-485 is half-duplex, the transceiver provides a way, via either one
+   or two pins, to select between receiving and transmitting modes. For the
+   two-pin case, these likely can be merged because they're logically opposite,
+   for example, HIGH to enable the driver and LOW to enable the receiver. In
+   both cases, choose one of the Teensy's digital output pins to act as the
+   transmit-or-receive selector.
+3. Last, connect the ground of the Teensy to the ground of the transceiver.
+
+It is beyond the scope of this document to describe how to accommodate
+transmission line effects of long lines.
+
 ## Code style
 
 Code style for this project mostly follows the
