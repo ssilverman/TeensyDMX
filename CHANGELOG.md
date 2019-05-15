@@ -2,6 +2,19 @@
 
 This document details the changes between each release.
 
+## [3.1.1]
+
+### Added
+* New section in the README that describes how to connect DMX via a transceiver
+  to a Teensy. See the new "Hardware connection" section under
+  "Technical notes".
+
+### Changed
+* Updated library description.
+
+### Fixed
+* Added some missing literals to `keywords.txt`.
+
 ## [3.1.0]
 
 ### Added
