@@ -632,6 +632,7 @@ void Receiver::receiveByte(uint8_t b) {
     if (txBreakFunc_ == nullptr) {
       return;
     }
+
     uint32_t delay = r->preBreakDelay();
     uint32_t dt = micros() - eopTime;
     if (dt < delay) {
@@ -639,10 +640,20 @@ void Receiver::receiveByte(uint8_t b) {
     }
 
     setTXNotRX(true);
+    delay = r->preDataDelay();
+    if (delay > 0) {
+      delayMicroseconds(delay);
+    }
     txBreakFunc_(r->breakLength(), r->markAfterBreakTime());
   } else {
     uint32_t delay = r->preNoBreakDelay();
+    uint32_t dt = micros() - eopTime;
+    if (dt < delay) {
+      delayMicroseconds(delay - dt);
+    }
+
     setTXNotRX(true);
+    delay = r->preDataDelay();
     if (delay > 0) {
       delayMicroseconds(delay);
     }

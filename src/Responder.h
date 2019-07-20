@@ -57,11 +57,18 @@ class Responder {
     return 0;
   }
 
-  // Returns the delay, in microseconds, to wait after (not sending a break
-  // and) enabling the transmit driver. A delay only happens if
+  // Returns the delay, in microseconds, to wait before enabling the transmit
+  // driver (and not sending a break). This delay only happens if
   // isSendBreakForLastPacket() returns false. The default implementation
   // returns zero.
   virtual uint32_t preNoBreakDelay() const {
+    return 0;
+  }
+
+  // Returns the delay, in microseconds, to wait before sending either a break
+  // or data. This occurs after either the preBreakDelay() or preNoBreakDelay().
+  // The default implementation returns zero.
+  virtual uint32_t preDataDelay() const {
     return 0;
   }
 
