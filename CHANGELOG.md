@@ -2,6 +2,19 @@
 
 This document details the changes between each release.
 
+## [3.2.0]
+
+### Added
+* New `Responder::preDataDelay()` method that returns the time in microseconds
+  to wait after the pre-BREAK or no-pre-BREAK delay times (`preBreakDelay()` or
+  `preNoBreakDelay()`), and after the transmitter is turned on.
+
+### Changed
+* `Receiver` now delays for `preNoBreakDelay()` _before_ enabling the
+  transmitter. After delaying for `preBreakDelay()` or `preNoBreakDelay()`,
+  the transmitter is enabled, and then `Receiver` delays for `preDataDelay()`
+  microseconds.
+
 ## [3.1.1]
 
 ### Added
