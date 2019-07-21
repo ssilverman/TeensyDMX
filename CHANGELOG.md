@@ -10,10 +10,13 @@ This document details the changes between each release.
   `preNoBreakDelay()`), and after the transmitter is turned on.
 
 ### Changed
-* `Receiver` now delays for `preNoBreakDelay()` _before_ enabling the
-  transmitter. After delaying for `preBreakDelay()` or `preNoBreakDelay()`,
-  the transmitter is enabled, and then `Receiver` delays for `preDataDelay()`
-  microseconds.
+* If a `Responder` is being used, `Receiver` now delays for `preNoBreakDelay()`
+  _before_ enabling the transmitter. After delaying for `preBreakDelay()` or
+  `preNoBreakDelay()`, the transmitter is enabled, and then `Receiver` delays
+  for `preDataDelay()` microseconds.
+* The BREAK start time calculation now uses 10 bits instead of 11 bits to
+  determine what to subtract: 40us instead of 44us. The effect is that short
+  BREAK detection should be more correct.
 
 ## [3.1.1]
 
