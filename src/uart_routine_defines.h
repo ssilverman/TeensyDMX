@@ -257,6 +257,6 @@
                                                             \
   /* Account for the shift register time by 1 character;    \
    * this overlaps */                                       \
-  delayMicroseconds(kCharTime - kBitTime + mabTime);
+  delayMicroseconds(kCharTime - kBitTime + mabTime + 1);
 
 #endif  // UART_ROUTINE_DEFINES_H_
