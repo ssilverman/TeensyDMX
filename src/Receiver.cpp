@@ -493,10 +493,10 @@ void Receiver::checkPacketTimeout() {
 void Receiver::receivePotentialBreak() {
   // A potential BREAK is detected when a stop bit is expected but not
   // received, and this happens after the start bit, nine bits, and the
-  // missing stop bit, about 44us.
+  // missing stop bit, about 40us.
   // Note that breakStartTime_ only represents a potential BREAK start
   // time until we receive the first character.
-  breakStartTime_ = feStartTime_ - 44;
+  breakStartTime_ = feStartTime_ - 40;
 
   state_ = RecvStates::kBreak;
 
