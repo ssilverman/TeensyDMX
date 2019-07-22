@@ -14,9 +14,6 @@ This document details the changes between each release.
   _before_ enabling the transmitter. After delaying for `preBreakDelay()` or
   `preNoBreakDelay()`, the transmitter is enabled, and then `Receiver` delays
   for `preDataDelay()` microseconds.
-* The BREAK start time calculation now uses 10 bits instead of 11 bits to
-  determine what to subtract: 40us instead of 44us. The effect is that short
-  BREAK detection should be more correct.
 
 ### Fixed
 * `Receiver` now checks that the first stop bit of a received byte is logic 1.
