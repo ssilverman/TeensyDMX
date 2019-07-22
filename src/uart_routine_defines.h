@@ -191,6 +191,13 @@
     }                                                                      \
     return;                                                                \
   }                                                                        \
+                                                                           \
+  /* Check that the 9th bit is high; it's used as the first stop bit */    \
+  if (!UART_RX_TEST_R8) {                                                  \
+    instance->completePacket();                                            \
+    return;                                                                \
+  }                                                                        \
+                                                                           \
   UART_RX_##N
 
 #define UART_RX_ERROR_FLUSH_FIFO(N)       \
