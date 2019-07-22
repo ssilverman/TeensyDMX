@@ -38,9 +38,9 @@ There is one exception to timeout handling in the receiver. For BREAK and Mark
 after Break (MAB) times, only their duration sum is checked, and not their
 individual durations. For example, the mininum allowed BREAK and MAB durations
 are 88us and 8us, respectively. This means that the allowed minimum of their sum
-is 96us. If a BREAK comes in having a duration of 40us and then a MAB comes in
-having a duration of 56us, their sum is still 96us, and so the packet will be
-accepted. Note that the receiver does not recognize BREAKs smaller than 40us.
+is 96us. If a BREAK comes in having a duration of 44us and then a MAB comes in
+having a duration of 52us, their sum is still 96us, and so the packet will be
+accepted. Note that the receiver does not recognize BREAKs smaller than 44us.
 
 This exception is solvable if code is added to watch for RX line changes, but
 this likely won't happen until a future release.
