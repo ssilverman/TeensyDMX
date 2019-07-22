@@ -194,6 +194,7 @@
                                                                            \
   /* Check that the 9th bit is high; it's used as the first stop bit */    \
   if (!UART_RX_TEST_R8) {                                                  \
+    instance->framingErrorCount_++;                                        \
     instance->completePacket();                                            \
     return;                                                                \
   }                                                                        \

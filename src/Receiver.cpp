@@ -477,6 +477,13 @@ void Receiver::completePacket() {
 }
 
 void Receiver::checkPacketTimeout() {
+  if (state_ == RecvStates::kBreak) {
+    framingErrorCount_++;
+    completePacket();
+    setConnected(false);
+    return;
+  }
+
   if (state_ != RecvStates::kData) {
     return;
   }
