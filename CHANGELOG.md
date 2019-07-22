@@ -18,6 +18,11 @@ This document details the changes between each release.
   determine what to subtract: 40us instead of 44us. The effect is that short
   BREAK detection should be more correct.
 
+### Fixed
+* `Receiver` now checks that the first stop bit of a received byte is logic 1.
+  On the Kinetis chips, the first stop bit of two stop bits is implemented as
+  the 9th bit of the 9-bit mode.
+
 ## [3.1.1]
 
 ### Added
