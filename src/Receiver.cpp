@@ -477,14 +477,6 @@ void Receiver::completePacket() {
 }
 
 void Receiver::checkPacketTimeout() {
-  if (state_ == RecvStates::kBreak) {
-    // MAB too long, at least 11 bits
-    framingErrorCount_++;
-    completePacket();
-    setConnected(false);
-    return;
-  }
-
   if (state_ != RecvStates::kData) {
     return;
   }
