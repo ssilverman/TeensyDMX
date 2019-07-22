@@ -477,16 +477,22 @@ void Receiver::completePacket() {
 }
 
 void Receiver::checkPacketTimeout() {
-  if (state_ != RecvStates::kData) {
-    return;
-  }
-  uint32_t t = micros();  // It's not clear what to subtract to get the IDLE
-                          // start time
-  if ((t - breakStartTime_) > kMaxDMXPacketTime ||
-      (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
-    packetTimeoutCount_++;
-    completePacket();
-    setConnected(false);
+  uint32_t t = micros();
+
+  if (state_ == RecvStates::kBreak) {
+    // This catches the case where a short BREAK is followed by a longer MAB
+    if ((t - breakStartTime_) < 88 + 44) {
+      framingErrorCount_++;
+      completePacket();
+      setConnected(false);
+    }
+  } else if (state_ == RecvStates::kData) {
+    if ((t - breakStartTime_) > kMaxDMXPacketTime ||
+        (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
+      packetTimeoutCount_++;
+      completePacket();
+      setConnected(false);
+    }
   }
 }
 
