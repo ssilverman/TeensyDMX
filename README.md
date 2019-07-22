@@ -40,7 +40,7 @@ accepted as a valid DMX frame start:
 
 1. BREAK duration &lt; ~44us.
 2. BREAK duration + MAB duration &lt; ~96us.
-3. MAB duration &ge; ~44us.
+3. BREAK &lt; ~88us and MAB &ge; ~44us.
 
 The following case is accepted as a valid frame start, even though it isn't
 compliant with the DMX specification:
@@ -49,9 +49,10 @@ compliant with the DMX specification:
 
 For example, if a BREAK comes in having a duration of 53us and then a MAB comes
 in having a duration of 43us, their sum is 96us, and so the packet will be
-accepted.
+accepted. More generally, this will allow BREAKs that are shorter than the
+minimum required 88us if the MAB is shorter than 44us.
 
-This exception is solvable if code is added to watch for RX line changes, but
+This limitation is solvable if code is added to watch for RX line changes, but
 this likely won't happen until a future release.
 
 ## How to use
