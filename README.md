@@ -32,15 +32,24 @@ Some notable features of this library:
    Packets or System Information Packets (SIP), but responses can be sent back
    to the transmitter, for example for RDM.
 
-### Limitations
+### Receiver timing limitations
 
-There is one exception to timeout handling in the receiver. For BREAK and Mark
-after Break (MAB) times, only their duration sum is checked, and not their
-individual durations. For example, the mininum allowed BREAK and MAB durations
-are 88us and 8us, respectively. This means that the allowed minimum of their sum
-is 96us. If a BREAK comes in having a duration of 44us and then a MAB comes in
-having a duration of 52us, their sum is still 96us, and so the packet will be
-accepted. Note that the receiver does not recognize BREAKs smaller than 44us.
+There are limitations in the handling of received DMX frame timing. For BREAK
+and Mark after Break (MAB) times, only the following cases are checked and not
+accepted as a valid DMX frame start:
+
+1. BREAK duration &lt; ~44us.
+2. BREAK duration + MAB duration &lt; ~96us.
+3. MAB duration &ge; ~44us.
+
+The following case is accepted as a valid frame start, even though it isn't
+compliant with the DMX specification:
+
+1. BREAK duration &gt; ~52us and MAB duration &lt; ~44us.
+
+For example, if a BREAK comes in having a duration of 53us and then a MAB comes
+in having a duration of 43us, their sum is 96us, and so the packet will be
+accepted.
 
 This exception is solvable if code is added to watch for RX line changes, but
 this likely won't happen until a future release.
