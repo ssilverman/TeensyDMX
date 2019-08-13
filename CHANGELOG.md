@@ -14,6 +14,8 @@ This document details the changes between each release.
   _before_ enabling the transmitter. After delaying for `preBreakDelay()` or
   `preNoBreakDelay()`, the transmitter is enabled, and then `Receiver` delays
   for `preDataDelay()` microseconds.
+* Improved framing error detection: the case where there's a short BREAK
+  followed by a long MAB is now detected.
 
 ### Fixed
 * `Receiver` now checks that the first stop bit of a received byte is logic 1.
