@@ -407,8 +407,8 @@ uint8_t Receiver::get(int channel) const {
   return b;
 }
 
-std::unique_ptr<Responder> Receiver::setResponder(
-    uint8_t startCode, std::unique_ptr<Responder> r) {
+std::shared_ptr<Responder> Receiver::setResponder(
+    uint8_t startCode, std::shared_ptr<Responder> r) {
   // For a null responder, delete any current one for this start code
   if (r == nullptr) {
     if (responders_ == nullptr) {
@@ -418,7 +418,7 @@ std::unique_ptr<Responder> Receiver::setResponder(
     Lock lock{*this};
 
     // Replace any previous responder
-    std::unique_ptr<Responder> old{std::move(responders_[startCode])};
+    std::shared_ptr<Responder> old{responders_[startCode]};
     if (old != nullptr) {
       responderCount_--;
     }
@@ -438,7 +438,7 @@ std::unique_ptr<Responder> Receiver::setResponder(
   // reallocated, and so letting that be the last thing deleted avoids
   // potential fragmentation.
   if (responders_ == nullptr) {
-    responders_.reset(new std::unique_ptr<Responder>[256]);
+    responders_.reset(new std::shared_ptr<Responder>[256]);
     // Allocation may have failed on small systems
     if (responders_ == nullptr) {
       return nullptr;
@@ -460,7 +460,7 @@ std::unique_ptr<Responder> Receiver::setResponder(
 
   // If a responder is already set then the output buffer should be the
   // correct size
-  std::unique_ptr<Responder> old{std::move(responders_[startCode])};
+  std::shared_ptr<Responder> old{responders_[startCode]};
   responders_[startCode] = std::move(r);
   if (old == nullptr) {
     responderCount_++;
