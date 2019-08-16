@@ -365,8 +365,9 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
     return 0;
   }
 
+
   int retval = -1;
-  disableIRQs();
+  Lock lock{*this};
   //{
     // No need to poll for a timeout here because IDLE detection
     // handles this now
@@ -384,7 +385,6 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
       packetSize_ = 0;
     }
   //}
-  enableIRQs();
   return retval;
 }
 
@@ -397,14 +397,13 @@ uint8_t Receiver::get(int channel) const {
   }
 
   uint8_t b = 0;
-  disableIRQs();
+  Lock lock{*this};
   //{
     // Since channel >= 0, lastPacketSize_ > channel implies lastPacketSize_ > 0
     if (channel < lastPacketSize_) {
       b = inactiveBuf_[channel];
     }
   //}
-  enableIRQs();
   return b;
 }
 
@@ -416,7 +415,7 @@ std::unique_ptr<Responder> Receiver::setResponder(
       return nullptr;
     }
 
-    disableIRQs();
+    Lock lock{*this};
 
     // Replace any previous responder
     std::unique_ptr<Responder> old{std::move(responders_[startCode])};
@@ -430,12 +429,10 @@ std::unique_ptr<Responder> Receiver::setResponder(
       responders_ = nullptr;
     }
 
-    enableIRQs();
-
     return old;
   }
 
-  disableIRQs();
+  Lock lock{*this};
 
   // Allocate this first because it's done once. The output buffer may get
   // reallocated, and so letting that be the last thing deleted avoids
@@ -444,7 +441,6 @@ std::unique_ptr<Responder> Receiver::setResponder(
     responders_.reset(new std::unique_ptr<Responder>[256]);
     // Allocation may have failed on small systems
     if (responders_ == nullptr) {
-      enableIRQs();
       return nullptr;
     }
   }
@@ -457,7 +453,6 @@ std::unique_ptr<Responder> Receiver::setResponder(
     if (responderOutBuf_ == nullptr) {
       responderOutBufLen_ = 0;
       responders_ = nullptr;
-      enableIRQs();
       return nullptr;
     }
     responderOutBufLen_ = outBufSize;
@@ -467,7 +462,6 @@ std::unique_ptr<Responder> Receiver::setResponder(
   // correct size
   std::unique_ptr<Responder> old{std::move(responders_[startCode])};
   responders_[startCode] = std::move(r);
-  enableIRQs();
   if (old == nullptr) {
     responderCount_++;
   }

@@ -266,6 +266,21 @@ class Receiver final : public TeensyDMX {
     kIdle,   // The end of data for one packet has been reached
   };
 
+  // Interrupt lock that uses RAII to disable and enable interrupts.
+  class Lock final {
+   public:
+    Lock(const Receiver &r) : r_(r) {
+      r_.disableIRQs();
+    }
+
+    ~Lock() {
+      r_.enableIRQs();
+    }
+
+   private:
+    const Receiver &r_;
+  };
+
   // The maximum allowed packet time for receivers, either BREAK plus data,
   // or BREAK to BREAK, in microseconds.
   static constexpr uint32_t kMaxDMXPacketTime = 1250000;
@@ -625,6 +640,21 @@ class Sender final : public TeensyDMX {
     kBreak,  // Need to transmit a break
     kData,   // Need to transmit data
     kIdle,   // The end of data for one packet has been reached
+  };
+
+  // Interrupt lock that uses RAII to disable and enable interrupts.
+  class Lock final {
+   public:
+    Lock(const Sender &s) : s_(s) {
+      s_.disableIRQs();
+    }
+
+    ~Lock() {
+      s_.enableIRQs();
+    }
+
+   private:
+    const Sender &s_;
   };
 
   // The minimum allowed packet time for senders, either BREAK plus data,
