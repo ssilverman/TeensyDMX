@@ -2,6 +2,14 @@
 
 This document details the changes between each release.
 
+## [3.3.0]
+
+### Changed
+* The `main.cpp` example program now uses a smart pointer for the current
+  sketch, `currSketch`.
+* Responders are now passed as smart pointers instead of raw pointers to
+  `Receiver::setResponder`.
+
 ## [3.2.0]
 
 ### Added
