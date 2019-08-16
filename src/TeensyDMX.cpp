@@ -17,26 +17,31 @@ int serialIndex(HardwareSerial &uart) {
     return 0;
   }
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
   if (&uart == &Serial2) {
     return 1;
   }
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
   if (&uart == &Serial3) {
     return 2;
   }
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+
 #ifdef HAS_KINETISK_UART3
   if (&uart == &Serial4) {
     return 3;
   }
 #endif  // HAS_KINETISK_UART3
+
 #ifdef HAS_KINETISK_UART4
   if (&uart == &Serial5) {
     return 4;
   }
 #endif  // HAS_KINETISK_UART4
+
 #if defined(HAS_KINETISK_UART5)
   if (&uart == &Serial6) {
     return 5;

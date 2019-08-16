@@ -107,26 +107,31 @@ void Sender::begin() {
       ACTIVATE_UART_TX_SERIAL(0)
       break;
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       ACTIVATE_UART_TX_SERIAL(1)
       break;
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       ACTIVATE_UART_TX_SERIAL(2)
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+
 #ifdef HAS_KINETISK_UART3
     case 3:
       ACTIVATE_UART_TX_SERIAL(3)
       break;
 #endif  // HAS_KINETISK_UART3
+
 #ifdef HAS_KINETISK_UART4
     case 4:
       ACTIVATE_UART_TX_SERIAL(4)
       break;
 #endif  // HAS_KINETISK_UART4
+
 #if defined(HAS_KINETISK_UART5)
     case 5:
       ACTIVATE_UART_TX_SERIAL(5)
@@ -260,24 +265,43 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
       if (!transmitting_) {
         switch (serialIndex_) {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
-          case 0: UART0_C2 = UART_C2_TX_ACTIVE; break;
+          case 0:
+            UART0_C2 = UART_C2_TX_ACTIVE;
+            break;
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
-          case 1: UART1_C2 = UART_C2_TX_ACTIVE; break;
+          case 1:
+            UART1_C2 = UART_C2_TX_ACTIVE;
+            break;
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
-          case 2: UART2_C2 = UART_C2_TX_ACTIVE; break;
+          case 2:
+            UART2_C2 = UART_C2_TX_ACTIVE;
+            break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+
 #ifdef HAS_KINETISK_UART3
-          case 3: UART3_C2 = UART_C2_TX_ACTIVE; break;
+          case 3:
+            UART3_C2 = UART_C2_TX_ACTIVE;
+            break;
 #endif  // HAS_KINETISK_UART3
+
 #ifdef HAS_KINETISK_UART4
-          case 4: UART4_C2 = UART_C2_TX_ACTIVE; break;
+          case 4:
+            UART4_C2 = UART_C2_TX_ACTIVE;
+            break;
 #endif  // HAS_KINETISK_UART4
+
 #if defined(HAS_KINETISK_UART5)
-          case 5: UART5_C2 = UART_C2_TX_ACTIVE; break;
+          case 5:
+            UART5_C2 = UART_C2_TX_ACTIVE;
+            break;
 #elif defined(HAS_KINETISK_LPUART0)
-          case 5: LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE; break;
+          case 5:
+            LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
 #endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
         }
       }
@@ -324,26 +348,31 @@ void Sender::disableIRQs() const {
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
       break;
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
       break;
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+
 #ifdef HAS_KINETISK_UART3
     case 3:
       NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
       break;
 #endif  // HAS_KINETISK_UART3
+
 #ifdef HAS_KINETISK_UART4
     case 4:
       NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
       break;
 #endif  // HAS_KINETISK_UART4
+
 #if defined(HAS_KINETISK_UART5)
     case 5:
       NVIC_DISABLE_IRQ(IRQ_UART5_STATUS);
@@ -366,26 +395,31 @@ void Sender::enableIRQs() const {
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
       break;
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       NVIC_ENABLE_IRQ(IRQ_UART1_STATUS);
       break;
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       NVIC_ENABLE_IRQ(IRQ_UART2_STATUS);
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+
 #ifdef HAS_KINETISK_UART3
     case 3:
       NVIC_ENABLE_IRQ(IRQ_UART3_STATUS);
       break;
 #endif  // HAS_KINETISK_UART3
+
 #ifdef HAS_KINETISK_UART4
     case 4:
       NVIC_ENABLE_IRQ(IRQ_UART4_STATUS);
       break;
 #endif  // HAS_KINETISK_UART4
+
 #if defined(HAS_KINETISK_UART5)
     case 5:
       NVIC_ENABLE_IRQ(IRQ_UART5_STATUS);
