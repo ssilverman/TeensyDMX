@@ -5,6 +5,7 @@
 
 // C++ includes
 #include <cstring>
+#include <utility>
 
 // Project includes
 #include "Responder.h"
@@ -82,9 +83,7 @@ Receiver::Receiver(HardwareSerial &uart)
       packetTimeoutCount_(0),
       framingErrorCount_(0),
       shortPacketCount_(0),
-      responders_(nullptr),
       responderCount_(0),
-      responderOutBuf_(nullptr),
       responderOutBufLen_{0},
       setTXNotRXFunc_(nullptr) {
   switch(serialIndex_) {
@@ -143,13 +142,6 @@ Receiver::Receiver(HardwareSerial &uart)
 
 Receiver::~Receiver() {
   end();
-
-  if (responderOutBuf_ != nullptr) {
-    delete[] responderOutBuf_;
-  }
-  if (responders_ != nullptr) {
-    delete[] responders_;
-  }
 }
 
 // Must define ACTIVATE_UART_RX_SERIAL_ERROR_N
@@ -416,59 +408,56 @@ uint8_t Receiver::get(int channel) const {
   return b;
 }
 
-Responder *Receiver::setResponder(uint8_t startCode, Responder *r) {
+std::unique_ptr<Responder> Receiver::setResponder(
+    uint8_t startCode, std::unique_ptr<Responder> r) {
   // For a null responder, delete any current one for this start code
   if (r == nullptr) {
     if (responders_ == nullptr) {
       return nullptr;
     }
 
+    disableIRQs();
+
     // Replace any previous responder
-    Responder *old = responders_[startCode];
+    std::unique_ptr<Responder> old{std::move(responders_[startCode])};
     if (old != nullptr) {
       responderCount_--;
-      responders_[startCode] = nullptr;
     }
 
     // When no more responders, delete all the buffers
     if (responderCount_ == 0) {
-      if (responderOutBuf_ != nullptr) {
-        delete[] responderOutBuf_;
-        responderOutBuf_ = nullptr;
-      }
-      delete[] responders_;
+      responderOutBuf_ = nullptr;
       responders_ = nullptr;
     }
 
+    enableIRQs();
+
     return old;
   }
+
+  disableIRQs();
 
   // Allocate this first because it's done once. The output buffer may get
   // reallocated, and so letting that be the last thing deleted avoids
   // potential fragmentation.
   if (responders_ == nullptr) {
-    responders_ = new Responder *[256];
+    responders_.reset(new std::unique_ptr<Responder>[256]);
     // Allocation may have failed on small systems
     if (responders_ == nullptr) {
+      enableIRQs();
       return nullptr;
-    }
-    // Initialize the array
-    for (int i = 0; i < 256; i++) {
-      responders_[i] = nullptr;
     }
   }
 
   // Initialize the output buffer
   int outBufSize = r->outputBufferSize();
   if (responderOutBuf_ == nullptr || responderOutBufLen_ < outBufSize) {
-    if (responderOutBuf_ != nullptr) {
-      delete[] responderOutBuf_;
-    }
-    responderOutBuf_ = new uint8_t[outBufSize];
+    responderOutBuf_.reset(new uint8_t[outBufSize]);
     // Allocation may have failed on small systems
     if (responderOutBuf_ == nullptr) {
       responderOutBufLen_ = 0;
-      delete[] responders_;
+      responders_ = nullptr;
+      enableIRQs();
       return nullptr;
     }
     responderOutBufLen_ = outBufSize;
@@ -476,8 +465,9 @@ Responder *Receiver::setResponder(uint8_t startCode, Responder *r) {
 
   // If a responder is already set then the output buffer should be the
   // correct size
-  Responder *old = responders_[startCode];
-  responders_[startCode] = r;
+  std::unique_ptr<Responder> old{std::move(responders_[startCode])};
+  responders_[startCode] = std::move(r);
+  enableIRQs();
   if (old == nullptr) {
     responderCount_++;
   }
@@ -509,7 +499,7 @@ void Receiver::completePacket() {
 
   // Let the responder, if any, process the packet
   if (responders_ != nullptr) {
-    Responder *r = responders_[inactiveBuf_[0]];
+    Responder *r = responders_[inactiveBuf_[0]].get();
     if (r != nullptr) {
       r->receivePacket(inactiveBuf_, packetSize_);
       if (r->eatPacket()) {
@@ -653,7 +643,7 @@ void Receiver::receiveByte(uint8_t b) {
   // See if a responder needs to process the byte and respond
   Responder *r = nullptr;
   if (responders_ != nullptr) {
-    r = responders_[activeBuf_[0]];
+    r = responders_[activeBuf_[0]].get();
   }
   if (r == nullptr) {
     if (packetFull) {
@@ -663,7 +653,8 @@ void Receiver::receiveByte(uint8_t b) {
   }
 
   // Let the responder process the data
-  int respLen = r->processByte(activeBuf_, activeBufIndex_, responderOutBuf_);
+  int respLen =
+      r->processByte(activeBuf_, activeBufIndex_, responderOutBuf_.get());
   if (respLen <= 0) {
     if (packetFull) {
       // If the responder isn't done by now, it's too late for this packet
@@ -709,7 +700,7 @@ void Receiver::receiveByte(uint8_t b) {
       delayMicroseconds(delay);
     }
   }
-  txFunc_(responderOutBuf_, respLen);
+  txFunc_(responderOutBuf_.get(), respLen);
   setTXNotRX(false);
 }
 
