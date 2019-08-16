@@ -50,7 +50,7 @@ constexpr uint32_t kMABTime   = 1000000/kBreakBaud * 1;  // In us
 #define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
 // Used by the TX ISRs
-Sender *volatile txInstances[6]{nullptr};
+Sender *volatile txInstances[8]{nullptr};
 
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
@@ -565,7 +565,7 @@ void uart5_tx_isr() {
 #endif  // HAS_KINETISK_UART5
 
 // ---------------------------------------------------------------------------
-//  LPUART0 TX ISR
+//  LPUART0 TX ISR (Serial6)
 // ---------------------------------------------------------------------------
 
 #if defined(HAS_KINETISK_LPUART0)
@@ -585,6 +585,182 @@ void lpuart0_tx_isr() {
 #undef UART_TX_DATA_STATE_5
 
 #endif  // HAS_KINETISK_LPUART0
+
+// ---------------------------------------------------------------------------
+//  LPUART6 TX ISR (Serial1)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART6)
+
+#define UART_TX_DATA_STATE_0 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART6_CTRL, LPUART6_DATA, LPUART_CTRL)
+
+void lpuart6_tx_isr() {
+  uint32_t status = LPUART6_STAT;
+  uint32_t control = LPUART6_CTRL;
+
+  UART_TX(0, LPUART6_CTRL, LPUART6_DATA, LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(LPUART6_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_0
+
+#endif  // HAS_KINETISK_LPUART6
+
+// ---------------------------------------------------------------------------
+//  LPUART4 TX ISR (Serial2)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART4)
+
+#define UART_TX_DATA_STATE_1 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART4_CTRL, LPUART4_DATA, LPUART_CTRL)
+
+void lpuart4_tx_isr() {
+  uint32_t status = LPUART4_STAT;
+  uint32_t control = LPUART4_CTRL;
+
+  UART_TX(1, LPUART4_CTRL, LPUART4_DATA, LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(LPUART4_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_1
+
+#endif  // HAS_KINETISK_LPUART4
+
+// ---------------------------------------------------------------------------
+//  LPUART2 TX ISR (Serial3)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART2)
+
+#define UART_TX_DATA_STATE_2 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART2_CTRL, LPUART2_DATA, LPUART_CTRL)
+
+void lpuart2_tx_isr() {
+  uint32_t status = LPUART2_STAT;
+  uint32_t control = LPUART2_CTRL;
+
+  UART_TX(2, LPUART2_CTRL, LPUART2_DATA, LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(LPUART2_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_2
+
+#endif  // HAS_KINETISK_LPUART2
+
+// ---------------------------------------------------------------------------
+//  LPUART3 TX ISR (Serial4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART3)
+
+#define UART_TX_DATA_STATE_3 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART3_CTRL, LPUART3_DATA, LPUART_CTRL)
+
+void lpuart3_tx_isr() {
+  uint32_t status = LPUART3_STAT;
+  uint32_t control = LPUART3_CTRL;
+
+  UART_TX(3, LPUART3_CTRL, LPUART3_DATA, LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(LPUART3_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_3
+
+#endif  // HAS_KINETISK_LPUART3
+
+// ---------------------------------------------------------------------------
+//  LPUART8 TX ISR (Serial5)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART8)
+
+#define UART_TX_DATA_STATE_4 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART8_CTRL, LPUART8_DATA, LPUART_CTRL)
+
+void lpuart8_tx_isr() {
+  uint32_t status = LPUART8_STAT;
+  uint32_t control = LPUART8_CTRL;
+
+  UART_TX(4, LPUART8_CTRL, LPUART8_DATA, LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(LPUART8_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_4
+
+#endif  // HAS_KINETISK_LPUART8
+
+// ---------------------------------------------------------------------------
+//  LPUART1 TX ISR (Serial6)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART1)
+
+#define UART_TX_DATA_STATE_5 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART1_CTRL, LPUART1_DATA, LPUART_CTRL)
+
+void lpuart1_tx_isr() {
+  uint32_t status = LPUART1_STAT;
+  uint32_t control = LPUART1_CTRL;
+
+  UART_TX(5, LPUART1_CTRL, LPUART1_DATA, LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(LPUART1_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_5
+
+#endif  // HAS_KINETISK_LPUART1
+
+// ---------------------------------------------------------------------------
+//  LPUART7 TX ISR (Serial7)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART7)
+
+#define UART_TX_DATA_STATE_6 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART7_CTRL, LPUART7_DATA, LPUART_CTRL)
+
+void lpuart7_tx_isr() {
+  uint32_t status = LPUART7_STAT;
+  uint32_t control = LPUART7_CTRL;
+
+  UART_TX(6, LPUART7_CTRL, LPUART7_DATA, LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(LPUART7_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_6
+
+#endif  // HAS_KINETISK_LPUART7
+
+// ---------------------------------------------------------------------------
+//  LPUART5 TX ISR (Serial8)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART5)
+
+#define UART_TX_DATA_STATE_7 \
+  UART_TX_DATA_STATE_NO_FIFO(LPUART5_CTRL, LPUART5_DATA, LPUART_CTRL)
+
+void lpuart5_tx_isr() {
+  uint32_t status = LPUART5_STAT;
+  uint32_t control = LPUART5_CTRL;
+
+  UART_TX(7, LPUART5_CTRL, LPUART5_DATA, LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(LPUART5_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_7
+
+#endif  // HAS_KINETISK_LPUART5
 
 }  // namespace teensydmx
 }  // namespace qindesign

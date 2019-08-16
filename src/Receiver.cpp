@@ -61,7 +61,7 @@ void lpuart0_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_LPUART0
 
 // Used by the RX ISRs.
-Receiver *volatile rxInstances[6]{nullptr};
+Receiver *volatile rxInstances[8]{nullptr};
 
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
@@ -1201,7 +1201,7 @@ void uart5_rx_isr() {
 #endif  // HAS_KINETISK_UART5
 
 // ---------------------------------------------------------------------------
-//  LPUART0 RX ISR
+//  LPUART0 RX ISR (Serial6)
 // ---------------------------------------------------------------------------
 
 #if defined(HAS_KINETISK_LPUART0)
@@ -1225,6 +1225,214 @@ void lpuart0_rx_isr() {
 #undef UART_RX_TEST_R8
 
 #endif  // HAS_KINETISK_LPUART0
+
+// ---------------------------------------------------------------------------
+//  LPUART6 RX ISR (Serial1)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART6)
+
+#define UART_RX_CLEAR_ERRORS_0 \
+  LPUART6_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_0
+#define UART_RX_0 UART_RX_NO_FIFO(0, LPUART_STAT, LPUART6_DATA)
+#define UART_RX_CLEAR_IDLE_0 LPUART6_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_TEST_R8 ((LPUART6_CTRL & LPUART_CTRL_R8) != 0)
+
+void lpuart6_rx_isr() {
+  uint32_t status = LPUART6_STAT;
+  UART_RX(0, LPUART_STAT, LPUART6_DATA)
+}
+
+#undef UART_RX_CLEAR_ERRORS_0
+#undef UART_RX_ERROR_FLUSH_FIFO_0
+#undef UART_RX_0
+#undef UART_RX_CLEAR_IDLE_0
+#undef UART_RX_TEST_R8
+
+#endif  // IMXRT_LPUART6
+
+// ---------------------------------------------------------------------------
+//  LPUART4 RX ISR (Serial2)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART4)
+
+#define UART_RX_CLEAR_ERRORS_1 \
+  LPUART4_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_1
+#define UART_RX_1 UART_RX_NO_FIFO(1, LPUART_STAT, LPUART4_DATA)
+#define UART_RX_CLEAR_IDLE_1 LPUART4_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_TEST_R8 ((LPUART4_CTRL & LPUART_CTRL_R8) != 0)
+
+void lpuart4_rx_isr() {
+  uint32_t status = LPUART4_STAT;
+  UART_RX(1, LPUART_STAT, LPUART4_DATA)
+}
+
+#undef UART_RX_CLEAR_ERRORS_1
+#undef UART_RX_ERROR_FLUSH_FIFO_1
+#undef UART_RX_1
+#undef UART_RX_CLEAR_IDLE_1
+#undef UART_RX_TEST_R8
+
+#endif  // IMXRT_LPUART4
+
+// ---------------------------------------------------------------------------
+//  LPUART2 RX ISR (Serial3)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART2)
+
+#define UART_RX_CLEAR_ERRORS_2 \
+  LPUART2_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_2
+#define UART_RX_2 UART_RX_NO_FIFO(2, LPUART_STAT, LPUART2_DATA)
+#define UART_RX_CLEAR_IDLE_2 LPUART2_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_TEST_R8 ((LPUART2_CTRL & LPUART_CTRL_R8) != 0)
+
+void lpuart2_rx_isr() {
+  uint32_t status = LPUART2_STAT;
+  UART_RX(2, LPUART_STAT, LPUART2_DATA)
+}
+
+#undef UART_RX_CLEAR_ERRORS_2
+#undef UART_RX_ERROR_FLUSH_FIFO_2
+#undef UART_RX_2
+#undef UART_RX_CLEAR_IDLE_2
+#undef UART_RX_TEST_R8
+
+#endif  // IMXRT_LPUART2
+
+// ---------------------------------------------------------------------------
+//  LPUART3 RX ISR (Serial4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART3)
+
+#define UART_RX_CLEAR_ERRORS_3 \
+  LPUART3_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_3
+#define UART_RX_3 UART_RX_NO_FIFO(3, LPUART_STAT, LPUART3_DATA)
+#define UART_RX_CLEAR_IDLE_3 LPUART3_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_TEST_R8 ((LPUART3_CTRL & LPUART_CTRL_R8) != 0)
+
+void lpuart3_rx_isr() {
+  uint32_t status = LPUART3_STAT;
+  UART_RX(3, LPUART_STAT, LPUART3_DATA)
+}
+
+#undef UART_RX_CLEAR_ERRORS_3
+#undef UART_RX_ERROR_FLUSH_FIFO_3
+#undef UART_RX_3
+#undef UART_RX_CLEAR_IDLE_3
+#undef UART_RX_TEST_R8
+
+#endif  // IMXRT_LPUART3
+
+// ---------------------------------------------------------------------------
+//  LPUART8 RX ISR (Serial5)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART8)
+
+#define UART_RX_CLEAR_ERRORS_4 \
+  LPUART8_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_4
+#define UART_RX_4 UART_RX_NO_FIFO(4, LPUART_STAT, LPUART8_DATA)
+#define UART_RX_CLEAR_IDLE_4 LPUART8_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_TEST_R8 ((LPUART8_CTRL & LPUART_CTRL_R8) != 0)
+
+void lpuart8_rx_isr() {
+  uint32_t status = LPUART8_STAT;
+  UART_RX(4, LPUART_STAT, LPUART8_DATA)
+}
+
+#undef UART_RX_CLEAR_ERRORS_4
+#undef UART_RX_ERROR_FLUSH_FIFO_4
+#undef UART_RX_4
+#undef UART_RX_CLEAR_IDLE_4
+#undef UART_RX_TEST_R8
+
+#endif  // IMXRT_LPUART8
+
+// ---------------------------------------------------------------------------
+//  LPUART1 RX ISR (Serial6)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART1)
+
+#define UART_RX_CLEAR_ERRORS_5 \
+  LPUART1_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_5
+#define UART_RX_5 UART_RX_NO_FIFO(5, LPUART_STAT, LPUART1_DATA)
+#define UART_RX_CLEAR_IDLE_5 LPUART1_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_TEST_R8 ((LPUART1_CTRL & LPUART_CTRL_R8) != 0)
+
+void lpuart1_rx_isr() {
+  uint32_t status = LPUART1_STAT;
+  UART_RX(5, LPUART_STAT, LPUART1_DATA)
+}
+
+#undef UART_RX_CLEAR_ERRORS_5
+#undef UART_RX_ERROR_FLUSH_FIFO_5
+#undef UART_RX_5
+#undef UART_RX_CLEAR_IDLE_5
+#undef UART_RX_TEST_R8
+
+#endif  // IMXRT_LPUART1
+
+// ---------------------------------------------------------------------------
+//  LPUART7 RX ISR (Serial7)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART7)
+
+#define UART_RX_CLEAR_ERRORS_6 \
+  LPUART7_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_6
+#define UART_RX_6 UART_RX_NO_FIFO(6, LPUART_STAT, LPUART7_DATA)
+#define UART_RX_CLEAR_IDLE_6 LPUART7_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_TEST_R8 ((LPUART7_CTRL & LPUART_CTRL_R8) != 0)
+
+void lpuart7_rx_isr() {
+  uint32_t status = LPUART7_STAT;
+  UART_RX(6, LPUART_STAT, LPUART7_DATA)
+}
+
+#undef UART_RX_CLEAR_ERRORS_6
+#undef UART_RX_ERROR_FLUSH_FIFO_6
+#undef UART_RX_6
+#undef UART_RX_CLEAR_IDLE_6
+#undef UART_RX_TEST_R8
+
+#endif  // IMXRT_LPUART7
+
+// ---------------------------------------------------------------------------
+//  LPUART5 RX ISR (Serial8)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART5)
+
+#define UART_RX_CLEAR_ERRORS_7 \
+  LPUART5_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
+#define UART_RX_ERROR_FLUSH_FIFO_7
+#define UART_RX_7 UART_RX_NO_FIFO(7, LPUART_STAT, LPUART5_DATA)
+#define UART_RX_CLEAR_IDLE_7 LPUART5_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_TEST_R8 ((LPUART5_CTRL & LPUART_CTRL_R8) != 0)
+
+void lpuart5_rx_isr() {
+  uint32_t status = LPUART5_STAT;
+  UART_RX(7, LPUART_STAT, LPUART5_DATA)
+}
+
+#undef UART_RX_CLEAR_ERRORS_7
+#undef UART_RX_ERROR_FLUSH_FIFO_7
+#undef UART_RX_7
+#undef UART_RX_CLEAR_IDLE_7
+#undef UART_RX_TEST_R8
+
+#endif  // IMXRT_LPUART5
 
 }  // namespace teensydmx
 }  // namespace qindesign

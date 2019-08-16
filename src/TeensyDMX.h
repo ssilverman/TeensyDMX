@@ -63,6 +63,46 @@ void lpuart0_rx_isr();
 void lpuart0_tx_isr();
 #endif  // HAS_KINETISK_LPUART0
 
+#ifdef IMXRT_LPUART6
+void lpuart6_rx_isr();
+void lpuart6_tx_isr();
+#endif  // IMXRT_LPUART6
+
+#ifdef IMXRT_LPUART4
+void lpuart4_rx_isr();
+void lpuart4_tx_isr();
+#endif  // IMXRT_LPUART4
+
+#ifdef IMXRT_LPUART2
+void lpuart2_rx_isr();
+void lpuart2_tx_isr();
+#endif  // IMXRT_LPUART2
+
+#ifdef IMXRT_LPUART3
+void lpuart3_rx_isr();
+void lpuart3_tx_isr();
+#endif  // IMXRT_LPUART3
+
+#ifdef IMXRT_LPUART8
+void lpuart8_rx_isr();
+void lpuart8_tx_isr();
+#endif  // IMXRT_LPUART8
+
+#ifdef IMXRT_LPUART1
+void lpuart1_rx_isr();
+void lpuart1_tx_isr();
+#endif  // IMXRT_LPUART1
+
+#ifdef IMXRT_LPUART7
+void lpuart7_rx_isr();
+void lpuart7_tx_isr();
+#endif  // IMXRT_LPUART7
+
+#ifdef IMXRT_LPUART5
+void lpuart5_rx_isr();
+void lpuart5_tx_isr();
+#endif  // IMXRT_LPUART5
+
 // The maximum size of a DMX packet, including the start code.
 constexpr int kMaxDMXPacketSize = 513;
 
@@ -420,6 +460,38 @@ class Receiver final : public TeensyDMX {
 #if defined(HAS_KINETISK_LPUART0)
   friend void lpuart0_rx_isr();
 #endif  // HAS_KINETISK_LPUART0
+
+#ifdef IMXRT_LPUART6
+  friend void lpuart6_rx_isr();
+#endif  // IMXRT_LPUART6
+
+#ifdef IMXRT_LPUART4
+  friend void lpuart4_rx_isr();
+#endif  // IMXRT_LPUART4
+
+#ifdef IMXRT_LPUART2
+  friend void lpuart2_rx_isr();
+#endif  // IMXRT_LPUART2
+
+#ifdef IMXRT_LPUART3
+  friend void lpuart3_rx_isr();
+#endif  // IMXRT_LPUART3
+
+#ifdef IMXRT_LPUART8
+  friend void lpuart8_rx_isr();
+#endif  // IMXRT_LPUART8
+
+#ifdef IMXRT_LPUART1
+  friend void lpuart1_rx_isr();
+#endif  // IMXRT_LPUART1
+
+#ifdef IMXRT_LPUART7
+  friend void lpuart7_rx_isr();
+#endif  // IMXRT_LPUART7
+
+#ifdef IMXRT_LPUART5
+  friend void lpuart5_rx_isr();
+#endif  // IMXRT_LPUART5
 };
 
 // ---------------------------------------------------------------------------
@@ -703,6 +775,38 @@ class Sender final : public TeensyDMX {
 #if defined(HAS_KINETISK_LPUART0)
   friend void lpuart0_tx_isr();
 #endif  // HAS_KINETISK_LPUART0
+
+#ifdef IMXRT_LPUART6
+  friend void lpuart6_tx_isr();
+#endif  // IMXRT_LPUART6
+
+#ifdef IMXRT_LPUART4
+  friend void lpuart4_tx_isr();
+#endif  // IMXRT_LPUART4
+
+#ifdef IMXRT_LPUART2
+  friend void lpuart2_tx_isr();
+#endif  // IMXRT_LPUART2
+
+#ifdef IMXRT_LPUART3
+  friend void lpuart3_tx_isr();
+#endif  // IMXRT_LPUART3
+
+#ifdef IMXRT_LPUART8
+  friend void lpuart8_tx_isr();
+#endif  // IMXRT_LPUART8
+
+#ifdef IMXRT_LPUART1
+  friend void lpuart1_tx_isr();
+#endif  // IMXRT_LPUART1
+
+#ifdef IMXRT_LPUART7
+  friend void lpuart7_tx_isr();
+#endif  // IMXRT_LPUART7
+
+#ifdef IMXRT_LPUART5
+  friend void lpuart5_tx_isr();
+#endif  // IMXRT_LPUART5
 };
 
 }  // namespace teensydmx
