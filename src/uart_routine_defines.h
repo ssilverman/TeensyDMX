@@ -33,6 +33,7 @@
 
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Needs to have UART_TX_DATA_STATE_N defined.
+// N is the index of the instance and not necessarily the register.
 #define UART_TX(N, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)              \
   Sender *instance = txInstances[N];                                  \
   if (instance == nullptr) {                                          \
@@ -167,6 +168,7 @@
 // Needs to have UART_RX_CLEAR_ERRORS_N defined.
 // Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
 // Needs to have UART_RX_N defined.
+// N is the index of the instance and not necessarily the register.
 #define UART_RX(N, STAT_PREFIX, DATA)                                      \
   Receiver *instance = rxInstances[N];                                     \
   if (instance == nullptr) {                                               \
