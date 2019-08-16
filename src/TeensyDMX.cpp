@@ -12,15 +12,21 @@ namespace teensydmx {
 // Returns the index given a serial port, or -1 if the serial port is
 // not supported.
 int serialIndex(HardwareSerial &uart) {
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
   if (&uart == &Serial1) {
     return 0;
   }
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
   if (&uart == &Serial2) {
     return 1;
   }
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
   if (&uart == &Serial3) {
     return 2;
   }
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 #ifdef HAS_KINETISK_UART3
   if (&uart == &Serial4) {
     return 3;

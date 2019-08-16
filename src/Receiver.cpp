@@ -25,12 +25,18 @@ constexpr uint32_t kCharTime    = 11 * kBitTime;         // In microseconds
 
 // Routines that do raw transmit
 // These don't affect the transmitter
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
 void uart0_tx(const uint8_t *b, int len);
 void uart0_tx_break(int count, uint32_t mabTime);
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
 void uart1_tx(const uint8_t *b, int len);
 void uart1_tx_break(int count, uint32_t mabTime);
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
 void uart2_tx(const uint8_t *b, int len);
 void uart2_tx_break(int count, uint32_t mabTime);
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 #ifdef HAS_KINETISK_UART3
 void uart3_tx(const uint8_t *b, int len);
 void uart3_tx_break(int count, uint32_t mabTime);
@@ -76,18 +82,24 @@ Receiver::Receiver(HardwareSerial &uart)
       responderOutBufLen_{0},
       setTXNotRXFunc_(nullptr) {
   switch(serialIndex_) {
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
     case 0:
       txFunc_ = uart0_tx;
       txBreakFunc_ = uart0_tx_break;
       break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       txFunc_ = uart1_tx;
       txBreakFunc_ = uart1_tx_break;
       break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       txFunc_ = uart2_tx;
       txBreakFunc_ = uart2_tx_break;
       break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 #ifdef HAS_KINETISK_UART3
     case 3:
       txFunc_ = uart3_tx;
@@ -179,35 +191,47 @@ void Receiver::begin() {
   setConnected(false);
 
   switch (serialIndex_) {
+#if defined(HAS_KINETISK_UART0)
     case 0:
-#ifndef HAS_KINETISL_UART0
 #define ACTIVATE_UART_RX_SERIAL_ERROR_0 ACTIVATE_UART_RX_SERIAL_ERROR(0)
-#else
-#define ACTIVATE_UART_RX_SERIAL_ERROR_0
-#endif  // !HAS_KINETISL_UART0
       ACTIVATE_UART_RX_SERIAL(0)
 #undef ACTIVATE_UART_RX_SERIAL_ERROR_0
       break;
+#elif defined(HAS_KINETISL_UART0)
+    case 0:
+#define ACTIVATE_UART_RX_SERIAL_ERROR_0
+      ACTIVATE_UART_RX_SERIAL(0)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_0
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
 
+#if defined(HAS_KINETISK_UART1)
     case 1:
-#ifndef HAS_KINETISL_UART1
 #define ACTIVATE_UART_RX_SERIAL_ERROR_1 ACTIVATE_UART_RX_SERIAL_ERROR(1)
-#else
-#define ACTIVATE_UART_RX_SERIAL_ERROR_1
-#endif  // !HAS_KINETISL_UART1
       ACTIVATE_UART_RX_SERIAL(1)
 #undef ACTIVATE_UART_RX_SERIAL_ERROR_1
       break;
+#elif defined(HAS_KINETISL_UART1)
+    case 1:
+#define ACTIVATE_UART_RX_SERIAL_ERROR_1
+      ACTIVATE_UART_RX_SERIAL(1)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_1
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
 
+#if defined(HAS_KINETISK_UART2)
     case 2:
-#ifndef HAS_KINETISL_UART2
 #define ACTIVATE_UART_RX_SERIAL_ERROR_2 ACTIVATE_UART_RX_SERIAL_ERROR(2)
-#else
-#define ACTIVATE_UART_RX_SERIAL_ERROR_2
-#endif  // !HAS_KINETISL_UART2
       ACTIVATE_UART_RX_SERIAL(2)
 #undef ACTIVATE_UART_RX_SERIAL_ERROR_2
       break;
+#elif defined(HAS_KINETISL_UART2)
+    case 2:
+#define ACTIVATE_UART_RX_SERIAL_ERROR_2
+      ACTIVATE_UART_RX_SERIAL(2)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_2
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
 #ifdef HAS_KINETISK_UART3
     case 3:
@@ -262,25 +286,38 @@ void Receiver::end() {
   uart_.end();
 
   switch (serialIndex_) {
+#if defined(HAS_KINETISK_UART0)
     case 0:
       // Disable UART0 interrupt on frame error
       UART0_C3 &= ~UART_C3_FEIE;
-#ifndef HAS_KINETISL_UART0
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
-#endif  // !HAS_KINETISL_UART0
       break;
+#elif defined(HAS_KINETISL_UART0)
+    case 0:
+      // Disable UART0 interrupt on frame error
+      UART0_C3 &= ~UART_C3_FEIE;
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#if defined(HAS_KINETISK_UART1)
     case 1:
       UART1_C3 &= ~UART_C3_FEIE;
-#ifndef HAS_KINETISL_UART1
       NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
-#endif  // !HAS_KINETISL_UART1
       break;
+#elif defined(HAS_KINETISL_UART1)
+    case 1:
+      UART1_C3 &= ~UART_C3_FEIE;
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#if defined(HAS_KINETISK_UART2)
     case 2:
       UART2_C3 &= ~UART_C3_FEIE;
-#ifndef HAS_KINETISL_UART2
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
-#endif  // !HAS_KINETISL_UART2
       break;
+#elif defined(HAS_KINETISL_UART2)
+    case 2:
+      UART2_C3 &= ~UART_C3_FEIE;
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 #ifdef HAS_KINETISK_UART3
     case 3:
       UART3_C3 &= ~UART_C3_FEIE;
@@ -678,24 +715,36 @@ void Receiver::disableIRQs() const {
     return;
   }
   switch (serialIndex_) {
+#if defined(HAS_KINETISK_UART0)
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
-#ifndef HAS_KINETISL_UART0
       NVIC_DISABLE_IRQ(IRQ_UART0_ERROR);
-#endif  // !HAS_KINETISL_UART0
       break;
+#elif defined(HAS_KINETISL_UART0)
+    case 0:
+      NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#if defined(HAS_KINETISK_UART1)
     case 1:
       NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
-#ifndef HAS_KINETISL_UART1
       NVIC_DISABLE_IRQ(IRQ_UART1_ERROR);
-#endif  // !HAS_KINETISL_UART1
       break;
+#elif defined(HAS_KINETISL_UART1)
+    case 1:
+      NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#if defined(HAS_KINETISK_UART2)
     case 2:
       NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
-#ifndef HAS_KINETISL_UART2
       NVIC_DISABLE_IRQ(IRQ_UART2_ERROR);
-#endif  // !HAS_KINETISL_UART2
       break;
+#elif defined(HAS_KINETISL_UART2)
+    case 2:
+      NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 #ifdef HAS_KINETISK_UART3
     case 3:
       NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
@@ -726,24 +775,36 @@ void Receiver::enableIRQs() const {
     return;
   }
   switch (serialIndex_) {
+#if defined(HAS_KINETISK_UART0)
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
-#ifndef HAS_KINETISL_UART0
       NVIC_ENABLE_IRQ(IRQ_UART0_ERROR);
-#endif  // !HAS_KINETISL_UART0
       break;
+#elif defined(HAS_KINETISL_UART0)
+    case 0:
+      NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#if defined(HAS_KINETISK_UART1)
     case 1:
       NVIC_ENABLE_IRQ(IRQ_UART1_STATUS);
-#ifndef HAS_KINETISL_UART1
       NVIC_ENABLE_IRQ(IRQ_UART1_ERROR);
-#endif  // !HAS_KINETISL_UART1
       break;
+#elif defined(HAS_KINETISL_UART1)
+    case 1:
+      NVIC_ENABLE_IRQ(IRQ_UART1_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#if defined(HAS_KINETISK_UART2)
     case 2:
       NVIC_ENABLE_IRQ(IRQ_UART2_STATUS);
-#ifndef HAS_KINETISL_UART2
       NVIC_ENABLE_IRQ(IRQ_UART2_ERROR);
-#endif  // !HAS_KINETISL_UART2
       break;
+#elif defined(HAS_KINETISL_UART2)
+    case 2:
+      NVIC_ENABLE_IRQ(IRQ_UART2_STATUS);
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 #ifdef HAS_KINETISK_UART3
     case 3:
       NVIC_ENABLE_IRQ(IRQ_UART3_STATUS);
