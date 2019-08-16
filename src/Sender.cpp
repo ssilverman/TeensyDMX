@@ -568,10 +568,11 @@ void uart5_tx_isr() {
 //  LPUART0 TX ISR
 // ---------------------------------------------------------------------------
 
+#if defined(HAS_KINETISK_LPUART0)
+
 #define UART_TX_DATA_STATE_5 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL)
 
-#if defined(HAS_KINETISK_LPUART0)
 void lpuart0_tx_isr() {
   uint32_t status = LPUART0_STAT;
   uint32_t control = LPUART0_CTRL;
@@ -580,6 +581,9 @@ void lpuart0_tx_isr() {
 
   UART_TX_COMPLETE(LPUART0_CTRL, LPUART_CTRL, LPUART_STAT)
 }
+
+#undef UART_TX_DATA_STATE_5
+
 #endif  // HAS_KINETISK_LPUART0
 
 }  // namespace teensydmx
