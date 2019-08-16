@@ -393,9 +393,15 @@ class Receiver final : public TeensyDMX {
   void (*txBreakFunc_)(int count, uint32_t mabTime);
 
   // These error ISRs need to access private functions
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
   friend void uart0_rx_isr();
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
   friend void uart1_rx_isr();
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
   friend void uart2_rx_isr();
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 #ifdef HAS_KINETISK_UART3
   friend void uart3_rx_isr();
 #endif  // HAS_KINETISK_UART3
