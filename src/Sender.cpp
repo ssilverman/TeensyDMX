@@ -210,22 +210,20 @@ void Sender::set(int startChannel, const uint8_t *values, int len) {
     return;
   }
 
-  disableIRQs();
+  Lock lock{*this};
   //{
     memcpy(&outputBuf_[startChannel], values, len);
   //}
-  enableIRQs();
 }
 
 void Sender::clear() {
-  disableIRQs();
+  Lock lock{*this};
   //{
     volatile uint8_t *b = outputBuf_;
     for (int i = 0; i < kMaxDMXPacketSize; i++) {
       *(b++) = 0;
     }
   //}
-  enableIRQs();
 }
 
 void Sender::setRefreshRate(float rate) {
@@ -258,7 +256,7 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
   }
 
   // Pausing made transmission INACTIVE
-  disableIRQs();
+  Lock lock{*this};
   //{
     resumeCounter_ = n;
     if (paused_) {
@@ -310,16 +308,14 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
     }
     doneTXFunc_ = doneTXFunc;
   //}
-  enableIRQs();
 }
 
 bool Sender::isTransmitting() const {
   // Check these both atomically
-  disableIRQs();
+  Lock lock{*this};
   //{
     bool state = !paused_ || transmitting_;
   //}
-  enableIRQs();
   return state;
 }
 

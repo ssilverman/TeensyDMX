@@ -18,6 +18,7 @@
 
 // C++ includes
 #include <cstdint>
+#include <memory>
 
 // Other includes
 #include <Arduino.h>
@@ -251,7 +252,8 @@ class Receiver final : public TeensyDMX {
   // happens.
   //
   // Responder functions are called from an ISR.
-  Responder *setResponder(uint8_t startCode, Responder *r);
+  std::shared_ptr<Responder> setResponder(uint8_t startCode,
+                                          std::shared_ptr<Responder> r);
 
   // Sets the setTXNotRX implementation function. This should be called before
   // calling begin().
@@ -302,6 +304,21 @@ class Receiver final : public TeensyDMX {
     kMAB,    // Mark after break
     kData,   // Packet data
     kIdle,   // The end of data for one packet has been reached
+  };
+
+  // Interrupt lock that uses RAII to disable and enable interrupts.
+  class Lock final {
+   public:
+    Lock(const Receiver &r) : r_(r) {
+      r_.disableIRQs();
+    }
+
+    ~Lock() {
+      r_.enableIRQs();
+    }
+
+   private:
+    const Receiver &r_;
   };
 
   // The maximum allowed packet time for receivers, either BREAK plus data,
@@ -417,9 +434,9 @@ class Receiver final : public TeensyDMX {
   volatile uint32_t shortPacketCount_;
 
   // Responders state
-  Responder *volatile *volatile responders_;
+  std::unique_ptr<std::shared_ptr<Responder>[]> responders_;
   int responderCount_;
-  uint8_t *volatile responderOutBuf_;
+  std::unique_ptr<uint8_t[]> responderOutBuf_;
   int responderOutBufLen_;
 
   // Function for enabling/disabling RX and TX.
@@ -695,6 +712,21 @@ class Sender final : public TeensyDMX {
     kBreak,  // Need to transmit a break
     kData,   // Need to transmit data
     kIdle,   // The end of data for one packet has been reached
+  };
+
+  // Interrupt lock that uses RAII to disable and enable interrupts.
+  class Lock final {
+   public:
+    Lock(const Sender &s) : s_(s) {
+      s_.disableIRQs();
+    }
+
+    ~Lock() {
+      s_.enableIRQs();
+    }
+
+   private:
+    const Sender &s_;
   };
 
   // The minimum allowed packet time for senders, either BREAK plus data,
