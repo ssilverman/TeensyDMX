@@ -15,6 +15,7 @@
 // C++ includes
 #include <cstddef>
 #include <cstdint>
+#include <memory>
 
 // Other includes
 #include <Arduino.h>
@@ -110,7 +111,7 @@ constexpr uint8_t kTXPin = 17;
 HardwareSerial &uart = Serial3;
 
 // The current sketch
-Sketch *currSketch = nullptr;
+std::unique_ptr<Sketch> currSketch{std::make_unique<NullSketch>()};
 int currSketchType = -1;
 
 // ---------------------------------------------------------------------------
@@ -183,21 +184,18 @@ void changeSketch(int sketchType) {
   }
 
   // Destroy any current sketch
-  if (currSketch != nullptr) {
-    currSketch->tearDown();
-    delete currSketch;
-  }
+  currSketch->tearDown();
 
   // Create a new sketch
   switch (sketchType) {
     case 'c':
-      currSketch = new Chaser{};
+      currSketch.reset(new Chaser{});
       break;
     case 'f':
-      currSketch = new Flasher{};
+      currSketch.reset(new Flasher{});
       break;
     case 'n':
-      currSketch = new NullSketch{};
+      currSketch.reset(new NullSketch{});
       break;
   }
   currSketchType = sketchType;
