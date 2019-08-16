@@ -120,13 +120,13 @@ void Sender::begin() {
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
     case 3:
       ACTIVATE_UART_TX_SERIAL(3)
       break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
     case 4:
       ACTIVATE_UART_TX_SERIAL(4)
       break;
@@ -282,13 +282,13 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
             break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
           case 3:
             UART3_C2 = UART_C2_TX_ACTIVE;
             break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
           case 4:
             UART4_C2 = UART_C2_TX_ACTIVE;
             break;
@@ -361,13 +361,13 @@ void Sender::disableIRQs() const {
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
     case 3:
       NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
       break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
     case 4:
       NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
       break;
@@ -408,13 +408,13 @@ void Sender::enableIRQs() const {
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
     case 3:
       NVIC_ENABLE_IRQ(IRQ_UART3_STATUS);
       break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
     case 4:
       NVIC_ENABLE_IRQ(IRQ_UART4_STATUS);
       break;
@@ -436,7 +436,7 @@ void Sender::enableIRQs() const {
 //  UART0 TX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART0_FIFO
+#if defined(HAS_KINETISK_UART0_FIFO)
 #define UART_TX_DATA_STATE_0 UART_TX_DATA_STATE_WITH_FIFO(0)
 #else
 #define UART_TX_DATA_STATE_0 \
@@ -458,7 +458,7 @@ void uart0_tx_isr() {
 //  UART1 TX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART1_FIFO
+#if defined(HAS_KINETISK_UART1_FIFO)
 #define UART_TX_DATA_STATE_1 UART_TX_DATA_STATE_WITH_FIFO(1)
 #else
 #define UART_TX_DATA_STATE_1 \
@@ -480,7 +480,7 @@ void uart1_tx_isr() {
 //  UART2 TX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART2_FIFO
+#if defined(HAS_KINETISK_UART2_FIFO)
 #define UART_TX_DATA_STATE_2 UART_TX_DATA_STATE_WITH_FIFO(2)
 #else
 #define UART_TX_DATA_STATE_2 \
@@ -502,7 +502,7 @@ void uart2_tx_isr() {
 //  UART3 TX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
 
 #define UART_TX_DATA_STATE_3 \
   UART_TX_DATA_STATE_NO_FIFO(UART3_C2, UART3_D, UART_C2)
@@ -524,7 +524,7 @@ void uart3_tx_isr() {
 //  UART4 TX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
 
 #define UART_TX_DATA_STATE_4 \
   UART_TX_DATA_STATE_NO_FIFO(UART4_C2, UART4_D, UART_C2)
@@ -546,7 +546,7 @@ void uart4_tx_isr() {
 //  UART5 TX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
 
 #define UART_TX_DATA_STATE_5 \
   UART_TX_DATA_STATE_NO_FIFO(UART5_C2, UART5_D, UART_C2)
@@ -571,7 +571,7 @@ void uart5_tx_isr() {
 #define UART_TX_DATA_STATE_5 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL)
 
-#ifdef HAS_KINETISK_LPUART0
+#if defined(HAS_KINETISK_LPUART0)
 void lpuart0_tx_isr() {
   uint32_t status = LPUART0_STAT;
   uint32_t control = LPUART0_CTRL;

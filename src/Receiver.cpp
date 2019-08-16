@@ -40,22 +40,22 @@ void uart2_tx(const uint8_t *b, int len);
 void uart2_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
 void uart3_tx(const uint8_t *b, int len);
 void uart3_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
 void uart4_tx(const uint8_t *b, int len);
 void uart4_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART4
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
 void uart5_tx(const uint8_t *b, int len);
 void uart5_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART5
 
-#ifdef HAS_KINETISK_LPUART0
+#if defined(HAS_KINETISK_LPUART0)
 void lpuart0_tx(const uint8_t *b, int len);
 void lpuart0_tx_break(int count, uint32_t mabTime);
 #endif  // HAS_KINETISK_LPUART0
@@ -109,14 +109,14 @@ Receiver::Receiver(HardwareSerial &uart)
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
     case 3:
       txFunc_ = uart3_tx;
       txBreakFunc_ = uart3_tx_break;
       break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
     case 4:
       txFunc_ = uart4_tx;
       txBreakFunc_ = uart4_tx_break;
@@ -245,7 +245,7 @@ void Receiver::begin() {
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
     case 3:
 #define ACTIVATE_UART_RX_SERIAL_ERROR_3 ACTIVATE_UART_RX_SERIAL_ERROR(3)
       ACTIVATE_UART_RX_SERIAL(3)
@@ -253,7 +253,7 @@ void Receiver::begin() {
       break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
     case 4:
 #define ACTIVATE_UART_RX_SERIAL_ERROR_4 ACTIVATE_UART_RX_SERIAL_ERROR(4)
       ACTIVATE_UART_RX_SERIAL(4)
@@ -333,21 +333,21 @@ void Receiver::end() {
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
     case 3:
       UART3_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART3_ERROR);
       break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
     case 4:
       UART4_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART4_ERROR);
       break;
 #endif  // HAS_KINETISK_UART4
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
     case 5:
       UART5_C3 &= ~UART_C3_FEIE;
       NVIC_DISABLE_IRQ(IRQ_UART5_ERROR);
@@ -765,14 +765,14 @@ void Receiver::disableIRQs() const {
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
     case 3:
       NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
       NVIC_DISABLE_IRQ(IRQ_UART3_ERROR);
       break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
     case 4:
       NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
       NVIC_DISABLE_IRQ(IRQ_UART4_ERROR);
@@ -830,14 +830,14 @@ void Receiver::enableIRQs() const {
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
     case 3:
       NVIC_ENABLE_IRQ(IRQ_UART3_STATUS);
       NVIC_ENABLE_IRQ(IRQ_UART3_ERROR);
       break;
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
     case 4:
       NVIC_ENABLE_IRQ(IRQ_UART4_STATUS);
       NVIC_ENABLE_IRQ(IRQ_UART4_ERROR);
@@ -861,7 +861,7 @@ void Receiver::enableIRQs() const {
 //  UART0 synchronous TX
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART0_FIFO
+#if defined(HAS_KINETISK_UART0_FIFO)
 #define UART_SYNC_TX_SEND_FIFO_0 UART_SYNC_TX_SEND_FIFO(0)
 #define UART_TX_FLUSH_FIFO_0 UART_TX_FLUSH_FIFO(0)
 #else
@@ -884,7 +884,7 @@ void uart0_tx_break(int count, uint32_t mabTime) {
 //  UART1 synchronous TX
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART1_FIFO
+#if defined(HAS_KINETISK_UART1_FIFO)
 #define UART_SYNC_TX_SEND_FIFO_1 UART_SYNC_TX_SEND_FIFO(1)
 #define UART_TX_FLUSH_FIFO_1 UART_TX_FLUSH_FIFO(1)
 #else
@@ -907,7 +907,7 @@ void uart1_tx_break(int count, uint32_t mabTime) {
 //  UART2 synchronous TX
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART2_FIFO
+#if defined(HAS_KINETISK_UART2_FIFO)
 #define UART_SYNC_TX_SEND_FIFO_2 UART_SYNC_TX_SEND_FIFO(2)
 #define UART_TX_FLUSH_FIFO_2 UART_TX_FLUSH_FIFO(2)
 #else
@@ -930,7 +930,7 @@ void uart2_tx_break(int count, uint32_t mabTime) {
 //  UART3 synchronous TX
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
 
 #define UART_SYNC_TX_SEND_FIFO_3
 
@@ -954,7 +954,7 @@ void uart3_tx_break(int count, uint32_t mabTime) {
 //  UART4 synchronous TX
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
 
 #define UART_SYNC_TX_SEND_FIFO_4
 
@@ -978,7 +978,7 @@ void uart4_tx_break(int count, uint32_t mabTime) {
 //  UART5 synchronous TX
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
 
 #define UART_SYNC_TX_SEND_FIFO_5
 
@@ -1002,7 +1002,7 @@ void uart5_tx_break(int count, uint32_t mabTime) {
 //  LPUART0 synchronous TX
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_LPUART0
+#if defined(HAS_KINETISK_LPUART0)
 
 #define UART_SYNC_TX_SEND_FIFO_5
 
@@ -1033,20 +1033,20 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 //  UART0 RX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISL_UART0
+#if defined(HAS_KINETISL_UART0)
 #define UART_RX_CLEAR_ERRORS_0 UART0_S1 |= (UART_S1_FE | UART_S1_IDLE);
 #else
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_0
 #endif  // HAS_KINETISL_UART0
 
-#ifdef HAS_KINETISK_UART0_FIFO
+#if defined(HAS_KINETISK_UART0_FIFO)
 #define UART_RX_ERROR_FLUSH_FIFO_0 UART_RX_ERROR_FLUSH_FIFO(0)
 #define UART_RX_0 UART_RX_WITH_FIFO(0)
 #else
 #define UART_RX_ERROR_FLUSH_FIFO_0
 #define UART_RX_0 UART_RX_NO_FIFO(0, UART_S1, UART0_D)
-#ifdef HAS_KINETISL_UART0
+#if defined(HAS_KINETISL_UART0)
 #define UART_RX_CLEAR_IDLE_0 UART0_S1 |= UART_S1_IDLE;
 #else
 #define UART_RX_CLEAR_IDLE_0 UART0_D;
@@ -1072,7 +1072,7 @@ void uart0_rx_isr() {
 
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_1
-#ifdef HAS_KINETISK_UART1_FIFO
+#if defined(HAS_KINETISK_UART1_FIFO)
 #define UART_RX_ERROR_FLUSH_FIFO_1 UART_RX_ERROR_FLUSH_FIFO(1)
 #define UART_RX_1 UART_RX_WITH_FIFO(1)
 #else
@@ -1100,7 +1100,7 @@ void uart1_rx_isr() {
 
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_2
-#ifdef HAS_KINETISK_UART2_FIFO
+#if defined(HAS_KINETISK_UART2_FIFO)
 #define UART_RX_ERROR_FLUSH_FIFO_2 UART_RX_ERROR_FLUSH_FIFO(2)
 #define UART_RX_2 UART_RX_WITH_FIFO(2)
 #else
@@ -1126,7 +1126,7 @@ void uart2_rx_isr() {
 //  UART3 RX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
 
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_3
@@ -1152,7 +1152,7 @@ void uart3_rx_isr() {
 //  UART4 RX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
 
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_4
@@ -1178,7 +1178,7 @@ void uart4_rx_isr() {
 //  UART5 RX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
 
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_5
@@ -1204,7 +1204,7 @@ void uart5_rx_isr() {
 //  LPUART0 RX ISR
 // ---------------------------------------------------------------------------
 
-#ifdef HAS_KINETISK_LPUART0
+#if defined(HAS_KINETISK_LPUART0)
 
 #define UART_RX_CLEAR_ERRORS_5 \
   LPUART0_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);

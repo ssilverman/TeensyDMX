@@ -30,13 +30,13 @@ int serialIndex(HardwareSerial &uart) {
   }
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
   if (&uart == &Serial4) {
     return 3;
   }
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
   if (&uart == &Serial5) {
     return 4;
   }

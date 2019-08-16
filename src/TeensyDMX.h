@@ -43,22 +43,22 @@ void uart2_rx_isr();
 void uart2_tx_isr();
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
 void uart3_rx_isr();
 void uart3_tx_isr();
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
 void uart4_rx_isr();
 void uart4_tx_isr();
 #endif  // HAS_KINETISK_UART4
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
 void uart5_rx_isr();
 void uart5_tx_isr();
 #endif  // HAS_KINETISK_UART5
 
-#ifdef HAS_KINETISK_LPUART0
+#if defined(HAS_KINETISK_LPUART0)
 void lpuart0_rx_isr();
 void lpuart0_tx_isr();
 #endif  // HAS_KINETISK_LPUART0
@@ -405,19 +405,19 @@ class Receiver final : public TeensyDMX {
   friend void uart2_rx_isr();
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
   friend void uart3_rx_isr();
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
   friend void uart4_rx_isr();
 #endif  // HAS_KINETISK_UART4
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
   friend void uart5_rx_isr();
 #endif  // HAS_KINETISK_UART5
 
-#ifdef HAS_KINETISK_LPUART0
+#if defined(HAS_KINETISK_LPUART0)
   friend void lpuart0_rx_isr();
 #endif  // HAS_KINETISK_LPUART0
 };
@@ -688,19 +688,19 @@ class Sender final : public TeensyDMX {
   friend void uart2_tx_isr();
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
-#ifdef HAS_KINETISK_UART3
+#if defined(HAS_KINETISK_UART3)
   friend void uart3_tx_isr();
 #endif  // HAS_KINETISK_UART3
 
-#ifdef HAS_KINETISK_UART4
+#if defined(HAS_KINETISK_UART4)
   friend void uart4_tx_isr();
 #endif  // HAS_KINETISK_UART4
 
-#ifdef HAS_KINETISK_UART5
+#if defined(HAS_KINETISK_UART5)
   friend void uart5_tx_isr();
 #endif  // HAS_KINETISK_UART5
 
-#ifdef HAS_KINETISK_LPUART0
+#if defined(HAS_KINETISK_LPUART0)
   friend void lpuart0_tx_isr();
 #endif  // HAS_KINETISK_LPUART0
 };
