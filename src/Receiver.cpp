@@ -19,22 +19,9 @@ constexpr uint32_t kBitTime     = 1000000 / kSlotsBaud;  // In microseconds
 constexpr uint32_t kCharTime    = 11 * kBitTime;         // In microseconds
 
 // RX control states
-#define UART0_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
-#define UART1_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
-#define UART2_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
-
-#ifdef HAS_KINETISK_UART3
-#define UART3_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
-#endif  // HAS_KINETISK_UART3
-#ifdef HAS_KINETISK_UART4
-#define UART4_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
-#endif  // HAS_KINETISK_UART4
-#ifdef HAS_KINETISK_UART5
-#define UART5_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
-#endif  // HAS_KINETISK_UART5
-#ifdef HAS_KINETISK_LPUART0
-#define LPUART0_CTRL_RX_ENABLE LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE | LPUART_CTRL_TE
-#endif  // HAS_KINETISK_LPUART0
+#define UART_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
+#define LPUART_CTRL_RX_ENABLE \
+  LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE | LPUART_CTRL_TE
 
 // Routines that do raw transmit
 // These don't affect the transmitter
@@ -141,22 +128,27 @@ Receiver::~Receiver() {
   }
 }
 
-// Must define ACTIVATE_RX_SERIAL_ERROR_N
-#define ACTIVATE_RX_SERIAL(N)                                    \
+// Must define ACTIVATE_UART_RX_SERIAL_ERROR_N
+#define ACTIVATE_UART_RX_SERIAL(N)                               \
   /* Enable receive-only */                                      \
-  UART##N##_C2 = UART##N##_C2_RX_ENABLE;                         \
+  UART##N##_C2 = UART_C2_RX_ENABLE;                              \
   attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_rx_isr); \
   /* Enable interrupt on frame error */                          \
   UART##N##_C3 |= UART_C3_FEIE;                                  \
-  ACTIVATE_RX_SERIAL_ERROR_##N
+  ACTIVATE_UART_RX_SERIAL_ERROR_##N
 
-#define ACTIVATE_RX_SERIAL_ERROR(N)                                \
+#define ACTIVATE_UART_RX_SERIAL_ERROR(N)                           \
   attachInterruptVector(IRQ_UART##N##_ERROR, uart##N##_rx_isr);    \
   /* We fill bytes from the buffer in the framing error ISR, so we \
    * can set to the same priority. */                              \
   NVIC_SET_PRIORITY(IRQ_UART##N##_ERROR,                           \
                     NVIC_GET_PRIORITY(IRQ_UART##N##_STATUS));      \
   NVIC_ENABLE_IRQ(IRQ_UART##N##_ERROR);
+
+#define ACTIVATE_LPUART_RX_SERIAL(N)                           \
+  /* Enable receive-only and interrupt on frame error */       \
+  LPUART##N##_CTRL = LPUART_CTRL_RX_ENABLE | LPUART_CTRL_FEIE; \
+  attachInterruptVector(IRQ_LPUART##N, lpuart##N##_rx_isr);
 
 void Receiver::begin() {
   if (began_) {
@@ -189,60 +181,59 @@ void Receiver::begin() {
   switch (serialIndex_) {
     case 0:
 #ifndef HAS_KINETISL_UART0
-#define ACTIVATE_RX_SERIAL_ERROR_0 ACTIVATE_RX_SERIAL_ERROR(0)
+#define ACTIVATE_UART_RX_SERIAL_ERROR_0 ACTIVATE_UART_RX_SERIAL_ERROR(0)
 #else
-#define ACTIVATE_RX_SERIAL_ERROR_0
+#define ACTIVATE_UART_RX_SERIAL_ERROR_0
 #endif  // !HAS_KINETISL_UART0
-      ACTIVATE_RX_SERIAL(0)
-#undef ACTIVATE_RX_SERIAL_ERROR_0
+      ACTIVATE_UART_RX_SERIAL(0)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_0
       break;
 
     case 1:
 #ifndef HAS_KINETISL_UART1
-#define ACTIVATE_RX_SERIAL_ERROR_1 ACTIVATE_RX_SERIAL_ERROR(1)
+#define ACTIVATE_UART_RX_SERIAL_ERROR_1 ACTIVATE_UART_RX_SERIAL_ERROR(1)
 #else
-#define ACTIVATE_RX_SERIAL_ERROR_1
+#define ACTIVATE_UART_RX_SERIAL_ERROR_1
 #endif  // !HAS_KINETISL_UART1
-      ACTIVATE_RX_SERIAL(1)
-#undef ACTIVATE_RX_SERIAL_ERROR_1
+      ACTIVATE_UART_RX_SERIAL(1)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_1
       break;
 
     case 2:
 #ifndef HAS_KINETISL_UART2
-#define ACTIVATE_RX_SERIAL_ERROR_2 ACTIVATE_RX_SERIAL_ERROR(2)
+#define ACTIVATE_UART_RX_SERIAL_ERROR_2 ACTIVATE_UART_RX_SERIAL_ERROR(2)
 #else
-#define ACTIVATE_RX_SERIAL_ERROR_2
+#define ACTIVATE_UART_RX_SERIAL_ERROR_2
 #endif  // !HAS_KINETISL_UART2
-      ACTIVATE_RX_SERIAL(2)
-#undef ACTIVATE_RX_SERIAL_ERROR_2
+      ACTIVATE_UART_RX_SERIAL(2)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_2
       break;
 
 #ifdef HAS_KINETISK_UART3
     case 3:
-#define ACTIVATE_RX_SERIAL_ERROR_3 ACTIVATE_RX_SERIAL_ERROR(3)
-      ACTIVATE_RX_SERIAL(3)
-#undef ACTIVATE_RX_SERIAL_ERROR_3
+#define ACTIVATE_UART_RX_SERIAL_ERROR_3 ACTIVATE_UART_RX_SERIAL_ERROR(3)
+      ACTIVATE_UART_RX_SERIAL(3)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_3
       break;
 #endif  // HAS_KINETISK_UART3
 
 #ifdef HAS_KINETISK_UART4
     case 4:
-#define ACTIVATE_RX_SERIAL_ERROR_4 ACTIVATE_RX_SERIAL_ERROR(4)
-      ACTIVATE_RX_SERIAL(4)
-#undef ACTIVATE_RX_SERIAL_ERROR_4
+#define ACTIVATE_UART_RX_SERIAL_ERROR_4 ACTIVATE_UART_RX_SERIAL_ERROR(4)
+      ACTIVATE_UART_RX_SERIAL(4)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_4
       break;
 #endif  // HAS_KINETISK_UART4
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
-#define ACTIVATE_RX_SERIAL_ERROR_5 ACTIVATE_RX_SERIAL_ERROR(5)
-      ACTIVATE_RX_SERIAL(5)
-#undef ACTIVATE_RX_SERIAL_ERROR_5
+#define ACTIVATE_UART_RX_SERIAL_ERROR_5 ACTIVATE_UART_RX_SERIAL_ERROR(5)
+      ACTIVATE_UART_RX_SERIAL(5)
+#undef ACTIVATE_UART_RX_SERIAL_ERROR_5
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
-      LPUART0_CTRL = LPUART0_CTRL_RX_ENABLE | LPUART_CTRL_FEIE;
-      attachInterruptVector(IRQ_LPUART0, lpuart0_rx_isr);
+      ACTIVATE_LPUART_RX_SERIAL(0)
       break;
 #endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
   }

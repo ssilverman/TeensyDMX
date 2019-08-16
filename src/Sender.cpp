@@ -70,9 +70,13 @@ Sender::~Sender() {
   end();
 }
 
-#define ACTIVATE_TX_SERIAL(N)\
-  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_isr);\
+#define ACTIVATE_UART_TX_SERIAL(N)                               \
+  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_isr); \
   UART##N##_C2 = UART_C2_TX_ACTIVE;
+
+#define ACTIVATE_LPUART_TX_SERIAL(N)                        \
+  attachInterruptVector(IRQ_LPUART##N, lpuart##N##_tx_isr); \
+  LPUART##N##_CTRL = LPUART_CTRL_TX_ACTIVE;
 
 void Sender::begin() {
   if (began_) {
@@ -99,32 +103,31 @@ void Sender::begin() {
 
   switch (serialIndex_) {
     case 0:
-      ACTIVATE_TX_SERIAL(0)
+      ACTIVATE_UART_TX_SERIAL(0)
       break;
     case 1:
-      ACTIVATE_TX_SERIAL(1)
+      ACTIVATE_UART_TX_SERIAL(1)
       break;
     case 2:
-      ACTIVATE_TX_SERIAL(2)
+      ACTIVATE_UART_TX_SERIAL(2)
       break;
 #ifdef HAS_KINETISK_UART3
     case 3:
-      ACTIVATE_TX_SERIAL(3)
+      ACTIVATE_UART_TX_SERIAL(3)
       break;
 #endif  // HAS_KINETISK_UART3
 #ifdef HAS_KINETISK_UART4
     case 4:
-      ACTIVATE_TX_SERIAL(4)
+      ACTIVATE_UART_TX_SERIAL(4)
       break;
 #endif  // HAS_KINETISK_UART4
 #if defined(HAS_KINETISK_UART5)
     case 5:
-      ACTIVATE_TX_SERIAL(5)
+      ACTIVATE_UART_TX_SERIAL(5)
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
-      attachInterruptVector(IRQ_LPUART0, lpuart0_tx_isr);
-      LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
+      ACTIVATE_LPUART_TX_SERIAL(0)
       break;
 #endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5
   }
