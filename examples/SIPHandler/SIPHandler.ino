@@ -5,6 +5,10 @@
  * (c) 2018-2019 Shawn Silverman
  */
 
+// C++ includes
+#include <cstdint>
+#include <memory>
+
 #include <TeensyDMX.h>
 #include "SIPHandler.h"
 
@@ -17,7 +21,7 @@ constexpr uint8_t kLEDPin = LED_BUILTIN;
 teensydmx::Receiver dmxRx{Serial1};
 
 // Holds a SIPHandler instance.
-SIPHandler sipHandler;
+auto sipHandler = std::make_shared<SIPHandler>();
 
 void setup() {
   // Initialize the serial port
@@ -32,8 +36,8 @@ void setup() {
   digitalWriteFast(kLEDPin, HIGH);  // Start with the LED on
 
   // Set up the responder
-  dmxRx.setResponder(0, &sipHandler);
-  dmxRx.setResponder(SIPHandler::startCode(), &sipHandler);
+  dmxRx.setResponder(0, sipHandler);
+  dmxRx.setResponder(SIPHandler::startCode(), sipHandler);
 
   dmxRx.begin();
 }
