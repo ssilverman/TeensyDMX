@@ -160,8 +160,8 @@ void loop() {
 
 // Returns the amount of free RAM.
 int freeRAM() {
-  extern int _ebss;
-  extern void *__brkval;
+  extern unsigned long _ebss;
+  extern char *__brkval;
   int v;
   return reinterpret_cast<intptr_t>(&v) -
          (__brkval == NULL ? reinterpret_cast<intptr_t>(&_ebss)
