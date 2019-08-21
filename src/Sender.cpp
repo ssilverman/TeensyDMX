@@ -432,6 +432,8 @@ void Sender::enableIRQs() const {
 //  UART0 TX ISR
 // ---------------------------------------------------------------------------
 
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+
 #if defined(HAS_KINETISK_UART0_FIFO)
 #define UART_TX_DATA_STATE_0 UART_TX_DATA_STATE_WITH_FIFO(0)
 #else
@@ -450,9 +452,13 @@ void uart0_tx_isr() {
 
 #undef UART_TX_DATA_STATE_0
 
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
 // ---------------------------------------------------------------------------
 //  UART1 TX ISR
 // ---------------------------------------------------------------------------
+
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
 
 #if defined(HAS_KINETISK_UART1_FIFO)
 #define UART_TX_DATA_STATE_1 UART_TX_DATA_STATE_WITH_FIFO(1)
@@ -472,9 +478,13 @@ void uart1_tx_isr() {
 
 #undef UART_TX_DATA_STATE_1
 
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
 // ---------------------------------------------------------------------------
 //  UART2 TX ISR
 // ---------------------------------------------------------------------------
+
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
 
 #if defined(HAS_KINETISK_UART2_FIFO)
 #define UART_TX_DATA_STATE_2 UART_TX_DATA_STATE_WITH_FIFO(2)
@@ -493,6 +503,8 @@ void uart2_tx_isr() {
 }
 
 #undef UART_TX_DATA_STATE_2
+
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
 // ---------------------------------------------------------------------------
 //  UART3 TX ISR
