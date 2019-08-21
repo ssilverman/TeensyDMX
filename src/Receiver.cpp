@@ -1039,6 +1039,8 @@ void Receiver::enableIRQs() const {
 //  UART0 synchronous TX
 // ---------------------------------------------------------------------------
 
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+
 #if defined(HAS_KINETISK_UART0_FIFO)
 #define UART_SYNC_TX_SEND_FIFO_0 UART_SYNC_TX_SEND_FIFO(0)
 #define UART_TX_FLUSH_FIFO_0 UART_TX_FLUSH_FIFO(0)
@@ -1058,9 +1060,13 @@ void uart0_tx_break(int count, uint32_t mabTime) {
 #undef UART_SYNC_TX_SEND_FIFO_0
 #undef UART_TX_FLUSH_FIFO_0
 
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
 // ---------------------------------------------------------------------------
 //  UART1 synchronous TX
 // ---------------------------------------------------------------------------
+
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
 
 #if defined(HAS_KINETISK_UART1_FIFO)
 #define UART_SYNC_TX_SEND_FIFO_1 UART_SYNC_TX_SEND_FIFO(1)
@@ -1081,9 +1087,13 @@ void uart1_tx_break(int count, uint32_t mabTime) {
 #undef UART_SYNC_TX_SEND_FIFO_1
 #undef UART_TX_FLUSH_FIFO_1
 
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
 // ---------------------------------------------------------------------------
 //  UART2 synchronous TX
 // ---------------------------------------------------------------------------
+
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
 
 #if defined(HAS_KINETISK_UART2_FIFO)
 #define UART_SYNC_TX_SEND_FIFO_2 UART_SYNC_TX_SEND_FIFO(2)
@@ -1103,6 +1113,8 @@ void uart2_tx_break(int count, uint32_t mabTime) {
 
 #undef UART_SYNC_TX_SEND_FIFO_2
 #undef UART_TX_FLUSH_FIFO_2
+
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
 // ---------------------------------------------------------------------------
 //  UART3 synchronous TX
@@ -1459,6 +1471,8 @@ void lpuart5_tx_break(int count, uint32_t mabTime) {
 //  UART0 RX ISR
 // ---------------------------------------------------------------------------
 
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+
 #if defined(HAS_KINETISL_UART0)
 #define UART_RX_CLEAR_ERRORS_0 UART0_S1 |= (UART_S1_FE | UART_S1_IDLE);
 #else
@@ -1492,9 +1506,13 @@ void uart0_rx_isr() {
 #undef UART_RX_CLEAR_IDLE_0
 #undef UART_RX_TEST_R8
 
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
 // ---------------------------------------------------------------------------
 //  UART1 RX ISR
 // ---------------------------------------------------------------------------
+
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
 
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_1
@@ -1520,9 +1538,13 @@ void uart1_rx_isr() {
 #undef UART_RX_CLEAR_IDLE_1
 #undef UART_RX_TEST_R8
 
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
 // ---------------------------------------------------------------------------
 //  UART2 RX ISR
 // ---------------------------------------------------------------------------
+
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
 
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_2
@@ -1547,6 +1569,8 @@ void uart2_rx_isr() {
 #undef UART_RX_2
 #undef UART_RX_CLEAR_IDLE_2
 #undef UART_RX_TEST_R8
+
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
 // ---------------------------------------------------------------------------
 //  UART3 RX ISR
