@@ -160,12 +160,21 @@ void loop() {
 
 // Returns the amount of free RAM.
 int freeRAM() {
-  extern int __bss_end;
-  extern void *__brkval;
+#if defined(KINETISK) || defined(KINETISL)
+  extern unsigned long _ebss;
+  extern char *__brkval;
   int v;
   return reinterpret_cast<intptr_t>(&v) -
-         (__brkval == NULL ? reinterpret_cast<intptr_t>(&__bss_end)
+         (__brkval == NULL ? reinterpret_cast<intptr_t>(&_ebss)
                            : reinterpret_cast<intptr_t>(__brkval));
+#elif defined(__IMXRT1052__) || defined(__IMXRT1062__)
+  extern unsigned long _heap_start;
+  extern char *__brkval;
+  int v;
+  return reinterpret_cast<intptr_t>(&v) -
+         (__brkval == NULL ? reinterpret_cast<intptr_t>(&_heap_start)
+                           : reinterpret_cast<intptr_t>(__brkval));
+#endif
 }
 
 void changeSketch(int sketchType) {
