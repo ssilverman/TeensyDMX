@@ -4,11 +4,17 @@ This document details the changes between each release.
 
 ## [3.3.0]
 
+### Added
+* Added a note to the `BasicSend` example that the transmit-enable pin may not
+  be needed. The pin's existence was causing some confusion.
+
 ### Changed
 * The `main.cpp` example program now uses a smart pointer for the current
   sketch, `currSketch`.
 * Responders are now passed as smart pointers instead of raw pointers to
   `Receiver::setResponder`.
+* Prep-work for Teensy 4 support. The library compiles but does not yet work on
+  a Teensy 4.
 
 ## [3.2.0]
 
