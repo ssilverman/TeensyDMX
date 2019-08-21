@@ -13,6 +13,8 @@ This document details the changes between each release.
   sketch, `currSketch`.
 * Responders are now passed as smart pointers instead of raw pointers to
   `Receiver::setResponder`.
+* Prep-work for Teensy 4 support. The library compiles but does not yet work on
+  a Teensy 4.
 
 ## [3.2.0]
 
