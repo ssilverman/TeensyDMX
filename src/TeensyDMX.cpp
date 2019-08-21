@@ -58,7 +58,7 @@ int serialIndex(HardwareSerial &uart) {
   }
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
   if (&uart == &Serial8) {
     return 7;
   }
