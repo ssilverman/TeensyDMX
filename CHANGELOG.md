@@ -2,6 +2,14 @@
 
 This document details the changes between each release.
 
+## [3.2.1]
+
+### Fixed
+* When a frame error was being recorded due to the first stop bit not being
+  high, the input UART buffer was not being flushed. The buffer is now flushed
+  when this happens. There were reports of DMX receive freezing the device; this
+  should fix the problem.
+
 ## [3.2.0]
 
 ### Added
