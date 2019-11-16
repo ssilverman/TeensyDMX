@@ -152,7 +152,7 @@
     }                                                                      \
   }
 
-// Assumes status = UARTx_S1.
+// Assumes status = UARTx_S1 or LPUARTy_STAT.
 // Needs to have UART_RX_CLEAR_IDLE_N defined.
 #define UART_RX_NO_FIFO(N, STAT_PREFIX, DATA)      \
   /* If the receive buffer is full */              \
@@ -163,7 +163,7 @@
     instance->checkPacketTimeout();                \
   }
 
-// Assumes status = UARTx_S1 (or equivalent).
+// Assumes status = UARTx_S1 or LPUARTy_STAT.
 // Needs to have UART_RX_CLEAR_ERRORS_N defined.
 // Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
 // Needs to have UART_RX_N defined.
