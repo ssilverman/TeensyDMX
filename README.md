@@ -1,4 +1,4 @@
-# Readme for TeensyDMX v3.2.0
+# Readme for TeensyDMX v4.0.0-alpha
 
 This is a library for receiving and transmitting DMX on Teensy 3 and Teensy LC.
 It follows the
