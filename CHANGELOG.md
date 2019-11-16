@@ -2,7 +2,7 @@
 
 This document details the changes between each release.
 
-## [3.3.0]
+## [4.0.0-alpha]
 
 ### Added
 * Added a note to the `BasicSend` example that the transmit-enable pin may not
@@ -15,6 +15,12 @@ This document details the changes between each release.
   `Receiver::setResponder`.
 * Prep-work for Teensy 4 support. The library compiles but does not yet work on
   a Teensy 4.
+
+### Fixed
+* When a frame error was being recorded due to the first stop bit not being
+  high, the input UART buffer was not being flushed. The buffer is now flushed
+  when this happens. There were reports of DMX receive freezing the device; this
+  should fix the problem.
 
 ## [3.2.0]
 
