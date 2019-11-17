@@ -974,7 +974,11 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 #endif  // HAS_KINETISL_UART0
 #endif  // HAS_KINETISK_UART0_FIFO
 
+#if defined(HAS_KINETISL_UART0)
+#define UART_RX_TEST_R8 (true)
+#else
 #define UART_RX_TEST_R8 ((UART0_C3 & UART_C3_R8) != 0)
+#endif
 
 void uart0_rx_isr() {
   uint8_t status = UART0_S1;
@@ -1002,7 +1006,11 @@ void uart0_rx_isr() {
 #define UART_RX_CLEAR_IDLE_1 UART1_D;
 #endif  // HAS_KINETISK_UART1_FIFO
 
+#if defined(HAS_KINETISL_UART1)
+#define UART_RX_TEST_R8 (true)
+#else
 #define UART_RX_TEST_R8 ((UART1_C3 & UART_C3_R8) != 0)
+#endif
 
 void uart1_rx_isr() {
   uint8_t status = UART1_S1;
@@ -1030,7 +1038,11 @@ void uart1_rx_isr() {
 #define UART_RX_CLEAR_IDLE_2 UART2_D;
 #endif  // HAS_KINETISK_UART2_FIFO
 
+#if defined(HAS_KINETISL_UART2)
+#define UART_RX_TEST_R8 (true)
+#else
 #define UART_RX_TEST_R8 ((UART2_C3 & UART_C3_R8) != 0)
+#endif
 
 void uart2_rx_isr() {
   uint8_t status = UART2_S1;
