@@ -8,7 +8,11 @@ This document details the changes between each release.
 * When a frame error was being recorded due to the first stop bit not being
   high, the input UART buffer was not being flushed. The buffer is now flushed
   when this happens. There were reports of DMX receive freezing the device; this
-  should fix the problem.
+  should fix the problem. [The fix does not work for Teensy LC.]
+* Teensy LC wasn't able to receive DMX data because the framing check that
+  examined the first stop bit in each byte was always returning false. For some
+  reason, the R8 bit in UARTx_C3, which functions as the first stop bit, is
+  always zero. The check was changed for the Teensy LC to always return true.
 
 ## [3.2.0]
 
