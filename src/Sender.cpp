@@ -39,16 +39,6 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;  // 9:2
 constexpr uint32_t kBreakTime = 1000000/kBreakBaud * 9;  // In us
 constexpr uint32_t kMABTime   = 1000000/kBreakBaud * 1;  // In us
 
-// TX control states
-#define UART_C2_TX_ENABLE         (UART_C2_TE)
-#define UART_C2_TX_ACTIVE         ((UART_C2_TX_ENABLE) | (UART_C2_TIE))
-#define UART_C2_TX_COMPLETING     ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
-#define UART_C2_TX_INACTIVE       (UART_C2_TX_ENABLE)
-#define LPUART_CTRL_TX_ENABLE     (LPUART_CTRL_TE)
-#define LPUART_CTRL_TX_ACTIVE     ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TIE))
-#define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
-#define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
-
 // Used by the TX ISRs
 Sender *volatile txInstances[6]{nullptr};
 
@@ -69,6 +59,16 @@ Sender::Sender(HardwareSerial &uart)
 Sender::~Sender() {
   end();
 }
+
+// TX control states
+#define UART_C2_TX_ENABLE         (UART_C2_TE)
+#define UART_C2_TX_ACTIVE         ((UART_C2_TX_ENABLE) | (UART_C2_TIE))
+#define UART_C2_TX_COMPLETING     ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
+#define UART_C2_TX_INACTIVE       (UART_C2_TX_ENABLE)
+#define LPUART_CTRL_TX_ENABLE     (LPUART_CTRL_TE)
+#define LPUART_CTRL_TX_ACTIVE     ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TIE))
+#define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
+#define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
 #define ACTIVATE_UART_TX_SERIAL(N)                               \
   attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_isr); \
@@ -144,8 +144,9 @@ void Sender::begin() {
   }
 }
 
-// Undefine this macro
-#undef ACTIVATE_TX_SERIAL
+// Undefine these macros
+#undef ACTIVATE_UART_TX_SERIAL
+#undef ACTIVATE_LPUART_TX_SERIAL
 
 void Sender::end() {
   if (!began_) {
@@ -593,6 +594,16 @@ void lpuart0_tx_isr() {
 #undef UART_TX_DATA_STATE_5
 
 #endif  // HAS_KINETISK_LPUART0
+
+// Undefine these macros
+#undef UART_C2_TX_ENABLE
+#undef UART_C2_TX_ACTIVE
+#undef UART_C2_TX_COMPLETING
+#undef UART_C2_TX_INACTIVE
+#undef LPUART_CTRL_TX_ENABLE
+#undef LPUART_CTRL_TX_ACTIVE
+#undef LPUART_CTRL_TX_COMPLETING
+#undef LPUART_CTRL_TX_INACTIVE
 
 }  // namespace teensydmx
 }  // namespace qindesign

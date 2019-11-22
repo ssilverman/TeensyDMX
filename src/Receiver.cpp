@@ -19,11 +19,6 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;            // 9:2
 constexpr uint32_t kBitTime     = 1000000 / kSlotsBaud;  // In microseconds
 constexpr uint32_t kCharTime    = 11 * kBitTime;         // In microseconds
 
-// RX control states
-#define UART_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
-#define LPUART_CTRL_RX_ENABLE \
-  LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE | LPUART_CTRL_TE
-
 // Routines that do raw transmit
 // These don't affect the transmitter
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
@@ -143,6 +138,11 @@ Receiver::Receiver(HardwareSerial &uart)
 Receiver::~Receiver() {
   end();
 }
+
+// RX control states
+#define UART_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
+#define LPUART_CTRL_RX_ENABLE \
+  LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE | LPUART_CTRL_TE
 
 // Must define ACTIVATE_UART_RX_SERIAL_ERROR_N
 #define ACTIVATE_UART_RX_SERIAL(N)                               \
@@ -271,8 +271,11 @@ void Receiver::begin() {
 }
 
 // Undefine these macros
-#undef ACTIVATE_RX_SERIAL
-#undef ACTIVATE_RX_SERIAL_ERROR
+#undef ACTIVATE_UART_RX_SERIAL
+#undef ACTIVATE_UART_RX_SERIAL_ERROR
+#undef ACTIVATE_LPUART_RX_SERIAL
+#undef UART_C2_RX_ENABLE
+#undef LPUART_CTRL_RX_ENABLE
 
 void Receiver::end() {
   if (!began_) {
