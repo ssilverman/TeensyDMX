@@ -2,6 +2,14 @@
 
 This document details the changes between each release.
 
+## [3.2.2]
+
+### Fixed
+* This release should _really_ fix the test-first-stop-bit problem. It turns out
+  that Teensy 3.5, 3.6, and LC all support a 2-stop-bit mode, and so it is never
+  appropriate to test bit R8 for these platforms. Bit R8 is now only tested if
+  the board is not one of these types.
+
 ## [3.2.1]
 
 ### Fixed
