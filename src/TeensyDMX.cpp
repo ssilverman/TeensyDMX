@@ -45,7 +45,7 @@ int serialIndex(HardwareSerial &uart) {
   }
 #endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
 
-#if defined(HAS_KINETISK_UART5) || defined(HAS_KINETISK_LPART0) || \
+#if defined(HAS_KINETISK_UART5) || defined(HAS_KINETISK_LPUART0) || \
     defined(IMXRT_LPUART1)
   if (&uart == &Serial6) {
     return 5;
