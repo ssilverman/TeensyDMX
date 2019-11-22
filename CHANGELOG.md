@@ -2,6 +2,14 @@
 
 This document details the changes between each release.
 
+## [4.0.0-alpha.2]
+
+### Fixed
+* This release should _really_ fix the test-first-stop-bit problem. It turns out
+  that Teensy 3.5, 3.6, and LC all support a 2-stop-bit mode, and so it is never
+  appropriate to test bit R8 for these platforms. Bit R8 is now only tested if
+  the board is not one of these types.
+
 ## [4.0.0-alpha.1]
 
 ### Fixed
@@ -29,6 +37,16 @@ This document details the changes between each release.
   high, the input UART buffer was not being flushed. The buffer is now flushed
   when this happens. There were reports of DMX receive freezing the device; this
   should fix the problem.
+
+## [3.2.2]
+
+This version is in a branch called `fix-dmx-receive-in-v3.2.0`.
+
+### Fixed
+* This release should _really_ fix the test-first-stop-bit problem. It turns out
+  that Teensy 3.5, 3.6, and LC all support a 2-stop-bit mode, and so it is never
+  appropriate to test bit R8 for these platforms. Bit R8 is now only tested if
+  the board is not one of these types.
 
 ## [3.2.1]
 
