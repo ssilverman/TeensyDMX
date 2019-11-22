@@ -91,10 +91,10 @@ void lpuart7_tx(const uint8_t *b, int len);
 void lpuart7_tx_break(int count, uint32_t mabTime);
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
 void lpuart5_tx(const uint8_t *b, int len);
 void lpuart5_tx_break(int count, uint32_t mabTime);
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 
 // Used by the RX ISRs.
 Receiver *volatile rxInstances[8]{nullptr};
@@ -206,12 +206,12 @@ Receiver::Receiver(HardwareSerial &uart)
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
     case 7:
       txFunc_ = lpuart5_tx;
       txBreakFunc_ = lpuart5_tx_break;
       break;
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 
     default:
       txFunc_ = nullptr;
@@ -379,11 +379,11 @@ void Receiver::begin() {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
     case 7:
       ACTIVATE_LPUART_RX_SERIAL(5)
       break;
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 
   // Enable receive
@@ -929,11 +929,11 @@ void Receiver::disableIRQs() const {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
     case 7:
       NVIC_DISABLE_IRQ(IRQ_LPUART5);
       break;
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
 
@@ -1030,11 +1030,11 @@ void Receiver::enableIRQs() const {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
     case 7:
       NVIC_ENABLE_IRQ(IRQ_LPUART5);
       break;
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
 
@@ -1355,7 +1355,7 @@ void lpuart7_tx_break(int count, uint32_t mabTime) {
 //  LPUART5 synchronous TX (Serial8 on Teensy 4)
 // ---------------------------------------------------------------------------
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
 
 #define UART_SYNC_TX_SEND_FIFO_5
 
@@ -1369,7 +1369,7 @@ void lpuart5_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(5)
 }
 
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 
 // ---------------------------------------------------------------------------
 //  UART0 RX ISR
@@ -1778,7 +1778,7 @@ void lpuart7_rx_isr() {
 //  LPUART5 RX ISR (Serial8 on Teensy 4)
 // ---------------------------------------------------------------------------
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
 
 #define UART_RX_CLEAR_ERRORS_5 \
   LPUART5_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
@@ -1798,7 +1798,7 @@ void lpuart5_rx_isr() {
 #undef UART_RX_CLEAR_IDLE_5
 #undef UART_RX_TEST_R8
 
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 
 }  // namespace teensydmx
 }  // namespace qindesign

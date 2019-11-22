@@ -99,10 +99,10 @@ void lpuart7_rx_isr();
 void lpuart7_tx_isr();
 #endif  // IMXRT_LPUART7
 
-#ifdef IMXRT_LPUART5
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
 void lpuart5_rx_isr();
 void lpuart5_tx_isr();
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 
 // The maximum size of a DMX packet, including the start code.
 constexpr int kMaxDMXPacketSize = 513;
@@ -506,9 +506,9 @@ class Receiver final : public TeensyDMX {
   friend void lpuart7_rx_isr();
 #endif  // IMXRT_LPUART7
 
-#ifdef IMXRT_LPUART5
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
   friend void lpuart5_rx_isr();
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 };
 
 // ---------------------------------------------------------------------------
@@ -836,9 +836,9 @@ class Sender final : public TeensyDMX {
   friend void lpuart7_tx_isr();
 #endif  // IMXRT_LPUART7
 
-#ifdef IMXRT_LPUART5
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
   friend void lpuart5_tx_isr();
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 };
 
 }  // namespace teensydmx

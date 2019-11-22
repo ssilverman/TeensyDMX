@@ -172,11 +172,11 @@ void Sender::begin() {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
     case 7:
       ACTIVATE_LPUART_TX_SERIAL(5)
       break;
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
 
@@ -369,11 +369,11 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
             break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
           case 7:
             LPUART5_CTRL = LPUART_CTRL_TX_ACTIVE;
             break;
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
         }
       }
 
@@ -482,11 +482,11 @@ void Sender::disableIRQs() const {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
     case 7:
       NVIC_DISABLE_IRQ(IRQ_LPUART5);
       break;
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
 
@@ -565,11 +565,11 @@ void Sender::enableIRQs() const {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
     case 7:
       NVIC_ENABLE_IRQ(IRQ_LPUART5);
       break;
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
 
@@ -897,7 +897,7 @@ void lpuart7_tx_isr() {
 //  LPUART5 TX ISR (Serial8 on Teensy 4)
 // ---------------------------------------------------------------------------
 
-#if defined(IMXRT_LPUART5)
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
 
 #define UART_TX_DATA_STATE_5 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART5_CTRL, LPUART5_DATA, LPUART_CTRL)
@@ -913,7 +913,8 @@ void lpuart5_tx_isr() {
 
 #undef UART_TX_DATA_STATE_5
 
-#endif  // HAS_KINETISK_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
+
 // Undefine these macros
 #undef UART_C2_TX_ENABLE
 #undef UART_C2_TX_ACTIVE

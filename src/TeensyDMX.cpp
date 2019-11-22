@@ -62,7 +62,7 @@ int serialIndex(HardwareSerial &uart) {
   if (&uart == &Serial8) {
     return 7;
   }
-#endif  // IMXRT_LPUART5
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 
   return -1;
 }
