@@ -206,8 +206,8 @@
     }                                                                \
     instance->receiveByte(DATA);                                     \
   } else if ((status & STAT_PREFIX##_IDLE) != 0) {                   \
-    UART_RX_CLEAR_IDLE_##N                                           \
     instance->checkPacketTimeout();                                  \
+    UART_RX_CLEAR_IDLE_##N                                           \
   }
 
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
