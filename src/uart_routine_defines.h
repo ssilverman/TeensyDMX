@@ -286,4 +286,19 @@
    * this overlaps */                                       \
   delayMicroseconds(kCharTime - kBitTime + mabTime + 1);
 
+// N is the register number.
+#define LPUART_TX_BREAK(N)                                  \
+  if (count <= 0) {                                         \
+    return;                                                 \
+  }                                                         \
+                                                            \
+  while (count-- > 0) {                                     \
+    while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) {    \
+      /* Wait until we can transmit*/                       \
+    }                                                       \
+    LPUART##N##_DATA = LPUART_DATA_FRETSC; /* T9 is zero */ \
+  }                                                         \
+                                                            \
+  delayMicroseconds(mabTime);
+
 #endif  // UART_ROUTINE_DEFINES_H_

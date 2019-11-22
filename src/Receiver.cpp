@@ -1206,18 +1206,7 @@ void lpuart0_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_0
 
 void lpuart0_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART0_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART0_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(0)
 }
 
 #endif  // HAS_KINETISK_LPUART0
@@ -1237,18 +1226,7 @@ void lpuart6_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_6
 
 void lpuart6_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART6_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART6_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(6)
 }
 
 #endif  // IMXRT_LPUART6
@@ -1268,18 +1246,7 @@ void lpuart4_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_4
 
 void lpuart4_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART4_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART4_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(4)
 }
 
 #endif  // IMXRT_LPUART4
@@ -1299,18 +1266,7 @@ void lpuart2_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_2
 
 void lpuart2_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART2_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART2_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(2)
 }
 
 #endif  // IMXRT_LPUART2
@@ -1330,18 +1286,7 @@ void lpuart3_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_3
 
 void lpuart3_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART3_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART3_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(3)
 }
 
 #endif  // IMXRT_LPUART3
@@ -1361,18 +1306,7 @@ void lpuart8_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_8
 
 void lpuart8_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART8_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART8_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(8)
 }
 
 #endif  // IMXRT_LPUART8
@@ -1392,18 +1326,7 @@ void lpuart1_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_1
 
 void lpuart1_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART1_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART1_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(1)
 }
 
 #endif  // IMXRT_LPUART1
@@ -1423,18 +1346,7 @@ void lpuart7_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_7
 
 void lpuart7_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART7_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART7_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(7)
 }
 
 #endif  // IMXRT_LPUART7
@@ -1454,18 +1366,7 @@ void lpuart5_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_5
 
 void lpuart5_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART5_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART5_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(5)
 }
 
 #endif  // IMXRT_LPUART5
