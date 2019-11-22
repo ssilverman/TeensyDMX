@@ -11,7 +11,7 @@ namespace teensydmx {
 
 // Returns the index given a serial port, or -1 if the serial port is
 // not supported.
-int serialIndex(HardwareSerial &uart) {
+int serialIndex(const HardwareSerial &uart) {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0) || \
     defined(IMXRT_LPUART6)
   if (&uart == &Serial1) {

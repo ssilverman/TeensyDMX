@@ -421,8 +421,7 @@ class Receiver final : public TeensyDMX {
   uint32_t lastSlotEndTime_;
 
   // Indicates whether we are connected to a DMX transmitter. Disconnection is
-  // considered to have occurred when a timeout, framing error, or short packet
-  // is detected.
+  // considered to have occurred when a timeout or framing error is detected.
   volatile bool connected_;
 
   // This is called when the connection state changes.
