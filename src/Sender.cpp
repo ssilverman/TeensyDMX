@@ -39,16 +39,6 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;  // 9:2
 constexpr uint32_t kBreakTime = 1000000/kBreakBaud * 9;  // In us
 constexpr uint32_t kMABTime   = 1000000/kBreakBaud * 1;  // In us
 
-// TX control states
-#define UART_C2_TX_ENABLE         (UART_C2_TE)
-#define UART_C2_TX_ACTIVE         ((UART_C2_TX_ENABLE) | (UART_C2_TIE))
-#define UART_C2_TX_COMPLETING     ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
-#define UART_C2_TX_INACTIVE       (UART_C2_TX_ENABLE)
-#define LPUART_CTRL_TX_ENABLE     (LPUART_CTRL_TE)
-#define LPUART_CTRL_TX_ACTIVE     ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TIE))
-#define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
-#define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
-
 // Used by the TX ISRs
 Sender *volatile txInstances[8]{nullptr};
 
@@ -69,6 +59,16 @@ Sender::Sender(HardwareSerial &uart)
 Sender::~Sender() {
   end();
 }
+
+// TX control states
+#define UART_C2_TX_ENABLE         (UART_C2_TE)
+#define UART_C2_TX_ACTIVE         ((UART_C2_TX_ENABLE) | (UART_C2_TIE))
+#define UART_C2_TX_COMPLETING     ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
+#define UART_C2_TX_INACTIVE       (UART_C2_TX_ENABLE)
+#define LPUART_CTRL_TX_ENABLE     (LPUART_CTRL_TE)
+#define LPUART_CTRL_TX_ACTIVE     ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TIE))
+#define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
+#define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
 #define ACTIVATE_UART_TX_SERIAL(N)                               \
   attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_isr); \
@@ -180,8 +180,9 @@ void Sender::begin() {
   }
 }
 
-// Undefine this macro
-#undef ACTIVATE_TX_SERIAL
+// Undefine these macros
+#undef ACTIVATE_UART_TX_SERIAL
+#undef ACTIVATE_LPUART_TX_SERIAL
 
 void Sender::end() {
   if (!began_) {
@@ -589,7 +590,7 @@ void uart0_tx_isr() {
   uint8_t status = UART0_S1;
   uint8_t control = UART0_C2;
 
-  UART_TX(0, UART0_C2, UART0_D, UART_C2, UART_S1)
+  UART_TX(0, 0, UART0_C2, UART0_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART0_C2, UART_C2, UART_S1)
 }
@@ -615,7 +616,7 @@ void uart1_tx_isr() {
   uint8_t status = UART1_S1;
   uint8_t control = UART1_C2;
 
-  UART_TX(1, UART1_C2, UART1_D, UART_C2, UART_S1)
+  UART_TX(1, 1, UART1_C2, UART1_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART1_C2, UART_C2, UART_S1)
 }
@@ -641,7 +642,7 @@ void uart2_tx_isr() {
   uint8_t status = UART2_S1;
   uint8_t control = UART2_C2;
 
-  UART_TX(2, UART2_C2, UART2_D, UART_C2, UART_S1)
+  UART_TX(2, 2, UART2_C2, UART2_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART2_C2, UART_C2, UART_S1)
 }
@@ -663,7 +664,7 @@ void uart3_tx_isr() {
   uint8_t status = UART3_S1;
   uint8_t control = UART3_C2;
 
-  UART_TX(3, UART3_C2, UART3_D, UART_C2, UART_S1)
+  UART_TX(3, 3, UART3_C2, UART3_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART3_C2, UART_C2, UART_S1)
 }
@@ -685,7 +686,7 @@ void uart4_tx_isr() {
   uint8_t status = UART4_S1;
   uint8_t control = UART4_C2;
 
-  UART_TX(4, UART4_C2, UART4_D, UART_C2, UART_S1)
+  UART_TX(4, 4, UART4_C2, UART4_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART4_C2, UART_C2, UART_S1)
 }
@@ -707,7 +708,7 @@ void uart5_tx_isr() {
   uint8_t status = UART5_S1;
   uint8_t control = UART5_C2;
 
-  UART_TX(5, UART5_C2, UART5_D, UART_C2, UART_S1)
+  UART_TX(5, 5, UART5_C2, UART5_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART5_C2, UART_C2, UART_S1)
 }
@@ -722,19 +723,19 @@ void uart5_tx_isr() {
 
 #if defined(HAS_KINETISK_LPUART0)
 
-#define UART_TX_DATA_STATE_5 \
+#define UART_TX_DATA_STATE_0 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL)
 
 void lpuart0_tx_isr() {
   uint32_t status = LPUART0_STAT;
   uint32_t control = LPUART0_CTRL;
 
-  UART_TX(5, LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(5, 0, LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART0_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 
-#undef UART_TX_DATA_STATE_5
+#undef UART_TX_DATA_STATE_0
 
 #endif  // HAS_KINETISK_LPUART0
 
@@ -744,19 +745,19 @@ void lpuart0_tx_isr() {
 
 #if defined(IMXRT_LPUART6)
 
-#define UART_TX_DATA_STATE_0 \
+#define UART_TX_DATA_STATE_6 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART6_CTRL, LPUART6_DATA, LPUART_CTRL)
 
 void lpuart6_tx_isr() {
   uint32_t status = LPUART6_STAT;
   uint32_t control = LPUART6_CTRL;
 
-  UART_TX(0, LPUART6_CTRL, LPUART6_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(0, 6, LPUART6_CTRL, LPUART6_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART6_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 
-#undef UART_TX_DATA_STATE_0
+#undef UART_TX_DATA_STATE_6
 
 #endif  // HAS_KINETISK_LPUART6
 
@@ -766,19 +767,19 @@ void lpuart6_tx_isr() {
 
 #if defined(IMXRT_LPUART4)
 
-#define UART_TX_DATA_STATE_1 \
+#define UART_TX_DATA_STATE_4 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART4_CTRL, LPUART4_DATA, LPUART_CTRL)
 
 void lpuart4_tx_isr() {
   uint32_t status = LPUART4_STAT;
   uint32_t control = LPUART4_CTRL;
 
-  UART_TX(1, LPUART4_CTRL, LPUART4_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(1, 4, LPUART4_CTRL, LPUART4_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART4_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 
-#undef UART_TX_DATA_STATE_1
+#undef UART_TX_DATA_STATE_4
 
 #endif  // HAS_KINETISK_LPUART4
 
@@ -795,7 +796,7 @@ void lpuart2_tx_isr() {
   uint32_t status = LPUART2_STAT;
   uint32_t control = LPUART2_CTRL;
 
-  UART_TX(2, LPUART2_CTRL, LPUART2_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(2, 2, LPUART2_CTRL, LPUART2_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART2_CTRL, LPUART_CTRL, LPUART_STAT)
 }
@@ -817,7 +818,7 @@ void lpuart3_tx_isr() {
   uint32_t status = LPUART3_STAT;
   uint32_t control = LPUART3_CTRL;
 
-  UART_TX(3, LPUART3_CTRL, LPUART3_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(3, 3, LPUART3_CTRL, LPUART3_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART3_CTRL, LPUART_CTRL, LPUART_STAT)
 }
@@ -832,19 +833,19 @@ void lpuart3_tx_isr() {
 
 #if defined(IMXRT_LPUART8)
 
-#define UART_TX_DATA_STATE_4 \
+#define UART_TX_DATA_STATE_8 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART8_CTRL, LPUART8_DATA, LPUART_CTRL)
 
 void lpuart8_tx_isr() {
   uint32_t status = LPUART8_STAT;
   uint32_t control = LPUART8_CTRL;
 
-  UART_TX(4, LPUART8_CTRL, LPUART8_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(4, 8, LPUART8_CTRL, LPUART8_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART8_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 
-#undef UART_TX_DATA_STATE_4
+#undef UART_TX_DATA_STATE_8
 
 #endif  // HAS_KINETISK_LPUART8
 
@@ -854,19 +855,19 @@ void lpuart8_tx_isr() {
 
 #if defined(IMXRT_LPUART1)
 
-#define UART_TX_DATA_STATE_5 \
+#define UART_TX_DATA_STATE_1 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART1_CTRL, LPUART1_DATA, LPUART_CTRL)
 
 void lpuart1_tx_isr() {
   uint32_t status = LPUART1_STAT;
   uint32_t control = LPUART1_CTRL;
 
-  UART_TX(5, LPUART1_CTRL, LPUART1_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(5, 1, LPUART1_CTRL, LPUART1_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART1_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 
-#undef UART_TX_DATA_STATE_5
+#undef UART_TX_DATA_STATE_1
 
 #endif  // HAS_KINETISK_LPUART1
 
@@ -876,19 +877,19 @@ void lpuart1_tx_isr() {
 
 #if defined(IMXRT_LPUART7)
 
-#define UART_TX_DATA_STATE_6 \
+#define UART_TX_DATA_STATE_7 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART7_CTRL, LPUART7_DATA, LPUART_CTRL)
 
 void lpuart7_tx_isr() {
   uint32_t status = LPUART7_STAT;
   uint32_t control = LPUART7_CTRL;
 
-  UART_TX(6, LPUART7_CTRL, LPUART7_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(6, 7, LPUART7_CTRL, LPUART7_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART7_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 
-#undef UART_TX_DATA_STATE_6
+#undef UART_TX_DATA_STATE_7
 
 #endif  // HAS_KINETISK_LPUART7
 
@@ -898,21 +899,30 @@ void lpuart7_tx_isr() {
 
 #if defined(IMXRT_LPUART5)
 
-#define UART_TX_DATA_STATE_7 \
+#define UART_TX_DATA_STATE_5 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART5_CTRL, LPUART5_DATA, LPUART_CTRL)
 
 void lpuart5_tx_isr() {
   uint32_t status = LPUART5_STAT;
   uint32_t control = LPUART5_CTRL;
 
-  UART_TX(7, LPUART5_CTRL, LPUART5_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(7, 5, LPUART5_CTRL, LPUART5_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART5_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 
-#undef UART_TX_DATA_STATE_7
+#undef UART_TX_DATA_STATE_5
 
 #endif  // HAS_KINETISK_LPUART5
+// Undefine these macros
+#undef UART_C2_TX_ENABLE
+#undef UART_C2_TX_ACTIVE
+#undef UART_C2_TX_COMPLETING
+#undef UART_C2_TX_INACTIVE
+#undef LPUART_CTRL_TX_ENABLE
+#undef LPUART_CTRL_TX_ACTIVE
+#undef LPUART_CTRL_TX_COMPLETING
+#undef LPUART_CTRL_TX_INACTIVE
 
 }  // namespace teensydmx
 }  // namespace qindesign
