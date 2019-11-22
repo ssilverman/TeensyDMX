@@ -446,7 +446,7 @@ void uart0_tx_isr() {
   uint8_t status = UART0_S1;
   uint8_t control = UART0_C2;
 
-  UART_TX(0, UART0_C2, UART0_D, UART_C2, UART_S1)
+  UART_TX(0, 0, UART0_C2, UART0_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART0_C2, UART_C2, UART_S1)
 }
@@ -472,7 +472,7 @@ void uart1_tx_isr() {
   uint8_t status = UART1_S1;
   uint8_t control = UART1_C2;
 
-  UART_TX(1, UART1_C2, UART1_D, UART_C2, UART_S1)
+  UART_TX(1, 1, UART1_C2, UART1_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART1_C2, UART_C2, UART_S1)
 }
@@ -498,7 +498,7 @@ void uart2_tx_isr() {
   uint8_t status = UART2_S1;
   uint8_t control = UART2_C2;
 
-  UART_TX(2, UART2_C2, UART2_D, UART_C2, UART_S1)
+  UART_TX(2, 2, UART2_C2, UART2_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART2_C2, UART_C2, UART_S1)
 }
@@ -520,7 +520,7 @@ void uart3_tx_isr() {
   uint8_t status = UART3_S1;
   uint8_t control = UART3_C2;
 
-  UART_TX(3, UART3_C2, UART3_D, UART_C2, UART_S1)
+  UART_TX(3, 3, UART3_C2, UART3_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART3_C2, UART_C2, UART_S1)
 }
@@ -542,7 +542,7 @@ void uart4_tx_isr() {
   uint8_t status = UART4_S1;
   uint8_t control = UART4_C2;
 
-  UART_TX(4, UART4_C2, UART4_D, UART_C2, UART_S1)
+  UART_TX(4, 4, UART4_C2, UART4_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART4_C2, UART_C2, UART_S1)
 }
@@ -564,7 +564,7 @@ void uart5_tx_isr() {
   uint8_t status = UART5_S1;
   uint8_t control = UART5_C2;
 
-  UART_TX(5, UART5_C2, UART5_D, UART_C2, UART_S1)
+  UART_TX(5, 5, UART5_C2, UART5_D, UART_C2, UART_S1)
 
   UART_TX_COMPLETE(UART5_C2, UART_C2, UART_S1)
 }
@@ -579,19 +579,19 @@ void uart5_tx_isr() {
 
 #if defined(HAS_KINETISK_LPUART0)
 
-#define UART_TX_DATA_STATE_5 \
+#define UART_TX_DATA_STATE_0 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL)
 
 void lpuart0_tx_isr() {
   uint32_t status = LPUART0_STAT;
   uint32_t control = LPUART0_CTRL;
 
-  UART_TX(5, LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(5, 0, LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(LPUART0_CTRL, LPUART_CTRL, LPUART_STAT)
 }
 
-#undef UART_TX_DATA_STATE_5
+#undef UART_TX_DATA_STATE_0
 
 #endif  // HAS_KINETISK_LPUART0
 

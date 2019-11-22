@@ -1004,13 +1004,13 @@ void uart5_tx_break(int count, uint32_t mabTime) {
 
 #if defined(HAS_KINETISK_LPUART0)
 
-#define UART_SYNC_TX_SEND_FIFO_5
+#define UART_SYNC_TX_SEND_FIFO_0
 
 void lpuart0_tx(const uint8_t *b, int len) {
-  UART_SYNC_TX(5, LPUART0_STAT, LPUART_STAT, LPUART0_DATA)
+  UART_SYNC_TX(0, LPUART0_STAT, LPUART_STAT, LPUART0_DATA)
 }
 
-#undef UART_SYNC_TX_SEND_FIFO_5
+#undef UART_SYNC_TX_SEND_FIFO_0
 
 void lpuart0_tx_break(int count, uint32_t mabTime) {
   if (count <= 0) {
@@ -1063,7 +1063,7 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 
 void uart0_rx_isr() {
   uint8_t status = UART0_S1;
-  UART_RX(0, UART_S1, UART0_D)
+  UART_RX(0, 0, UART_S1, UART0_D)
 }
 
 #undef UART_RX_CLEAR_ERRORS_0
@@ -1099,7 +1099,7 @@ void uart0_rx_isr() {
 
 void uart1_rx_isr() {
   uint8_t status = UART1_S1;
-  UART_RX(1, UART_S1, UART1_D)
+  UART_RX(1, 1, UART_S1, UART1_D)
 }
 
 #undef UART_RX_CLEAR_ERRORS_1
@@ -1135,7 +1135,7 @@ void uart1_rx_isr() {
 
 void uart2_rx_isr() {
   uint8_t status = UART2_S1;
-  UART_RX(2, UART_S1, UART2_D)
+  UART_RX(2, 2, UART_S1, UART2_D)
 }
 
 #undef UART_RX_CLEAR_ERRORS_2
@@ -1161,7 +1161,7 @@ void uart2_rx_isr() {
 
 void uart3_rx_isr() {
   uint8_t status = UART3_S1;
-  UART_RX(3, UART_S1, UART3_D)
+  UART_RX(3, 3, UART_S1, UART3_D)
 }
 
 #undef UART_RX_CLEAR_ERRORS_3
@@ -1187,7 +1187,7 @@ void uart3_rx_isr() {
 
 void uart4_rx_isr() {
   uint8_t status = UART4_S1;
-  UART_RX(4, UART_S1, UART4_D)
+  UART_RX(4, 4, UART_S1, UART4_D)
 }
 
 #undef UART_RX_CLEAR_ERRORS_4
@@ -1213,7 +1213,7 @@ void uart4_rx_isr() {
 
 void uart5_rx_isr() {
   uint8_t status = UART5_S1;
-  UART_RX(5, UART_S1, UART5_D)
+  UART_RX(5, 5, UART_S1, UART5_D)
 }
 
 #undef UART_RX_CLEAR_ERRORS_5
@@ -1230,22 +1230,22 @@ void uart5_rx_isr() {
 
 #if defined(HAS_KINETISK_LPUART0)
 
-#define UART_RX_CLEAR_ERRORS_5 \
+#define UART_RX_CLEAR_ERRORS_0 \
   LPUART0_STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
-#define UART_RX_ERROR_FLUSH_FIFO_5
-#define UART_RX_5 UART_RX_NO_FIFO(5, LPUART_STAT, LPUART0_DATA)
-#define UART_RX_CLEAR_IDLE_5 LPUART0_STAT |= LPUART_STAT_IDLE;
+#define UART_RX_ERROR_FLUSH_FIFO_0
+#define UART_RX_0 UART_RX_NO_FIFO(0, LPUART_STAT, LPUART0_DATA)
+#define UART_RX_CLEAR_IDLE_0 LPUART0_STAT |= LPUART_STAT_IDLE;
 #define UART_RX_TEST_R8 ((LPUART0_CTRL & LPUART_CTRL_R8) != 0)
 
 void lpuart0_rx_isr() {
   uint32_t status = LPUART0_STAT;
-  UART_RX(5, LPUART_STAT, LPUART0_DATA)
+  UART_RX(5, 0, LPUART_STAT, LPUART0_DATA)
 }
 
-#undef UART_RX_CLEAR_ERRORS_5
-#undef UART_RX_ERROR_FLUSH_FIFO_5
-#undef UART_RX_5
-#undef UART_RX_CLEAR_IDLE_5
+#undef UART_RX_CLEAR_ERRORS_0
+#undef UART_RX_ERROR_FLUSH_FIFO_0
+#undef UART_RX_0
+#undef UART_RX_CLEAR_IDLE_0
 #undef UART_RX_TEST_R8
 
 #endif  // HAS_KINETISK_LPUART0

@@ -11,6 +11,7 @@
 //  UART TX routines, for Sender
 // ---------------------------------------------------------------------------
 
+// N is the register number.
 #define UART_TX_DATA_STATE_WITH_FIFO(N)                              \
   do {                                                               \
     if (instance->outputBufIndex_ >= instance->packetSize_) {        \
@@ -32,10 +33,9 @@
   }
 
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
-// Needs to have UART_TX_DATA_STATE_N defined.
-// N is the index of the instance and not necessarily the register.
-#define UART_TX(N, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)              \
-  Sender *instance = txInstances[N];                                  \
+// Needs to have UART_TX_DATA_STATE_REG defined.
+#define UART_TX(INSTANCE, REG, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)  \
+  Sender *instance = txInstances[INSTANCE];                           \
   if (instance == nullptr) {                                          \
     return;                                                           \
   }                                                                   \
@@ -51,7 +51,7 @@
         break;                                                        \
                                                                       \
       case Sender::XmitStates::kData:                                 \
-        UART_TX_DATA_STATE_##N                                        \
+        UART_TX_DATA_STATE_##REG                                      \
         break;                                                        \
                                                                       \
       case Sender::XmitStates::kIdle:                                 \
@@ -78,7 +78,7 @@
             /* Non-infinite break time */                             \
             if (!instance->refreshRateTimer_.begin(                   \
                     []() {                                            \
-                      Sender *s = txInstances[N];                     \
+                      Sender *s = txInstances[INSTANCE];              \
                       if (s != nullptr) {                             \
                         s->refreshRateTimer_.end();                   \
                         CTRL = CTRL_PREFIX##_TX_ACTIVE;               \
@@ -124,6 +124,7 @@
 
 // Assumes status = UARTx_S1.
 // Needs to have UART_RX_TEST_R8 defined.
+// N is the register number.
 #define UART_RX_WITH_FIFO(N)                                               \
   /* If the receive buffer is full or there's an idle condition */         \
   if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {                     \
@@ -168,6 +169,7 @@
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
 // Needs to have UART_RX_TEST_R8 defined.
 // Needs to have UART_RX_CLEAR_IDLE_N defined.
+// N is the register number.
 #define UART_RX_NO_FIFO(N, STAT_PREFIX, DATA)                        \
   /* If the receive buffer is full */                                \
   if ((status & STAT_PREFIX##_RDRF) != 0) {                          \
@@ -183,12 +185,11 @@
   }
 
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
-// Needs to have UART_RX_CLEAR_ERRORS_N defined.
-// Needs to have UART_RX_ERROR_FLUSH_FIFO_N defined.
-// Needs to have UART_RX_N defined.
-// N is the index of the instance and not necessarily the register.
-#define UART_RX(N, STAT_PREFIX, DATA)                                      \
-  Receiver *instance = rxInstances[N];                                     \
+// Needs to have UART_RX_CLEAR_ERRORS_REG defined.
+// Needs to have UART_RX_ERROR_FLUSH_FIFO_REG defined.
+// Needs to have UART_RX_REG defined.
+#define UART_RX(INSTANCE, REG, STAT_PREFIX, DATA)                          \
+  Receiver *instance = rxInstances[INSTANCE];                              \
   if (instance == nullptr) {                                               \
     return;                                                                \
   }                                                                        \
@@ -201,8 +202,8 @@
                                                                            \
     instance->feStartTime_ = micros();                                     \
                                                                            \
-    UART_RX_CLEAR_ERRORS_##N                                               \
-    UART_RX_ERROR_FLUSH_FIFO_##N                                           \
+    UART_RX_CLEAR_ERRORS_##REG                                             \
+    UART_RX_ERROR_FLUSH_FIFO_##REG                                         \
                                                                            \
     if (DATA == 0) {                                                       \
       instance->receivePotentialBreak();                                   \
@@ -212,8 +213,9 @@
     return;                                                                \
   }                                                                        \
                                                                            \
-  UART_RX_##N
+  UART_RX_##REG
 
+// N is the register number.
 #define UART_RX_ERROR_FLUSH_FIFO(N)       \
   /* Flush anything in the buffer */      \
   uint8_t avail = UART##N##_RCFIFO;       \
@@ -229,6 +231,7 @@
 
 // Synchronous TX, used in Receiver.
 // Needs to have UART_SYNC_TX_SEND_FIFO_N defined.
+// N is the register number.
 #define UART_SYNC_TX(N, STAT, STAT_PREFIX, DATA) \
   if (len <= 0) {                                \
     return;                                      \
@@ -248,6 +251,7 @@
     /* Wait until transmission complete */       \
   }
 
+// N is the register number.
 #define UART_SYNC_TX_SEND_FIFO(N)           \
   while (len > 0 && UART##N##_TCFIFO < 8) { \
     UART##N##_S1;                           \
@@ -255,12 +259,14 @@
     len--;                                  \
   }
 
+// N is the register number.
 #define UART_TX_FLUSH_FIFO(N)        \
   while (UART##N##_TCFIFO > 0) {     \
     /* Wait for the FIFO to drain */ \
   }
 
 // Needs to have UART_TX_FLUSH_FIFO_N defined.
+// N is the register number.
 #define UART_TX_BREAK(N)                                    \
   if (count <= 0) {                                         \
     return;                                                 \
