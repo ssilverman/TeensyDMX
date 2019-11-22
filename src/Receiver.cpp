@@ -1013,18 +1013,7 @@ void lpuart0_tx(const uint8_t *b, int len) {
 #undef UART_SYNC_TX_SEND_FIFO_0
 
 void lpuart0_tx_break(int count, uint32_t mabTime) {
-  if (count <= 0) {
-    return;
-  }
-
-  while (count-- > 0) {
-    while ((LPUART0_STAT & LPUART_STAT_TDRE) == 0) {
-      // Wait until we can transmit
-    }
-    LPUART0_DATA = LPUART_DATA_FRETSC;  // T9 is zero
-  }
-
-  delayMicroseconds(mabTime);
+  LPUART_TX_BREAK(0)
 }
 
 #endif  // HAS_KINETISK_LPUART0
