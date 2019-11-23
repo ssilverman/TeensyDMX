@@ -179,14 +179,7 @@
       }                                                                  \
       return;                                                            \
     } else {                                                             \
-      bool errFlag = false;                                              \
       while (avail-- > 0) {                                              \
-        /* Check that the 9th bit is high; used as the first stop bit */ \
-        if (!errFlag && (LPUART##N##_CTRL & LPUART_CTRL_R8T9) == 0) {    \
-          errFlag = true;                                                \
-          instance->framingErrorCount_++;                                \
-          instance->completePacket();                                    \
-        }                                                                \
         instance->receiveByte(LPUART##N##_DATA);                         \
       }                                                                  \
     }                                                                    \
