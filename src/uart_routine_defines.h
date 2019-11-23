@@ -188,6 +188,7 @@
 // Needs to have UART_RX_CLEAR_ERRORS_REG defined.
 // Needs to have UART_RX_ERROR_FLUSH_FIFO_REG defined.
 // Needs to have UART_RX_REG defined.
+// DATA may be a 32-bit register with non-data bits.
 #define UART_RX(INSTANCE, REG, STAT_PREFIX, DATA)                          \
   Receiver *instance = rxInstances[INSTANCE];                              \
   if (instance == nullptr) {                                               \
@@ -205,7 +206,8 @@
     UART_RX_CLEAR_ERRORS_##REG                                             \
     UART_RX_ERROR_FLUSH_FIFO_##REG                                         \
                                                                            \
-    if (DATA == 0) {                                                       \
+    /* DATA may be a 32-bit register with extra bits */                    \
+    if ((DATA & 0xff) == 0) {                                              \
       instance->receivePotentialBreak();                                   \
     } else {                                                               \
       instance->receiveBadBreak();                                         \
