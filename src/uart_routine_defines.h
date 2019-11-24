@@ -330,18 +330,30 @@
   delayMicroseconds(kCharTime - kBitTime + mabTime + 1);
 
 // N is the register number.
-#define LPUART_TX_BREAK(N)                                  \
-  if (count <= 0) {                                         \
-    return;                                                 \
-  }                                                         \
-                                                            \
-  while (count-- > 0) {                                     \
-    while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) {    \
-      /* Wait until we can transmit*/                       \
-    }                                                       \
-    LPUART##N##_DATA = LPUART_DATA_FRETSC; /* T9 is zero */ \
-  }                                                         \
-                                                            \
-  delayMicroseconds(mabTime);
+#define LPUART_TX_FLUSH_FIFO(N)                   \
+  while (((LPUART##N##_WATER >> 8) & 0x07) > 0) { \
+    /* Wait for the FIFO to drain */              \
+  }
+
+// Needs to have LPUART_TX_FLUSH_FIFO_N defined.
+// N is the register number.
+#define LPUART_TX_BREAK(N)                                          \
+  if (count <= 0) {                                                 \
+    return;                                                         \
+  }                                                                 \
+                                                                    \
+  LPUART_TX_FLUSH_FIFO_##N                                          \
+                                                                    \
+  while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) {              \
+    /* Wait until we can transmit */                                \
+  }                                                                 \
+  LPUART##N##_CTRL |= LPUART_CTRL_SBK;  /* Enable BREAK transmit */ \
+  /* Turn off in the middle of the last BREAK */                    \
+  delayMicroseconds((count - 1)*kCharTime + kBitTime);              \
+  LPUART##N##_CTRL &= ~LPUART_CTRL_SBK;                             \
+                                                                    \
+  /* Account for the shift register time by 1 character;            \
+   * this overlaps */                                               \
+  delayMicroseconds(kCharTime - kBitTime + mabTime + 1);
 
 #endif  // UART_ROUTINE_DEFINES_H_
