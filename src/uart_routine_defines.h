@@ -32,8 +32,20 @@
     }                                                         \
   }
 
+// N is the register number.
+#define LPUART_TX_DATA_STATE_WITH_FIFO(N)                                 \
+  do {                                                                    \
+    if (instance->outputBufIndex_ >= instance->packetSize_) {             \
+      LPUART##N##_CTRL = LPUART_CTRL_TX_COMPLETING;                       \
+      break;                                                              \
+    }                                                                     \
+    status = LPUART##N##_STAT;                                            \
+    LPUART##N##_DATA = instance->outputBuf_[instance->outputBufIndex_++]; \
+  } while (((LPUART##N##_WATER >> 8) & 0x07) < 4);
+
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Needs to have UART_TX_DATA_STATE_REG defined.
+// Needs to have REATTACH_INTERRUPT_REG defined.
 #define UART_TX(INSTANCE, REG, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)  \
   Sender *instance = txInstances[INSTANCE];                           \
   if (instance == nullptr) {                                          \
@@ -69,6 +81,7 @@
         instance->transmitting_ = true;                               \
         instance->state_ = Sender::XmitStates::kBreak;                \
         instance->uart_.begin(kBreakBaud, kBreakFormat);              \
+        REATTACH_INTERRUPT_##REG                                      \
                                                                       \
         /* Delay so that we can achieve the specified refresh rate */ \
         uint32_t timeSinceBreak = instance->timeSinceBreak_;          \
@@ -99,7 +112,8 @@
 
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Assumes instance is defined.
-#define UART_TX_COMPLETE(CTRL, CTRL_PREFIX, STAT_PREFIX) \
+// Needs to have REATTACH_INTERRUPT_REG defined.
+#define UART_TX_COMPLETE(REG, CTRL, CTRL_PREFIX, STAT_PREFIX) \
   /* If transmission is complete */                      \
   if ((control & CTRL_PREFIX##_TCIE) != 0 &&             \
       (status & STAT_PREFIX##_TC) != 0) {                \
@@ -107,6 +121,7 @@
       case Sender::XmitStates::kBreak:                   \
         instance->state_ = Sender::XmitStates::kData;    \
         instance->uart_.begin(kSlotsBaud, kSlotsFormat); \
+        REATTACH_INTERRUPT_##REG                         \
         break;                                           \
                                                          \
       case Sender::XmitStates::kData:                    \
