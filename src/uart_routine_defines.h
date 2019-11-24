@@ -296,6 +296,13 @@
   }
 
 // N is the register number.
+#define LPUART_SYNC_TX_SEND_FIFO(N)                          \
+  while (len > 0 && ((LPUART##N##_WATER >> 8) & 0x07) < 4) { \
+    LPUART##N##_DATA = *(b++);                               \
+    len--;                                                   \
+  }
+
+// N is the register number.
 #define UART_TX_FLUSH_FIFO(N)        \
   while (UART##N##_TCFIFO > 0) {     \
     /* Wait for the FIFO to drain */ \

@@ -1217,7 +1217,7 @@ void lpuart0_tx_break(int count, uint32_t mabTime) {
 
 #if defined(IMXRT_LPUART6)
 
-#define UART_SYNC_TX_SEND_FIFO_6
+#define UART_SYNC_TX_SEND_FIFO_6 LPUART_SYNC_TX_SEND_FIFO(6)
 
 void lpuart6_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(6, LPUART6_STAT, LPUART_STAT, LPUART6_DATA)
@@ -1237,7 +1237,7 @@ void lpuart6_tx_break(int count, uint32_t mabTime) {
 
 #if defined(IMXRT_LPUART4)
 
-#define UART_SYNC_TX_SEND_FIFO_4
+#define UART_SYNC_TX_SEND_FIFO_4 LPUART_SYNC_TX_SEND_FIFO(4)
 
 void lpuart4_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(4, LPUART4_STAT, LPUART_STAT, LPUART4_DATA)
@@ -1257,7 +1257,7 @@ void lpuart4_tx_break(int count, uint32_t mabTime) {
 
 #if defined(IMXRT_LPUART2)
 
-#define UART_SYNC_TX_SEND_FIFO_2
+#define UART_SYNC_TX_SEND_FIFO_2 LPUART_SYNC_TX_SEND_FIFO(2)
 
 void lpuart2_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(2, LPUART2_STAT, LPUART_STAT, LPUART2_DATA)
@@ -1277,7 +1277,7 @@ void lpuart2_tx_break(int count, uint32_t mabTime) {
 
 #if defined(IMXRT_LPUART3)
 
-#define UART_SYNC_TX_SEND_FIFO_3
+#define UART_SYNC_TX_SEND_FIFO_3 LPUART_SYNC_TX_SEND_FIFO(3)
 
 void lpuart3_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(3, LPUART3_STAT, LPUART_STAT, LPUART3_DATA)
@@ -1297,7 +1297,7 @@ void lpuart3_tx_break(int count, uint32_t mabTime) {
 
 #if defined(IMXRT_LPUART8)
 
-#define UART_SYNC_TX_SEND_FIFO_8
+#define UART_SYNC_TX_SEND_FIFO_8 LPUART_SYNC_TX_SEND_FIFO(8)
 
 void lpuart8_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(8, LPUART8_STAT, LPUART_STAT, LPUART8_DATA)
@@ -1317,7 +1317,7 @@ void lpuart8_tx_break(int count, uint32_t mabTime) {
 
 #if defined(IMXRT_LPUART1)
 
-#define UART_SYNC_TX_SEND_FIFO_1
+#define UART_SYNC_TX_SEND_FIFO_1 LPUART_SYNC_TX_SEND_FIFO(1)
 
 void lpuart1_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(1, LPUART1_STAT, LPUART_STAT, LPUART1_DATA)
@@ -1337,7 +1337,7 @@ void lpuart1_tx_break(int count, uint32_t mabTime) {
 
 #if defined(IMXRT_LPUART7)
 
-#define UART_SYNC_TX_SEND_FIFO_7
+#define UART_SYNC_TX_SEND_FIFO_7 LPUART_SYNC_TX_SEND_FIFO(7)
 
 void lpuart7_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(7, LPUART7_STAT, LPUART_STAT, LPUART7_DATA)
@@ -1357,7 +1357,7 @@ void lpuart7_tx_break(int count, uint32_t mabTime) {
 
 #if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
 
-#define UART_SYNC_TX_SEND_FIFO_5
+#define UART_SYNC_TX_SEND_FIFO_5 LPUART_SYNC_TX_SEND_FIFO(5)
 
 void lpuart5_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(5, LPUART5_STAT, LPUART_STAT, LPUART5_DATA)
