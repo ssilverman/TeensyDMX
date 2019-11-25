@@ -272,13 +272,25 @@
   UART_RX_##REG
 
 // N is the register number.
-#define UART_RX_ERROR_FLUSH_FIFO(N)       \
-  /* Flush anything in the buffer */      \
-  uint8_t avail = UART##N##_RCFIFO;       \
-  if (avail > 1) {                        \
-    while (--avail > 0) {                 \
-      instance->receiveByte(UART##N##_D); \
-    }                                     \
+#define UART_RX_ERROR_FLUSH_FIFO(N)         \
+  /* Flush anything in the buffer */        \
+  uint8_t avail = UART##N##_RCFIFO;         \
+  if (avail > 1) {                          \
+    /* Read everything but the last byte */ \
+    while (--avail > 0) {                   \
+      instance->receiveByte(UART##N##_D);   \
+    }                                       \
+  }
+
+// N is the register number.
+#define LPUART_RX_ERROR_FLUSH_FIFO(N)               \
+  /* Flush anything in the buffer */                \
+  uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07; \
+  if (avail > 1) {                                  \
+    /* Read everything but the last byte */         \
+    while (--avail > 0) {                           \
+      instance->receiveByte(LPUART##N##_DATA);      \
+    }                                               \
   }
 
 // ---------------------------------------------------------------------------
