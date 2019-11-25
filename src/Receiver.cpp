@@ -1209,9 +1209,13 @@ void lpuart0_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_0
 
+#define LPUART_TX_FLUSH_FIFO_0
+
 void lpuart0_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(0)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_0
 
 #endif  // HAS_KINETISK_LPUART0
 
@@ -1229,9 +1233,13 @@ void lpuart6_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_6
 
+#define LPUART_TX_FLUSH_FIFO_6 LPUART_TX_FLUSH_FIFO(6)
+
 void lpuart6_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(6)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_6
 
 #endif  // IMXRT_LPUART6
 
@@ -1249,9 +1257,13 @@ void lpuart4_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_4
 
+#define LPUART_TX_FLUSH_FIFO_4 LPUART_TX_FLUSH_FIFO(4)
+
 void lpuart4_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(4)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_4
 
 #endif  // IMXRT_LPUART4
 
@@ -1269,9 +1281,13 @@ void lpuart2_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_2
 
+#define LPUART_TX_FLUSH_FIFO_2 LPUART_TX_FLUSH_FIFO(2)
+
 void lpuart2_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(2)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_2
 
 #endif  // IMXRT_LPUART2
 
@@ -1289,9 +1305,13 @@ void lpuart3_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_3
 
+#define LPUART_TX_FLUSH_FIFO_3 LPUART_TX_FLUSH_FIFO(3)
+
 void lpuart3_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(3)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_3
 
 #endif  // IMXRT_LPUART3
 
@@ -1309,9 +1329,13 @@ void lpuart8_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_8
 
+#define LPUART_TX_FLUSH_FIFO_8 LPUART_TX_FLUSH_FIFO(8)
+
 void lpuart8_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(8)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_8
 
 #endif  // IMXRT_LPUART8
 
@@ -1329,9 +1353,13 @@ void lpuart1_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_1
 
+#define LPUART_TX_FLUSH_FIFO_1 LPUART_TX_FLUSH_FIFO(1)
+
 void lpuart1_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(1)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_1
 
 #endif  // IMXRT_LPUART1
 
@@ -1349,9 +1377,13 @@ void lpuart7_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_7
 
+#define LPUART_TX_FLUSH_FIFO_7 LPUART_TX_FLUSH_FIFO(7)
+
 void lpuart7_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(7)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_7
 
 #endif  // IMXRT_LPUART7
 
@@ -1369,9 +1401,13 @@ void lpuart5_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_5
 
+#define LPUART_TX_FLUSH_FIFO_5 LPUART_TX_FLUSH_FIFO(5)
+
 void lpuart5_tx_break(int count, uint32_t mabTime) {
   LPUART_TX_BREAK(5)
 }
+
+#undef LPUART_TX_FLUSH_FIFO_5
 
 #endif  // IMXRT_LPUART5 && __IMXRT1052__
 

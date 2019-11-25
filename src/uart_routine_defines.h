@@ -362,10 +362,19 @@
   delayMicroseconds(kCharTime - kBitTime + mabTime + 1);
 
 // N is the register number.
+#define LPUART_TX_FLUSH_FIFO(N)                   \
+  while (((LPUART##N##_WATER >> 8) & 0x07) > 0) { \
+    /* Wait for the FIFO to drain */              \
+  }
+
+// Needs to have LPUART_TX_FLUSH_FIFO_N defined.
+// N is the register number.
 #define LPUART_TX_BREAK(N)                                  \
   if (count <= 0) {                                         \
     return;                                                 \
   }                                                         \
+                                                            \
+  LPUART_TX_FLUSH_FIFO_##N                                  \
                                                             \
   while (count-- > 0) {                                     \
     while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) {    \
