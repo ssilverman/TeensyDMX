@@ -97,7 +97,11 @@ void lpuart5_tx_break(int count, uint32_t mabTime);
 #endif  // IMXRT_LPUART5 && __IMXRT1052__
 
 // Used by the RX ISRs.
+#if defined(__IMXRT1052__)
 Receiver *volatile rxInstances[8]{nullptr};
+#else
+Receiver *volatile rxInstances[7]{nullptr};
+#endif
 
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),

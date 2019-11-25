@@ -40,7 +40,11 @@ constexpr uint32_t kBreakTime = 1000000/kBreakBaud * 9;  // In us
 constexpr uint32_t kMABTime   = 1000000/kBreakBaud * 1;  // In us
 
 // Used by the TX ISRs
+#if defined(__IMXRT1052__)
 Sender *volatile txInstances[8]{nullptr};
+#else
+Sender *volatile txInstances[7]{nullptr};
+#endif
 
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
