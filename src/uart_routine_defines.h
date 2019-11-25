@@ -123,7 +123,7 @@
 // ---------------------------------------------------------------------------
 
 // Assumes status = UARTx_S1.
-// Needs to have UART_RX_TEST_R8_N defined.
+// Needs to have UART_RX_TEST_FIRST_STOP_BIT_N defined.
 // N is the register number.
 #define UART_RX_WITH_FIFO(N)                                               \
   /* If the receive buffer is full or there's an idle condition */         \
@@ -150,7 +150,7 @@
       bool errFlag = false;                                                \
       while (--avail > 0) {                                                \
         /* Check that the 9th bit is high; used as the first stop bit */   \
-        if (!errFlag && !UART_RX_TEST_R8_##N) {                            \
+        if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                \
           errFlag = true;                                                  \
           instance->framingErrorCount_++;                                  \
           instance->completePacket();                                      \
@@ -158,7 +158,7 @@
         instance->receiveByte(UART##N##_D);                                \
       }                                                                    \
       status = UART##N##_S1;                                               \
-      if (!errFlag && !UART_RX_TEST_R8_##N) {                              \
+      if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                  \
         instance->framingErrorCount_++;                                    \
         instance->completePacket();                                        \
       }                                                                    \
@@ -167,14 +167,14 @@
   }
 
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
-// Needs to have UART_RX_TEST_R8_N defined.
+// Needs to have UART_RX_TEST_FIRST_STOP_BIT_N defined.
 // Needs to have UART_RX_CLEAR_IDLE_N defined.
 // N is the register number.
 #define UART_RX_NO_FIFO(N, STAT_PREFIX, DATA)                        \
   /* If the receive buffer is full */                                \
   if ((status & STAT_PREFIX##_RDRF) != 0) {                          \
     /* Check that the 9th bit is high; used as the first stop bit */ \
-    if (!UART_RX_TEST_R8_##N) {                                      \
+    if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                          \
       instance->framingErrorCount_++;                                \
       instance->completePacket();                                    \
     }                                                                \
