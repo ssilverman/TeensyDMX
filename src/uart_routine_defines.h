@@ -183,21 +183,21 @@
 
 // Assumes status = LPUARTx_STAT.
 // N is the register number.
-#define LPUART_RX_WITH_FIFO(N)                                           \
-  /* If the receive buffer is full or there's an idle condition */       \
-  if ((status & (LPUART_STAT_RDRF | LPUART_STAT_IDLE)) != 0) {           \
-    uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;                    \
-    if (avail == 0) {                                                    \
-      instance->checkPacketTimeout();                                    \
-      if ((status & LPUART_STAT_IDLE) != 0) {                            \
-        LPUART##N##_STAT |= LPUART_STAT_IDLE;                            \
-      }                                                                  \
-      return;                                                            \
-    } else {                                                             \
-      while (avail-- > 0) {                                              \
-        instance->receiveByte(LPUART##N##_DATA);                         \
-      }                                                                  \
-    }                                                                    \
+#define LPUART_RX_WITH_FIFO(N)                                     \
+  /* If the receive buffer is full or there's an idle condition */ \
+  if ((status & (LPUART_STAT_RDRF | LPUART_STAT_IDLE)) != 0) {     \
+    uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;              \
+    if (avail == 0) {                                              \
+      instance->checkPacketTimeout();                              \
+      if ((status & LPUART_STAT_IDLE) != 0) {                      \
+        LPUART##N##_STAT |= LPUART_STAT_IDLE;                      \
+      }                                                            \
+      return;                                                      \
+    } else {                                                       \
+      while (avail-- > 0) {                                        \
+        instance->receiveByte(LPUART##N##_DATA);                   \
+      }                                                            \
+    }                                                              \
   }
 
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
