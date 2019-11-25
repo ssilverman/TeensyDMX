@@ -11,7 +11,6 @@
 //  UART TX routines, for Sender
 // ---------------------------------------------------------------------------
 
-// N is the register number.
 #define UART_TX_DATA_STATE_WITH_FIFO(N)                              \
   do {                                                               \
     if (instance->outputBufIndex_ >= instance->packetSize_) {        \
@@ -22,14 +21,24 @@
     UART##N##_D = instance->outputBuf_[instance->outputBufIndex_++]; \
   } while (UART##N##_TCFIFO < 8);
 
-#define UART_TX_DATA_STATE_NO_FIFO(CTRL, DATA, CTRL_PREFIX)   \
-  if (instance->outputBufIndex_ >= instance->packetSize_) {   \
-    CTRL = CTRL_PREFIX##_TX_COMPLETING;                       \
-  } else {                                                    \
-    DATA = instance->outputBuf_[instance->outputBufIndex_++]; \
-    if (instance->outputBufIndex_ >= instance->packetSize_) { \
-      CTRL = CTRL_PREFIX##_TX_COMPLETING;                     \
-    }                                                         \
+#define UART_TX_DATA_STATE_NO_FIFO(N)                                \
+  if (instance->outputBufIndex_ >= instance->packetSize_) {          \
+    UART##N##_C2 = UART_C2_TX_COMPLETING;                            \
+  } else {                                                           \
+    UART##N##_D = instance->outputBuf_[instance->outputBufIndex_++]; \
+    if (instance->outputBufIndex_ >= instance->packetSize_) {        \
+      UART##N##_C2 = UART_C2_TX_COMPLETING;                          \
+    }                                                                \
+  }
+
+#define LPUART_TX_DATA_STATE_NO_FIFO(N)                                   \
+  if (instance->outputBufIndex_ >= instance->packetSize_) {               \
+    LPUART##N##_CTRL = LPUART_CTRL_TX_COMPLETING;                         \
+  } else {                                                                \
+    LPUART##N##_DATA = instance->outputBuf_[instance->outputBufIndex_++]; \
+    if (instance->outputBufIndex_ >= instance->packetSize_) {             \
+      LPUART##N##_CTRL = LPUART_CTRL_TX_COMPLETING;                       \
+    }                                                                     \
   }
 
 // N is the register number.
