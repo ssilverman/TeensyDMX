@@ -1402,9 +1402,9 @@ void lpuart5_tx_break(int count, uint32_t mabTime) {
 #endif  // HAS_KINETISK_UART0_FIFO
 
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
-#define UART_RX_TEST_R8_0 ((UART0_C3 & UART_C3_R8) != 0)
+#define UART_RX_TEST_FIRST_STOP_BIT_0 ((UART0_C3 & UART_C3_R8) != 0)
 #else
-#define UART_RX_TEST_R8_0 (true)
+#define UART_RX_TEST_FIRST_STOP_BIT_0 (true)
 #endif
 
 void uart0_rx_isr() {
@@ -1416,7 +1416,7 @@ void uart0_rx_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_0
 #undef UART_RX_0
 #undef UART_RX_CLEAR_IDLE_0
-#undef UART_RX_TEST_R8_0
+#undef UART_RX_TEST_FIRST_STOP_BIT_0
 
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
 
@@ -1438,9 +1438,9 @@ void uart0_rx_isr() {
 #endif  // HAS_KINETISK_UART1_FIFO
 
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
-#define UART_RX_TEST_R8_1 ((UART1_C3 & UART_C3_R8) != 0)
+#define UART_RX_TEST_FIRST_STOP_BIT_1 ((UART1_C3 & UART_C3_R8) != 0)
 #else
-#define UART_RX_TEST_R8_1 (true)
+#define UART_RX_TEST_FIRST_STOP_BIT_1 (true)
 #endif
 
 void uart1_rx_isr() {
@@ -1452,7 +1452,7 @@ void uart1_rx_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_1
 #undef UART_RX_1
 #undef UART_RX_CLEAR_IDLE_1
-#undef UART_RX_TEST_R8_1
+#undef UART_RX_TEST_FIRST_STOP_BIT_1
 
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
 
@@ -1474,9 +1474,9 @@ void uart1_rx_isr() {
 #endif  // HAS_KINETISK_UART2_FIFO
 
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
-#define UART_RX_TEST_R8_2 ((UART2_C3 & UART_C3_R8) != 0)
+#define UART_RX_TEST_FIRST_STOP_BIT_2 ((UART2_C3 & UART_C3_R8) != 0)
 #else
-#define UART_RX_TEST_R8_2 (true)
+#define UART_RX_TEST_FIRST_STOP_BIT_2 (true)
 #endif
 
 void uart2_rx_isr() {
@@ -1488,7 +1488,7 @@ void uart2_rx_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_2
 #undef UART_RX_2
 #undef UART_RX_CLEAR_IDLE_2
-#undef UART_RX_TEST_R8_2
+#undef UART_RX_TEST_FIRST_STOP_BIT_2
 
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
@@ -1503,7 +1503,7 @@ void uart2_rx_isr() {
 #define UART_RX_ERROR_FLUSH_FIFO_3
 #define UART_RX_3 UART_RX_NO_FIFO(3)
 #define UART_RX_CLEAR_IDLE_3 UART3_D;
-#define UART_RX_TEST_R8_3 (true)
+#define UART_RX_TEST_FIRST_STOP_BIT_3 (true)
 
 void uart3_rx_isr() {
   uint8_t status = UART3_S1;
@@ -1514,7 +1514,7 @@ void uart3_rx_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_3
 #undef UART_RX_3
 #undef UART_RX_CLEAR_IDLE_3
-#undef UART_RX_TEST_R8_3
+#undef UART_RX_TEST_FIRST_STOP_BIT_3
 
 #endif  // HAS_KINETISK_UART3
 
@@ -1529,7 +1529,7 @@ void uart3_rx_isr() {
 #define UART_RX_ERROR_FLUSH_FIFO_4
 #define UART_RX_4 UART_RX_NO_FIFO(4)
 #define UART_RX_CLEAR_IDLE_4 UART4_D;
-#define UART_RX_TEST_R8_4 (true)
+#define UART_RX_TEST_FIRST_STOP_BIT_4 (true)
 
 void uart4_rx_isr() {
   uint8_t status = UART4_S1;
@@ -1540,7 +1540,7 @@ void uart4_rx_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_4
 #undef UART_RX_4
 #undef UART_RX_CLEAR_IDLE_4
-#undef UART_RX_TEST_R8_4
+#undef UART_RX_TEST_FIRST_STOP_BIT_4
 
 #endif  // HAS_KINETISK_UART4
 
@@ -1555,7 +1555,7 @@ void uart4_rx_isr() {
 #define UART_RX_ERROR_FLUSH_FIFO_5
 #define UART_RX_5 UART_RX_NO_FIFO(5)
 #define UART_RX_CLEAR_IDLE_5 UART5_D;
-#define UART_RX_TEST_R8_5 (true)
+#define UART_RX_TEST_FIRST_STOP_BIT_5 (true)
 
 void uart5_rx_isr() {
   uint8_t status = UART5_S1;
@@ -1566,7 +1566,7 @@ void uart5_rx_isr() {
 #undef UART_RX_ERROR_FLUSH_FIFO_5
 #undef UART_RX_5
 #undef UART_RX_CLEAR_IDLE_5
-#undef UART_RX_TEST_R8_5
+#undef UART_RX_TEST_FIRST_STOP_BIT_5
 
 #endif  // HAS_KINETISK_UART5
 
