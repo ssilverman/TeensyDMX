@@ -209,22 +209,33 @@
     }                                                              \
   }
 
-// Assumes status = UARTx_S1 or LPUARTy_STAT.
+// Assumes status = UARTx_S1.
 // Needs to have UART_RX_TEST_R8_N defined.
 // Needs to have UART_RX_CLEAR_IDLE_N defined.
 // N is the register number.
-#define UART_RX_NO_FIFO(N, STAT_PREFIX, DATA)                        \
+#define UART_RX_NO_FIFO(N)                                           \
   /* If the receive buffer is full */                                \
-  if ((status & STAT_PREFIX##_RDRF) != 0) {                          \
+  if ((status & UART_S1_RDRF) != 0) {                                \
     /* Check that the 9th bit is high; used as the first stop bit */ \
     if (!UART_RX_TEST_R8_##N) {                                      \
       instance->framingErrorCount_++;                                \
       instance->completePacket();                                    \
     }                                                                \
-    instance->receiveByte(DATA);                                     \
-  } else if ((status & STAT_PREFIX##_IDLE) != 0) {                   \
+    instance->receiveByte(UART##N##_D);                              \
+  } else if ((status & UART_S1_IDLE) != 0) {                         \
     instance->checkPacketTimeout();                                  \
     UART_RX_CLEAR_IDLE_##N                                           \
+  }
+
+// Assumes status = LPUARTy_STAT.
+// N is the register number.
+#define LPUART_RX_NO_FIFO(N)                     \
+  /* If the receive buffer is full */            \
+  if ((status & LPUART_STAT_RDRF) != 0) {        \
+    instance->receiveByte(LPUART##N##_DATA);     \
+  } else if ((status & LPUART_STAT_IDLE) != 0) { \
+    instance->checkPacketTimeout();              \
+    LPUART##N##_STAT |= LPUART_STAT_IDLE;        \
   }
 
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
