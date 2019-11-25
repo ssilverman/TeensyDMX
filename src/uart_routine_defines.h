@@ -123,23 +123,23 @@
 // Assumes instance is defined.
 // Needs to have REATTACH_INTERRUPT_REG defined.
 #define UART_TX_COMPLETE(REG, CTRL, CTRL_PREFIX, STAT_PREFIX) \
-  /* If transmission is complete */                      \
-  if ((control & CTRL_PREFIX##_TCIE) != 0 &&             \
-      (status & STAT_PREFIX##_TC) != 0) {                \
-    switch (instance->state_) {                          \
-      case Sender::XmitStates::kBreak:                   \
-        instance->state_ = Sender::XmitStates::kData;    \
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat); \
-        REATTACH_INTERRUPT_##REG                         \
-        break;                                           \
-                                                         \
-      case Sender::XmitStates::kData:                    \
-        instance->completePacket();                      \
-        break;                                           \
-      case Sender::XmitStates::kIdle:                    \
-        break;                                           \
-    }                                                    \
-    CTRL = CTRL_PREFIX##_TX_ACTIVE;                      \
+  /* If transmission is complete */                           \
+  if ((control & CTRL_PREFIX##_TCIE) != 0 &&                  \
+      (status & STAT_PREFIX##_TC) != 0) {                     \
+    switch (instance->state_) {                               \
+      case Sender::XmitStates::kBreak:                        \
+        instance->state_ = Sender::XmitStates::kData;         \
+        instance->uart_.begin(kSlotsBaud, kSlotsFormat);      \
+        REATTACH_INTERRUPT_##REG                              \
+        break;                                                \
+                                                              \
+      case Sender::XmitStates::kData:                         \
+        instance->completePacket();                           \
+        break;                                                \
+      case Sender::XmitStates::kIdle:                         \
+        break;                                                \
+    }                                                         \
+    CTRL = CTRL_PREFIX##_TX_ACTIVE;                           \
   }
 
 // ---------------------------------------------------------------------------
