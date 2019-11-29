@@ -464,6 +464,10 @@ std::shared_ptr<Responder> Receiver::setResponder(
   // If a responder is already set then the output buffer should be the
   // correct size
   std::shared_ptr<Responder> old{responders_[startCode]};
+  // Using std::move avoids two atomic operations since the `r` parameter has
+  // been copy-constructed
+  // See:
+  // https://stackoverflow.com/questions/41871115/why-would-i-stdmove-an-stdshared-ptr
   responders_[startCode] = std::move(r);
   if (old == nullptr) {
     responderCount_++;
