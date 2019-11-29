@@ -158,23 +158,20 @@ void loop() {
 //  Support functions
 // ---------------------------------------------------------------------------
 
+extern "C" void *_sbrk(int incr);
+
 // Returns the amount of free RAM.
+// See: https://forum.pjrc.com/threads/57269-I-can-t-seem-to-use-all-of-the-Teensy-4-0-s-memory
+// See: https://github.com/arduino/ArduinoCore-API/issues/73
 int freeRAM() {
-#if defined(KINETISK) || defined(KINETISL)
-  extern unsigned long _ebss;
-  extern char *__brkval;
+#if defined(__IMXRT1052__) || defined(__IMXRT1062__)
+  extern unsigned long _heap_end;
+  intptr_t end = reinterpret_cast<intptr_t>(&_heap_end);
+#else
   int v;
-  return reinterpret_cast<intptr_t>(&v) -
-         (__brkval == NULL ? reinterpret_cast<intptr_t>(&_ebss)
-                           : reinterpret_cast<intptr_t>(__brkval));
-#elif defined(__IMXRT1052__) || defined(__IMXRT1062__)
-  extern unsigned long _heap_start;
-  extern char *__brkval;
-  int v;
-  return reinterpret_cast<intptr_t>(&v) -
-         (__brkval == NULL ? reinterpret_cast<intptr_t>(&_heap_start)
-                           : reinterpret_cast<intptr_t>(__brkval));
+  intptr_t end = reinterpret_cast<intptr_t>(&v);
 #endif
+  return end - reinterpret_cast<intptr_t>(_sbrk(0));
 }
 
 void changeSketch(int sketchType) {
