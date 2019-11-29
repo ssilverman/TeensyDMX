@@ -305,6 +305,13 @@
     len--;                                  \
   }
 
+// N is the register number.
+#define LPUART_SYNC_TX_SEND_FIFO(N)                          \
+  while (len > 0 && ((LPUART##N##_WATER >> 8) & 0x07) < 4) { \
+    LPUART##N##_DATA = *(b++);                               \
+    len--;                                                   \
+  }
+
 // Synchronous TX, used in Receiver.
 // Needs to have UART_SYNC_TX_SEND_FIFO_N defined.
 // N is the register number.
@@ -325,13 +332,6 @@
                                                  \
   while ((STAT & STAT_PREFIX##_TC) == 0) {       \
     /* Wait until transmission complete */       \
-  }
-
-// N is the register number.
-#define LPUART_SYNC_TX_SEND_FIFO(N)                          \
-  while (len > 0 && ((LPUART##N##_WATER >> 8) & 0x07) < 4) { \
-    LPUART##N##_DATA = *(b++);                               \
-    len--;                                                   \
   }
 
 // N is the register number.
