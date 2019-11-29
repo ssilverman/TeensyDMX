@@ -39,6 +39,10 @@ class Sketch {
 
 // NullSketch supports the Null Pattern.
 class NullSketch final : public Sketch {
+ public:
+  NullSketch() = default;
+  ~NullSketch() override = default;
+
   String name() override {
     return "Null";
   }
