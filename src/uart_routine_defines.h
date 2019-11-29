@@ -297,6 +297,14 @@
 //  Synchronous TX routines, for Receiver
 // ---------------------------------------------------------------------------
 
+// N is the register number.
+#define UART_SYNC_TX_SEND_FIFO(N)           \
+  while (len > 0 && UART##N##_TCFIFO < 8) { \
+    UART##N##_S1;                           \
+    UART##N##_D = *(b++);                   \
+    len--;                                  \
+  }
+
 // Synchronous TX, used in Receiver.
 // Needs to have UART_SYNC_TX_SEND_FIFO_N defined.
 // N is the register number.
@@ -317,14 +325,6 @@
                                                  \
   while ((STAT & STAT_PREFIX##_TC) == 0) {       \
     /* Wait until transmission complete */       \
-  }
-
-// N is the register number.
-#define UART_SYNC_TX_SEND_FIFO(N)           \
-  while (len > 0 && UART##N##_TCFIFO < 8) { \
-    UART##N##_S1;                           \
-    UART##N##_D = *(b++);                   \
-    len--;                                  \
   }
 
 // N is the register number.
