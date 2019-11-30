@@ -55,9 +55,45 @@
     LPUART##N##_DATA = instance->outputBuf_[instance->outputBufIndex_++]; \
   } while (((LPUART##N##_WATER >> 8) & 0x07) < 4);
 
+// N is the register number.
+#define KINETISK_SET_BAUD(N, DIV, FORMAT_FUNC) \
+  { /* New block because defining */           \
+    /* If DIV < 32 DIV = 32 */                 \
+    uint32_t div = (DIV);                      \
+    if (div < 32) {                            \
+      div = 32;                                \
+    }                                          \
+    UART##N##_BDH = (div >> 13) & 0x1f;        \
+    UART##N##_BDL = (div >> 5) & 0xff;         \
+    UART##N##_C4 = div & 0x1f;                 \
+    FORMAT_FUNC;                               \
+  }
+
+// TWO_STOP_BITS is a bool.
+// N is the register number.
+#define KINETISL_SET_BAUD(N, DIV, TWO_STOP_BITS) \
+  { /* New block because defining */             \
+    /* If DIV < 1 DIV = 1 */                     \
+    uint32_t div = (DIV);                        \
+    if (div < 1) {                               \
+      div = 1;                                   \
+    }                                            \
+    UART##N##_BDH = (div >> 8) & 0x1f;           \
+    if ((TWO_STOP_BITS)) {                       \
+      UART##N##_BDH |= UART_BDH_SBNS;            \
+    }                                            \
+    UART##N##_BDL = div & 0xff;                  \
+  }
+
+// N is the register number.
+#define LPUART_SET_BAUD(N, PARAMS)  \
+  LPUART##N##_BAUD = (PARAMS).baud; \
+  LPUART##N##_STAT = (PARAMS).stat; \
+  LPUART##N##_CTRL = (PARAMS).ctrl;
+
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Needs to have UART_TX_DATA_STATE_REG defined.
-// Needs to have REATTACH_INTERRUPT_REG defined.
+// Needs to have UART_TX_SET_BREAK_BAUD_REG defined.
 #define UART_TX(INSTANCE, REG, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)  \
   Sender *instance = txInstances[INSTANCE];                           \
   if (instance == nullptr) {                                          \
@@ -92,8 +128,7 @@
                                                                       \
         instance->transmitting_ = true;                               \
         instance->state_ = Sender::XmitStates::kBreak;                \
-        instance->uart_.begin(kBreakBaud, kBreakFormat);              \
-        REATTACH_INTERRUPT_##REG                                      \
+        UART_TX_SET_BREAK_BAUD_##REG                                  \
                                                                       \
         /* Delay so that we can achieve the specified refresh rate */ \
         uint32_t timeSinceBreak = instance->timeSinceBreak_;          \
@@ -124,7 +159,7 @@
 
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Assumes instance is defined.
-// Needs to have REATTACH_INTERRUPT_REG defined.
+// Needs to have UART_TX_SET_SLOTS_BAUD_REG defined.
 #define UART_TX_COMPLETE(REG, CTRL, CTRL_PREFIX, STAT_PREFIX) \
   /* If transmission is complete */                           \
   if ((control & CTRL_PREFIX##_TCIE) != 0 &&                  \
@@ -132,8 +167,7 @@
     switch (instance->state_) {                               \
       case Sender::XmitStates::kBreak:                        \
         instance->state_ = Sender::XmitStates::kData;         \
-        instance->uart_.begin(kSlotsBaud, kSlotsFormat);      \
-        REATTACH_INTERRUPT_##REG                              \
+        UART_TX_SET_SLOTS_BAUD_##REG                          \
         break;                                                \
                                                               \
       case Sender::XmitStates::kData:                         \
