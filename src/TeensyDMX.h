@@ -463,6 +463,8 @@ class Sender final : public TeensyDMX {
   uint32_t breakTime() const;
 
   // Returns this sender's MARK after BREAK (MAB) time, in microseconds.
+  //
+  // Note that due to some UART intricacies, the actual time may be longer.
   uint32_t mabTime() const;
 
   // Sets the transmit packet size, in number of channels plus the start code.
