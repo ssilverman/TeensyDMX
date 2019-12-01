@@ -46,19 +46,9 @@ Sender *volatile txInstances[8]{nullptr};
 Sender *volatile txInstances[7]{nullptr};
 #endif
 
-// LPUART parameters.
-struct LPUARTParams final {
-  uint32_t baud;
-  uint32_t stat;
-  uint32_t ctrl;
-};
-
-// Indexes are the register numbers and not the serial port number
-LPUARTParams lpuartBreakParams[9];
-LPUARTParams lpuartSlotsParams[9];
-
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
+      lpuartParamsSet_(false),
       began_(false),
       state_(XmitStates::kIdle),
       outputBuf_{0},
@@ -96,13 +86,16 @@ Sender::~Sender() {
 // Gleans the LPUART parameters. The break baud rate and format is expected to
 // have been set.
 #define GLEAN_LPUART_PARAMS(N)                                \
-  lpuartBreakParams[N] = {LPUART##N##_BAUD, LPUART##N##_STAT, \
+  if (!lpuartParamsSet_) {                                    \
+    lpuartBreakParams_ = {LPUART##N##_BAUD, LPUART##N##_STAT, \
                           LPUART##N##_CTRL};                  \
-  uart_.begin(kSlotsBaud, kSlotsFormat);                      \
-  lpuartSlotsParams[N] = {LPUART##N##_BAUD, LPUART##N##_STAT, \
+    uart_.begin(kSlotsBaud, kSlotsFormat);                    \
+    lpuartSlotsParams_ = {LPUART##N##_BAUD, LPUART##N##_STAT, \
                           LPUART##N##_CTRL};                  \
-  /* Put it back so that the code is consistent */            \
-  uart_.begin(kBreakBaud, kBreakFormat);
+    /* Put it back so that the code is consistent */          \
+    uart_.begin(kBreakBaud, kBreakFormat);                    \
+    lpuartParamsSet_ = true;                                  \
+  }
 
 void Sender::begin() {
   if (began_) {
@@ -813,8 +806,8 @@ void uart5_tx_isr() {
 
 #define UART_TX_DATA_STATE_0 LPUART_TX_DATA_STATE_NO_FIFO(0)
 
-#define UART_TX_SET_BREAK_BAUD_0 LPUART_SET_BAUD(0, lpuartBreakParams[0])
-#define UART_TX_SET_SLOTS_BAUD_0 LPUART_SET_BAUD(0, lpuartSlotsParams[0])
+#define UART_TX_SET_BREAK_BAUD_0 LPUART_SET_BAUD(0, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_0 LPUART_SET_BAUD(0, lpuartSlotsParams_)
 
 void lpuart0_tx_isr() {
   uint32_t status = LPUART0_STAT;
@@ -838,8 +831,8 @@ void lpuart0_tx_isr() {
 #if defined(IMXRT_LPUART6)
 
 #define UART_TX_DATA_STATE_6 LPUART_TX_DATA_STATE_WITH_FIFO(6)
-#define UART_TX_SET_BREAK_BAUD_6 LPUART_SET_BAUD(6, lpuartBreakParams[6])
-#define UART_TX_SET_SLOTS_BAUD_6 LPUART_SET_BAUD(6, lpuartSlotsParams[6])
+#define UART_TX_SET_BREAK_BAUD_6 LPUART_SET_BAUD(6, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_6 LPUART_SET_BAUD(6, lpuartSlotsParams_)
 
 void lpuart6_tx_isr() {
   uint32_t status = LPUART6_STAT;
@@ -863,8 +856,8 @@ void lpuart6_tx_isr() {
 #if defined(IMXRT_LPUART4)
 
 #define UART_TX_DATA_STATE_4 LPUART_TX_DATA_STATE_WITH_FIFO(4)
-#define UART_TX_SET_BREAK_BAUD_4 LPUART_SET_BAUD(4, lpuartBreakParams[4])
-#define UART_TX_SET_SLOTS_BAUD_4 LPUART_SET_BAUD(4, lpuartSlotsParams[4])
+#define UART_TX_SET_BREAK_BAUD_4 LPUART_SET_BAUD(4, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_4 LPUART_SET_BAUD(4, lpuartSlotsParams_)
 
 void lpuart4_tx_isr() {
   uint32_t status = LPUART4_STAT;
@@ -888,8 +881,8 @@ void lpuart4_tx_isr() {
 #if defined(IMXRT_LPUART2)
 
 #define UART_TX_DATA_STATE_2 LPUART_TX_DATA_STATE_WITH_FIFO(2)
-#define UART_TX_SET_BREAK_BAUD_2 LPUART_SET_BAUD(2, lpuartBreakParams[2])
-#define UART_TX_SET_SLOTS_BAUD_2 LPUART_SET_BAUD(2, lpuartSlotsParams[2])
+#define UART_TX_SET_BREAK_BAUD_2 LPUART_SET_BAUD(2, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_2 LPUART_SET_BAUD(2, lpuartSlotsParams_)
 
 void lpuart2_tx_isr() {
   uint32_t status = LPUART2_STAT;
@@ -913,8 +906,8 @@ void lpuart2_tx_isr() {
 #if defined(IMXRT_LPUART3)
 
 #define UART_TX_DATA_STATE_3 LPUART_TX_DATA_STATE_WITH_FIFO(3)
-#define UART_TX_SET_BREAK_BAUD_3 LPUART_SET_BAUD(3, lpuartBreakParams[3])
-#define UART_TX_SET_SLOTS_BAUD_3 LPUART_SET_BAUD(3, lpuartSlotsParams[3])
+#define UART_TX_SET_BREAK_BAUD_3 LPUART_SET_BAUD(3, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_3 LPUART_SET_BAUD(3, lpuartSlotsParams_)
 
 void lpuart3_tx_isr() {
   uint32_t status = LPUART3_STAT;
@@ -938,8 +931,8 @@ void lpuart3_tx_isr() {
 #if defined(IMXRT_LPUART8)
 
 #define UART_TX_DATA_STATE_8 LPUART_TX_DATA_STATE_WITH_FIFO(8)
-#define UART_TX_SET_BREAK_BAUD_8 LPUART_SET_BAUD(8, lpuartBreakParams[8])
-#define UART_TX_SET_SLOTS_BAUD_8 LPUART_SET_BAUD(8, lpuartSlotsParams[8])
+#define UART_TX_SET_BREAK_BAUD_8 LPUART_SET_BAUD(8, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_8 LPUART_SET_BAUD(8, lpuartSlotsParams_)
 
 void lpuart8_tx_isr() {
   uint32_t status = LPUART8_STAT;
@@ -963,8 +956,8 @@ void lpuart8_tx_isr() {
 #if defined(IMXRT_LPUART1)
 
 #define UART_TX_DATA_STATE_1 LPUART_TX_DATA_STATE_WITH_FIFO(1)
-#define UART_TX_SET_BREAK_BAUD_1 LPUART_SET_BAUD(1, lpuartBreakParams[1])
-#define UART_TX_SET_SLOTS_BAUD_1 LPUART_SET_BAUD(1, lpuartSlotsParams[1])
+#define UART_TX_SET_BREAK_BAUD_1 LPUART_SET_BAUD(1, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_1 LPUART_SET_BAUD(1, lpuartSlotsParams_)
 
 void lpuart1_tx_isr() {
   uint32_t status = LPUART1_STAT;
@@ -988,8 +981,8 @@ void lpuart1_tx_isr() {
 #if defined(IMXRT_LPUART7)
 
 #define UART_TX_DATA_STATE_7 LPUART_TX_DATA_STATE_WITH_FIFO(7)
-#define UART_TX_SET_BREAK_BAUD_7 LPUART_SET_BAUD(7, lpuartBreakParams[7])
-#define UART_TX_SET_SLOTS_BAUD_7 LPUART_SET_BAUD(7, lpuartSlotsParams[7])
+#define UART_TX_SET_BREAK_BAUD_7 LPUART_SET_BAUD(7, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_7 LPUART_SET_BAUD(7, lpuartSlotsParams_)
 
 void lpuart7_tx_isr() {
   uint32_t status = LPUART7_STAT;
@@ -1013,8 +1006,8 @@ void lpuart7_tx_isr() {
 #if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
 
 #define UART_TX_DATA_STATE_5 LPUART_TX_DATA_STATE_WITH_FIFO(5)
-#define UART_TX_SET_BREAK_BAUD_5 LPUART_SET_BAUD(5, lpuartBreakParams[5])
-#define UART_TX_SET_SLOTS_BAUD_5 LPUART_SET_BAUD(5, lpuartSlotsParams[5])
+#define UART_TX_SET_BREAK_BAUD_5 LPUART_SET_BAUD(5, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_5 LPUART_SET_BAUD(5, lpuartSlotsParams_)
 
 void lpuart5_tx_isr() {
   uint32_t status = LPUART5_STAT;

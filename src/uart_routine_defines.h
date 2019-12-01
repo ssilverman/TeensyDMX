@@ -86,10 +86,10 @@
   }
 
 // N is the register number.
-#define LPUART_SET_BAUD(N, PARAMS)  \
-  LPUART##N##_BAUD = (PARAMS).baud; \
-  LPUART##N##_STAT = (PARAMS).stat; \
-  LPUART##N##_CTRL = (PARAMS).ctrl;
+#define LPUART_SET_BAUD(N, PARAMS_MEMBER)          \
+  LPUART##N##_BAUD = instance->PARAMS_MEMBER.baud; \
+  LPUART##N##_STAT = instance->PARAMS_MEMBER.stat; \
+  LPUART##N##_CTRL = instance->PARAMS_MEMBER.ctrl;
 
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Needs to have UART_TX_DATA_STATE_REG defined.
