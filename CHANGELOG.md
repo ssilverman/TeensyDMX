@@ -10,6 +10,7 @@ This document details the changes between each release.
 * Added the ability to enable and disable the transmitter in the receiver via
   a new `Receiver::setTXEnabled` function. This is useful when it is known that
   the receiver will be receive-only and it is not desired to drive the TX line.
+* Teensy 4 support.
 
 ### Changed
 * In the sender, changed how the baud rate is set when switching between the
