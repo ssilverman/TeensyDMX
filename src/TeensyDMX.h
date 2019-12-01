@@ -137,11 +137,13 @@ class Receiver final : public TeensyDMX {
   ~Receiver();
 
   // Sets whether to enable or disable the TX driver for the serial port. This
-  // only has an effect while the receiver is disabled. In other words, before
-  // `begin` and after `end`.
+  // can be set anytime. If the receiver is currently in operation, enabling
+  // this will cause an 11-bit idle character to be queued for output and the
+  // line to remain high after that.
   //
   // The default is to have the transmitter enabled. Note that if any responders
-  // cause data to be sent then the transmitter must be enabled.
+  // cause data to be sent then the transmitter must be enabled manually if it
+  // has been disabled; it is not enabled automatically.
   void setTXEnabled(bool flag);
 
   // Starts up the serial port.
