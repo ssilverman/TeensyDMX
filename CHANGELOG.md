@@ -16,7 +16,7 @@ This document details the changes between each release.
   BREAK baud rate and slots baud rate. The UART/LPUART parameters are set
   directly instead of calling `begin` on the serial port object. This avoids
   setting values where we don't need to and has the effect of shaving some
-  microseconds off the Mark after Break (MAB) so that it is closer to the
+  microseconds off the Mark after BREAK (MAB) so that it is closer to the
   desired duration.
 
 ## [4.0.0-alpha.2]
