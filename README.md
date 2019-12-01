@@ -472,6 +472,23 @@ between the Teensy and the DMX lines. See
 It is beyond the scope of this document to describe how to accommodate
 transmission line effects of long lines.
 
+### `Receiver` and driving the TX pin
+
+By default, when a `Receiver` is used, the TX pin for its serial port is
+enabled. This means that the line is driven. This default state was chosen
+because custom responders may wish to transmit information. Additionally, the
+caller does not need to remember to enable the transmitter when adding a
+custom responder.
+
+If it is known that there are no responders or that no responders will send
+data, then the TX pin can be disabled so that the UART hardware isn't driving
+the line. The `Receiver::setTXEnabled` function can be called either during
+operation or outside a `begin` and `end` pair.
+
+Be aware that if the receiver is currently in operation, enabling the
+transmitter will cause an 11-bit idle character to be queued for output and the
+line to remain high after that.
+
 ## Code style
 
 Code style for this project mostly follows the

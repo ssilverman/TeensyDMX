@@ -105,6 +105,7 @@ Receiver *volatile rxInstances[7]{nullptr};
 
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
+      txEnabled_(true),
       began_(false),
       state_{RecvStates::kIdle},
       buf1_{0},
@@ -228,14 +229,18 @@ Receiver::~Receiver() {
 }
 
 // RX control states
-#define UART_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE | UART_C2_TE
+#define UART_C2_RX_ENABLE UART_C2_RE | UART_C2_RIE | UART_C2_ILIE
 #define LPUART_CTRL_RX_ENABLE \
-  LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE | LPUART_CTRL_TE
+  LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE
 
 // Must define ACTIVATE_UART_RX_SERIAL_ERROR_N
 #define ACTIVATE_UART_RX_SERIAL(N)                               \
-  /* Enable receive-only */                                      \
-  UART##N##_C2 = UART_C2_RX_ENABLE;                              \
+  /* Enable receive */                                           \
+  if (txEnabled_) {                                              \
+    UART##N##_C2 = UART_C2_RX_ENABLE | UART_C2_TE;               \
+  } else {                                                       \
+    UART##N##_C2 = UART_C2_RX_ENABLE;                            \
+  }                                                              \
   attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_rx_isr); \
   /* Enable interrupt on frame error */                          \
   UART##N##_C3 |= UART_C3_FEIE;                                  \
@@ -249,10 +254,82 @@ Receiver::~Receiver() {
                     NVIC_GET_PRIORITY(IRQ_UART##N##_STATUS));      \
   NVIC_ENABLE_IRQ(IRQ_UART##N##_ERROR);
 
-#define ACTIVATE_LPUART_RX_SERIAL(N)                           \
-  /* Enable receive-only and interrupt on frame error */       \
-  LPUART##N##_CTRL = LPUART_CTRL_RX_ENABLE | LPUART_CTRL_FEIE; \
+#define ACTIVATE_LPUART_RX_SERIAL(N)                               \
+  /* Enable receive and interrupt on frame error */                \
+  if (txEnabled_) {                                                \
+    LPUART##N##_CTRL =                                             \
+        LPUART_CTRL_RX_ENABLE | LPUART_CTRL_TE | LPUART_CTRL_FEIE; \
+  } else {                                                         \
+    LPUART##N##_CTRL = LPUART_CTRL_RX_ENABLE | LPUART_CTRL_FEIE;   \
+  }                                                                \
   attachInterruptVector(IRQ_LPUART##N, lpuart##N##_rx_isr);
+
+#define ENABLE_UART_TX(N)        \
+  if (txEnabled_) {              \
+    UART##N##_C2 |= UART_C2_TE;  \
+  } else {                       \
+    UART##N##_C2 &= ~UART_C2_TE; \
+  }
+
+#define ENABLE_LPUART_TX(N)              \
+  if (txEnabled_) {                      \
+    LPUART##N##_CTRL |= LPUART_CTRL_TE;  \
+  } else {                               \
+    LPUART##N##_CTRL &= ~LPUART_CTRL_TE; \
+  }
+
+void Receiver::setTXEnabled(bool flag) {
+  if (txEnabled_ == flag) {
+    return;
+  }
+
+  txEnabled_ = flag;
+  if (!began_) {
+    return;
+  }
+
+  switch (serialIndex_) {
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+    case 0:
+      ENABLE_UART_TX(0)
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
+    case 1:
+      ENABLE_UART_TX(1)
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
+    case 2:
+      ENABLE_UART_TX(2)
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+
+#if defined(HAS_KINETISK_UART3)
+    case 3:
+      ENABLE_UART_TX(3)
+      break;
+#endif  // HAS_KINETISK_UART3
+
+#if defined(HAS_KINETISK_UART4)
+    case 4:
+      ENABLE_UART_TX(4)
+      break;
+#endif  // HAS_KINETISK_UART4
+
+#if defined(HAS_KINETISK_UART5)
+    case 5:
+      ENABLE_UART_TX(5)
+      break;
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      ENABLE_LPUART_TX(0)
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+  }
+}
 
 void Receiver::begin() {
   if (began_) {
