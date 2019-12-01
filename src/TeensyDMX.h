@@ -136,6 +136,14 @@ class Receiver final : public TeensyDMX {
   // Destructs Receiver. This calls end().
   ~Receiver();
 
+  // Sets whether to enable or disable the TX driver for the serial port. This
+  // only has an effect while the receiver is disabled. In other words, before
+  // `begin` and after `end`.
+  //
+  // The default is to have the transmitter enabled. Note that if any responders
+  // cause data to be sent then the transmitter must be enabled.
+  void setTXEnabled(bool flag);
+
   // Starts up the serial port.
   //
   // Call setSetTXNotRXFunc() to set an appropriate pin toggle function before
@@ -348,6 +356,9 @@ class Receiver final : public TeensyDMX {
     }
     setTXNotRXFunc_(flag);
   }
+
+  // Whether the transmitter is or should be enabled.
+  bool txEnabled_;
 
   // Tracks whether the system has been configured.
   volatile bool began_;
