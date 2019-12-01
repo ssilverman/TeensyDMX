@@ -770,7 +770,7 @@ void Receiver::receiveByte(uint8_t b) {
   }
   completePacket();  // This is probably the best option, even though there may
                      // be more bytes
-  if (txFunc_ == nullptr) {
+  if (!txEnabled_ || txFunc_ == nullptr) {
     return;
   }
 

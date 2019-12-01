@@ -360,7 +360,7 @@ class Receiver final : public TeensyDMX {
   }
 
   // Whether the transmitter is or should be enabled.
-  bool txEnabled_;
+  volatile bool txEnabled_;
 
   // Tracks whether the system has been configured.
   volatile bool began_;
