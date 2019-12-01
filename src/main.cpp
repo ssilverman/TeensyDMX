@@ -70,7 +70,7 @@ class Chaser final : public Sketch {
 
   teensydmx::Sender dmx_;
   int channel_;
-  elapsedMillis lastChase_;
+  elapsedMillis lastChaseTimer_;
 };
 
 // Flasher flashes the LED according to a DMX input speed.
@@ -220,7 +220,7 @@ void NullSketch::setup() {
 Chaser::Chaser()
     : dmx_{uart},
       channel_(kChannel),
-      lastChase_(0) {}
+      lastChaseTimer_(0) {}
 
 void Chaser::setup() {
   digitalWriteFast(kLEDPin, LOW);
@@ -233,7 +233,7 @@ void Chaser::setup() {
   dmx_.begin();
 
   channel_ = 1;
-  lastChase_ = 0;
+  lastChaseTimer_ = 0;
 }
 
 void Chaser::tearDown() {
@@ -243,10 +243,10 @@ void Chaser::tearDown() {
 }
 
 void Chaser::loop() {
-  if (lastChase_ < kChaseInterval) {
+  if (lastChaseTimer_ < kChaseInterval) {
     return;
   }
-  lastChase_ = 0;
+  lastChaseTimer_ = 0;
 
   // Set the current channel to zero, advance it, and then set the new channel
   // to 255
