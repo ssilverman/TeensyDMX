@@ -2,6 +2,20 @@
 
 This document details the changes between each release.
 
+## [4.0.0-alpha.3]
+
+### Added
+* Added a way to set and retrieve 16-bit values using new `Receiver::get16Bit`
+  and `Sender::set16Bit` functions.
+
+### Changed
+* In the sender, changed how the baud rate is set when switching between the
+  BREAK baud rate and slots baud rate. The UART/LPUART parameters are set
+  directly instead of calling `begin` on the serial port object. This avoids
+  setting values where we don't need to and has the effect of shaving some
+  microseconds off the Mark after Break (MAB) so that it is closer to the
+  desired duration.
+
 ## [4.0.0-alpha.2]
 
 ### Fixed

@@ -260,6 +260,18 @@ void Sender::set(int channel, uint8_t value) {
   outputBuf_[channel] = value;
 }
 
+void Sender::set16Bit(int channel, uint16_t value) {
+  if (channel < 0 || kMaxDMXPacketSize - 1 <= channel) {
+    return;
+  }
+
+  Lock lock{*this};
+  //{
+    outputBuf_[channel] = value >> 8;
+    outputBuf_[channel + 1] = value;
+  //}
+}
+
 void Sender::set(int startChannel, const uint8_t *values, int len) {
   if (len <= 0) {
     return;
