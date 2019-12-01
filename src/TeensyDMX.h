@@ -173,6 +173,19 @@ class Receiver final : public TeensyDMX {
   // been stopped.
   uint8_t get(int channel) const;
 
+  // Gets the latest 16-bit value received at the given channel. This reads the
+  // value in big-endian order.
+  //
+  // If the channel is out of range for the last packet, there is no data, or
+  // the 16-bit value would span a channel that doesn't exist in the last
+  // packet, then this will return zero. The optional `rangeError` parameter can
+  // be set to something non-NULL to indicate whether a zero return value meant
+  // that there was a range error.
+  //
+  // Note that this returns the latest value received, even if the receiver has
+  // been stopped.
+  uint16_t get16Bit(int channel, bool *rangeError = nullptr) const;
+
   // Returns the timestamp of the last received packet. Under the covers,
   // millis() is called when a packet is received. Note that this may not
   // indicate freshness of the channels you're interested in because they may
@@ -512,6 +525,27 @@ class Sender final : public TeensyDMX {
   // After pausing with pause(), it is necessary to wait until transmission is
   // finished before setting channel values.
   void set(int channel, uint8_t value);
+
+  // Sets a 16-bit value at the specified channel. This stores the value in
+  // big-endian order. Channel zero represents the start code.
+  //
+  // Values set here are 'sticky'. In other words, the same values are
+  // transmitted until changed. To set a value, this only needs to be
+  // called once.
+  //
+  // If the channel is not in the range 0-511 then the call is ignored. Note
+  // that it is possible to set channels outside the range of the packet size,
+  // but these values will not be sent.
+  //
+  // For example, if the packet size is 25 and the channel is anywhere in the
+  // range 24-511, then the value will be set internally but will not be
+  // completely transmitted until the packet size changes via setPacketSize().
+  // In this example, if the channel is 24 then the value would be split between
+  // a channel that's sent and one that isn't.
+  //
+  // After pausing with pause(), it is necessary to wait until transmission is
+  // finished before setting channel values.
+  void set16Bit(int channel, uint16_t value);
 
   // Sets the values for a range of channels. This also affects the packet
   // currently being transmitted. The behaviour is atomic.
