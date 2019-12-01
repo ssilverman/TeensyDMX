@@ -511,6 +511,14 @@ Inspirations for this library:
 2. Claude Heintz's
    [LXTeensy3DMX_Library](https://github.com/claudeheintz/LXTeensy3DMX_Library).
 
+## Acknowledgements
+
+1. It's one thing to have chip documentation, but it's an entirely new beast
+   when there exists code that already implements all the hard parts. Thank you
+   to Paul Stoffregen for all the Teensy source code. This helped immensely when
+   developing this library.
+   See: https://github.com/PaulStoffregen/cores
+
 ---
 
 Copyright (c) 2017-2019 Shawn Silverman
