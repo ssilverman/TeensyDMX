@@ -293,31 +293,51 @@ void Receiver::setTXEnabled(bool flag) {
     case 0:
       ENABLE_UART_TX(0)
       break;
-#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#elif defined(IMXRT_LPUART6)
+    case 0:
+      ENABLE_LPUART_TX(6)
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       ENABLE_UART_TX(1)
       break;
-#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#elif defined(IMXRT_LPUART4)
+    case 1:
+      ENABLE_LPUART_TX(4)
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       ENABLE_UART_TX(2)
       break;
-#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+#elif defined(IMXRT_LPUART2)
+    case 2:
+      ENABLE_LPUART_TX(2)
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUART2
 
 #if defined(HAS_KINETISK_UART3)
     case 3:
       ENABLE_UART_TX(3)
       break;
-#endif  // HAS_KINETISK_UART3
+#elif defined(IMXRT_LPUART3)
+    case 3:
+      ENABLE_LPUART_TX(3)
+      break;
+#endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
 
 #if defined(HAS_KINETISK_UART4)
     case 4:
       ENABLE_UART_TX(4)
       break;
-#endif  // HAS_KINETISK_UART4
+#elif defined(IMXRT_LPUART8)
+    case 4:
+      ENABLE_LPUART_TX(8)
+      break;
+#endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
@@ -327,7 +347,23 @@ void Receiver::setTXEnabled(bool flag) {
     case 5:
       ENABLE_LPUART_TX(0)
       break;
-#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+#elif defined(IMXRT_LPUART1)
+    case 5:
+      ENABLE_LPUART_TX(1)
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0 || IMXRT_LPUART1
+
+#if defined(IMXRT_LPUART7)
+    case 6:
+      ENABLE_LPUART_TX(7)
+      break;
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+    case 7:
+      ENABLE_LPUART_TX(5)
+      break;
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
 
