@@ -42,19 +42,9 @@ constexpr uint32_t kMABTime   = 1000000/kBreakBaud * 1;  // In us
 // Used by the TX ISRs
 Sender *volatile txInstances[6]{nullptr};
 
-// LPUART parameters.
-struct LPUARTParams final {
-  uint32_t baud;
-  uint32_t stat;
-  uint32_t ctrl;
-};
-
-// Indexes are the register numbers and not the serial port number
-LPUARTParams lpuartBreakParams[1];
-LPUARTParams lpuartSlotsParams[1];
-
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
+      lpuartParamsSet_(false),
       began_(false),
       state_(XmitStates::kIdle),
       outputBuf_{0},
@@ -92,13 +82,16 @@ Sender::~Sender() {
 // Gleans the LPUART parameters. The break baud rate and format is expected to
 // have been set.
 #define GLEAN_LPUART_PARAMS(N)                                \
-  lpuartBreakParams[N] = {LPUART##N##_BAUD, LPUART##N##_STAT, \
+  if (!lpuartParamsSet_) {                                    \
+    lpuartBreakParams_ = {LPUART##N##_BAUD, LPUART##N##_STAT, \
                           LPUART##N##_CTRL};                  \
-  uart_.begin(kSlotsBaud, kSlotsFormat);                      \
-  lpuartSlotsParams[N] = {LPUART##N##_BAUD, LPUART##N##_STAT, \
+    uart_.begin(kSlotsBaud, kSlotsFormat);                    \
+    lpuartSlotsParams_ = {LPUART##N##_BAUD, LPUART##N##_STAT, \
                           LPUART##N##_CTRL};                  \
-  /* Put it back so that the code is consistent */            \
-  uart_.begin(kBreakBaud, kBreakFormat);
+    /* Put it back so that the code is consistent */          \
+    uart_.begin(kBreakBaud, kBreakFormat);                    \
+    lpuartParamsSet_ = true;                                  \
+  }
 
 void Sender::begin() {
   if (began_) {
@@ -668,8 +661,8 @@ void uart5_tx_isr() {
 #define UART_TX_DATA_STATE_0 \
   UART_TX_DATA_STATE_NO_FIFO(LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL)
 
-#define UART_TX_SET_BREAK_BAUD_0 LPUART_SET_BAUD(0, lpuartBreakParams[0])
-#define UART_TX_SET_SLOTS_BAUD_0 LPUART_SET_BAUD(0, lpuartSlotsParams[0])
+#define UART_TX_SET_BREAK_BAUD_0 LPUART_SET_BAUD(0, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_0 LPUART_SET_BAUD(0, lpuartSlotsParams_)
 
 void lpuart0_tx_isr() {
   uint32_t status = LPUART0_STAT;
