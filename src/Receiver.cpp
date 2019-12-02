@@ -1013,13 +1013,8 @@ void uart1_tx_break(int count, uint32_t mabTime) {
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
 
-#if defined(HAS_KINETISK_UART2_FIFO)
-#define UART_SYNC_TX_SEND_FIFO_2 UART_SYNC_TX_SEND_FIFO(2)
-#define UART_TX_FLUSH_FIFO_2 UART_TX_FLUSH_FIFO(2)
-#else
 #define UART_SYNC_TX_SEND_FIFO_2
 #define UART_TX_FLUSH_FIFO_2
-#endif  // HAS_KINETISK_UART2_FIFO
 
 void uart2_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(2, UART2_S1, UART_S1, UART2_D)
@@ -1215,14 +1210,9 @@ void uart1_rx_isr() {
 
 // Reading a byte clears interrupt flags
 #define UART_RX_CLEAR_ERRORS_2
-#if defined(HAS_KINETISK_UART2_FIFO)
-#define UART_RX_ERROR_FLUSH_FIFO_2 UART_RX_ERROR_FLUSH_FIFO(2)
-#define UART_RX_2 UART_RX_WITH_FIFO(2)
-#else
 #define UART_RX_ERROR_FLUSH_FIFO_2
 #define UART_RX_2 UART_RX_NO_FIFO(2, UART_S1, UART2_D)
 #define UART_RX_CLEAR_IDLE_2 UART2_D;
-#endif  // HAS_KINETISK_UART2_FIFO
 
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
 #define UART_RX_TEST_FIRST_STOP_BIT_2 ((UART2_C3 & UART_C3_R8) != 0)
