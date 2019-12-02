@@ -18,6 +18,7 @@ This document details the changes between each release.
   setting values where we don't need to and has the effect of shaving some
   microseconds off the Mark after BREAK (MAB) so that it is closer to the
   desired duration.
+* `Receiver::begin()` now resets all the packet statistics.
 
 ## [4.0.0-alpha.2]
 
