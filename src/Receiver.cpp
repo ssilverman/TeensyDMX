@@ -473,9 +473,6 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
 }
 
 uint8_t Receiver::get(int channel) const {
-  if (lastPacketSize_ <= 0) {
-    return 0;
-  }
   if (channel < 0 || kMaxDMXPacketSize <= channel) {
     return 0;
   }
@@ -494,9 +491,6 @@ uint8_t Receiver::get(int channel) const {
 uint16_t Receiver::get16Bit(int channel, bool *rangeError) const {
   if (rangeError != nullptr) {
     *rangeError = true;
-  }
-  if (lastPacketSize_ <= 0) {
-    return 0;
   }
   if (channel < 0 || kMaxDMXPacketSize - 1 <= channel) {
     return 0;
