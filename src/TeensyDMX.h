@@ -263,8 +263,7 @@ class Receiver final : public TeensyDMX {
     connectChangeFunc_ = f;
   }
 
-  // Returns the total number of packets received or transmitted since the
-  // receiver was started.
+  // Returns the total number of packet timeouts.
   uint32_t packetTimeoutCount() const {
     return packetTimeoutCount_;
   }
