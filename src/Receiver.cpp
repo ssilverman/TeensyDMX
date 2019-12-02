@@ -255,6 +255,8 @@ void Receiver::begin() {
 
   // Reset all the stats
   resetPacketCount();
+  lastPacketSize_ = packetSize_ = 0;
+  packetTimestamp_ = 0;
   packetTimeoutCount_ = 0;
   framingErrorCount_ = 0;
   shortPacketCount_ = 0;
