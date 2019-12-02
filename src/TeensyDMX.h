@@ -146,7 +146,7 @@ class Receiver final : public TeensyDMX {
   // has been disabled; it is not enabled automatically.
   void setTXEnabled(bool flag);
 
-  // Starts up the serial port.
+  // Starts up the serial port. This resets all the stats.
   //
   // Call setSetTXNotRXFunc() to set an appropriate pin toggle function before
   // calling begin(). If one is set, this will call it to enable receive.
@@ -263,18 +263,21 @@ class Receiver final : public TeensyDMX {
     connectChangeFunc_ = f;
   }
 
-  // Returns the total number of packet timeouts.
+  // Returns the total number of packet timeouts. This is reset when the
+  // receiver is started or restarted.
   uint32_t packetTimeoutCount() const {
     return packetTimeoutCount_;
   }
 
   // Returns the total number of framing errors encountered. This includes
-  // BREAKs that are too short.
+  // BREAKs that are too short. This is reset when the receiver is started
+  // or restarted.
   uint32_t framingErrorCount() const {
     return framingErrorCount_;
   }
 
-  // Returns the total number of packets that were too short.
+  // Returns the total number of packets that were too short. This is reset when
+  // the receiver is started or restarted.
   uint32_t shortPacketCount() const {
     return shortPacketCount_;
   }
@@ -476,7 +479,7 @@ class Sender final : public TeensyDMX {
   // Destructs Sender. This calls end().
   ~Sender();
 
-  // Starts up the serial port.
+  // Starts up the serial port. This resets all the stats.
   void begin() override;
 
   // Ends sending. Note that this does not wait for the current packet to

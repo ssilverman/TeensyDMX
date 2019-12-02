@@ -253,7 +253,11 @@ void Receiver::begin() {
     return;
   }
 
+  // Reset all the stats
   resetPacketCount();
+  packetTimeoutCount_ = 0;
+  framingErrorCount_ = 0;
+  shortPacketCount_ = 0;
 
   // Set up the instance for the ISRs
   Receiver *r = rxInstances[serialIndex_];
