@@ -693,11 +693,7 @@ void uart1_tx_isr() {
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
 
-#if defined(HAS_KINETISK_UART2_FIFO)
-#define UART_TX_DATA_STATE_2 UART_TX_DATA_STATE_WITH_FIFO(2)
-#else
 #define UART_TX_DATA_STATE_2 UART_TX_DATA_STATE_NO_FIFO(2)
-#endif  // HAS_KINETISK_UART2_FIFO
 
 #if defined(KINETISK)
 #define UART_TX_SET_BREAK_BAUD_2 \
