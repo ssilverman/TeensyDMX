@@ -70,15 +70,13 @@ Receiver::Receiver(HardwareSerial &uart)
       inactiveBuf_(buf2_),
       activeBufIndex_(0),
       packetSize_(0),
-      packetTimestamp_(0),
+      packetStats_{},
       lastBreakStartTime_(0),
       breakStartTime_(0),
       lastSlotEndTime_(0),
       connected_(false),
       connectChangeFunc_{nullptr},
-      packetTimeoutCount_(0),
-      framingErrorCount_(0),
-      shortPacketCount_(0),
+      errorStats_{},
       responderCount_(0),
       responderOutBufLen_{0},
       setTXNotRXFunc_(nullptr) {
@@ -255,11 +253,9 @@ void Receiver::begin() {
 
   // Reset all the stats
   resetPacketCount();
-  lastPacketSize_ = packetSize_ = 0;
-  packetTimestamp_ = 0;
-  packetTimeoutCount_ = 0;
-  framingErrorCount_ = 0;
-  shortPacketCount_ = 0;
+  packetSize_ = 0;
+  packetStats_ = PacketStats{};
+  errorStats_ = ErrorStats{};
 
   // Set up the instance for the ISRs
   Receiver *r = rxInstances[serialIndex_];
@@ -443,7 +439,8 @@ void Receiver::end() {
   setConnected(false);
 }
 
-int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
+int Receiver::readPacket(uint8_t *buf, int startChannel, int len,
+                         PacketStats *stats) {
   if (len <= 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
     return 0;
   }
@@ -466,6 +463,9 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
       }
       packetSize_ = 0;
     }
+    if (stats != nullptr) {
+      *stats = packetStats_;
+    }
   //}
   return retval;
 }
@@ -479,7 +479,7 @@ uint8_t Receiver::get(int channel) const {
   Lock lock{*this};
   //{
     // Since channel >= 0, lastPacketSize_ > channel implies lastPacketSize_ > 0
-    if (channel < lastPacketSize_) {
+    if (channel < packetStats_.size) {
       b = inactiveBuf_[channel];
     }
   //}
@@ -499,7 +499,7 @@ uint16_t Receiver::get16Bit(int channel, bool *rangeError) const {
   //{
     // Since channel >= 0, lastPacketSize_ - 1 > channel
     // implies lastPacketSize_ - 1 > 0
-    if (channel < lastPacketSize_ - 1) {
+    if (channel < packetStats_.size - 1) {
       if (rangeError != nullptr) {
         *rangeError = false;
       }
@@ -595,8 +595,13 @@ void Receiver::completePacket() {
   }
 
   incPacketCount();
-  lastPacketSize_ = packetSize_ = activeBufIndex_;
-  packetTimestamp_ = t;
+  packetStats_.size = packetSize_ = activeBufIndex_;
+  packetStats_.timestamp = t;
+  if (lastSlotEndTime_ >= breakStartTime_) {
+    packetStats_.packetTime = lastSlotEndTime_ - breakStartTime_;
+  } else {
+    packetStats_.packetTime = 0;
+  }
 
   // Let the responder, if any, process the packet
   if (responders_ != nullptr) {
@@ -604,7 +609,7 @@ void Receiver::completePacket() {
     if (r != nullptr) {
       r->receivePacket(inactiveBuf_, packetSize_);
       if (r->eatPacket()) {
-        lastPacketSize_ = packetSize_ = 0;
+        packetStats_.size = packetSize_ = 0;
       }
     }
   }
@@ -618,14 +623,14 @@ void Receiver::checkPacketTimeout() {
   if (state_ == RecvStates::kBreak) {
     // This catches the case where a short BREAK is followed by a longer MAB
     if ((t - breakStartTime_) < 88 + 44) {
-      framingErrorCount_++;
+      errorStats_.framingErrorCount++;
       completePacket();
       setConnected(false);
     }
   } else if (state_ == RecvStates::kData) {
     if ((t - breakStartTime_) > kMaxDMXPacketTime ||
         (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
-      packetTimeoutCount_++;
+      errorStats_.packetTimeoutCount++;
       completePacket();
       setConnected(false);
     }
@@ -650,7 +655,7 @@ void Receiver::receivePotentialBreak() {
 
 void Receiver::receiveBadBreak() {
   // Not a break
-  framingErrorCount_++;
+  errorStats_.framingErrorCount++;
 
   // Don't keep the packet
   // See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292)
@@ -684,19 +689,21 @@ void Receiver::receiveByte(uint8_t b) {
                                 // seen some timeout
         // Complete any un-flushed bytes
         uint32_t dt = breakStartTime_ - lastBreakStartTime_;
+        packetStats_.breakToBreakTime = dt;
         if (dt < kMinDMXPacketTime) {
-          shortPacketCount_++;
+          errorStats_.shortPacketCount++;
           // Discard the data
           activeBufIndex_ = 0;
         } else if (dt > kMaxDMXPacketTime) {
           // NOTE: Zero-length packets will also trigger a timeout
-          packetTimeoutCount_++;
+          errorStats_.packetTimeoutCount++;
           // Keep the data
         }
         completePacket();
       } else {
         activeBufIndex_ = 0;
       }
+      packetStats_.breakPlusMABTime = eopTime - 44 - breakStartTime_;
       lastBreakStartTime_ = breakStartTime_;
       setConnected(true);
       state_ = RecvStates::kData;
@@ -727,7 +734,7 @@ void Receiver::receiveByte(uint8_t b) {
   // until, but not including, this one
   lastSlotEndTime_ = eopTime;
   if ((eopTime - breakStartTime_) > kMaxDMXPacketTime) {
-    packetTimeoutCount_++;
+    errorStats_.packetTimeoutCount++;
     completePacket();
     return;
   }
