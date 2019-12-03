@@ -132,8 +132,9 @@ The DMX receiver keeps track of three types of errors:
 2. Framing errors, including bad BREAKs.
 3. Short packets, i.e. those packets that occupy less than 1196us.
 
-The counts can be retrieved via `packetTimeoutCount()`, `framingErrorCount()`,
-and `shortPacketCount()`.
+The counts can be retrieved via `errorStats()`. This returns an `ErrorStats`
+object containing each of the error counts. These metrics are reset to zero when
+the receiver is started or restarted.
 
 An associated concept is _disconnection_. A receiver is considered _connected_
 when it is receiving valid DMX packets. When any timeouts occur, or when invalid
@@ -213,6 +214,28 @@ method, and the user code is probably good enough.
 In summary, the _connected_ concept here has more to do with line noise and bad
 timing than it does with a physical connection. Perhaps a future release will
 rename this API concept or address it with the timer...
+
+### Packet statistics
+
+Packet statistics are tracked and the latest can be retrieved from a
+`PacketStats` object returned by `packetStats()`. Included are these variables:
+
+1. `size`: The latest received packet size.
+2. `timestamp`: The timestamp of the last packet received.
+3. `breakPlusMABTime`: The sum of the BREAK and MAB times. Note that it's not
+   currently possible to determine where the BREAK ends and the MAB starts, with
+   the current incarnation of the code.
+4. `breakToBreakTime`: The latest measured BREAK-to-BREAK time. Note that this
+   is not collected at the same time as the other variables and only represents
+   the last known duration. This will be out of sync with the rest of the values
+   in the presence of packet errors.
+5. `packetTime`: The duration of the last packet, measured from BREAK start to
+   the end of the last slot.
+
+There is also an optional parameter in `readPacket`, a `PacketStats*`, that
+enables retrieval of this data atomically with the packet data.
+
+These metrics are reset to zero when the receiver is started or restarted.
 
 ### Synchronous operation by using custom responders
 
