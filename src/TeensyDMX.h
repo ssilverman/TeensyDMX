@@ -292,8 +292,9 @@ class Receiver final : public TeensyDMX {
   // been stopped.
   //
   // If the optional parameter, `stats`, is set to non-NULL, then the latest
-  // packet statistics are stored in that object. The values are read atomically
-  // with the latest packet data. This is an advantage over 'packetStats()`.
+  // packet statistics are stored in that object, regardless of this function's
+  // return value. The values are read atomically with the latest packet data.
+  // This is an advantage over 'packetStats()`.
   int readPacket(uint8_t *buf, int startChannel, int len,
                  PacketStats *stats = nullptr);
 
