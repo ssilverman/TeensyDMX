@@ -444,13 +444,9 @@ void Receiver::end() {
 }
 
 int Receiver::readPacket(uint8_t *buf, int startChannel, int len) {
-  if (packetSize_ <= 0) {
-    return -1;
-  }
   if (len <= 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
     return 0;
   }
-
 
   int retval = -1;
   Lock lock{*this};
