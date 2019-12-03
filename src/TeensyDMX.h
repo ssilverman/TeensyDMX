@@ -170,6 +170,125 @@ class TeensyDMX {
 // A DMX receiver. This receives packets asynchronously.
 class Receiver final : public TeensyDMX {
  public:
+  // The latest known packet statistics.
+  //
+  // Notes on the variables:
+  // * Size: The latest packet size.
+  // * Timestamp: The timestamp of the last received packet, in milliseconds.
+  //   This may not be what you expect. Please refer to the
+  //   `Receiver::lastPacketTimestamp()` docs for more information.
+  // * BREAK-plus-MAB time: This is the sum of the BREAK and MAB times, in
+  //   microseconds. Currently, it's not possible to determine where the BREAK
+  // ends and the MAB starts.
+  // * BREAK-to-BREAK time: This may not be set at the same time as the other
+  //   variables; it just represents the last known duration. This is
+  //   in microseconds.
+  // * Packet time: The duration of the last packet, from the BREAK start to the
+  //   last slot end, in microseconds.
+  class PacketStats final {
+   public:
+    // Initializes everything to zero.
+    PacketStats()
+        : size(0),
+          timestamp(0),
+          breakPlusMABTime(0),
+          breakToBreakTime(0),
+          packetTime(0) {}
+
+    ~PacketStats() = default;
+
+    // Support common use of this object
+    PacketStats(const PacketStats &) = default;
+    PacketStats(PacketStats &&) = default;
+    PacketStats &operator=(const PacketStats &) = default;
+    PacketStats &operator=(PacketStats &&) = default;
+
+    int size;                   // Packet size
+    uint32_t timestamp;         // Timestamp, in milliseconds
+    uint32_t breakPlusMABTime;  // Sum of BREAK and MAB times, in microseconds
+    uint32_t breakToBreakTime;  // Time between BREAKs, in microseconds
+    uint32_t packetTime;        // Packet time, from BREAK start to slot end,
+                                // in microseconds
+
+   private:
+    // Volatile copy constructor.
+    PacketStats(const volatile PacketStats &other)
+        : size(other.size),
+          timestamp(other.timestamp),
+          breakPlusMABTime(other.breakPlusMABTime),
+          breakToBreakTime(other.breakToBreakTime),
+          packetTime(other.packetTime) {}
+
+    // Volatile assignment operator. This returns void to avoid a warning
+    // of non-use.
+    // See: https://stackoverflow.com/questions/13869318/gcc-warning-about-implicit-dereference
+    void operator=(const PacketStats &other) volatile {
+      size = other.size;
+      timestamp = other.timestamp;
+      breakPlusMABTime = other.breakPlusMABTime;
+      breakToBreakTime = other.breakToBreakTime;
+      packetTime = other.packetTime;
+    }
+
+    // Other-way volatile assignment operator.
+    PacketStats &operator=(const volatile PacketStats &other) {
+      size = other.size;
+      timestamp = other.timestamp;
+      breakPlusMABTime = other.breakPlusMABTime;
+      breakToBreakTime = other.breakToBreakTime;
+      packetTime = other.packetTime;
+      return *this;
+    }
+
+    friend class Receiver;
+  };
+
+  // The latest error counts.
+  //
+  // Notes on the variables:
+  // * Packet timeout count: Total number of packet timeouts.
+  // * Framing error count: Total number of framing errors encountered. This
+  //   includes BREAKs that are too short.
+  // * Short packet count: Total number of packets that were too short.
+  class ErrorStats final {
+   public:
+    // Initializes everything to zero.
+    ErrorStats()
+        : packetTimeoutCount(0),
+          framingErrorCount(0),
+          shortPacketCount(0) {}
+
+    ~ErrorStats() = default;
+
+    // Support common use of this object
+    ErrorStats(const ErrorStats &) = default;
+    ErrorStats(ErrorStats &&) = default;
+    ErrorStats &operator=(const ErrorStats &) = default;
+    ErrorStats &operator=(ErrorStats &&) = default;
+
+    uint32_t packetTimeoutCount;
+    uint32_t framingErrorCount;
+    uint32_t shortPacketCount;
+
+   private:
+    // Volatile copy constructor.
+    ErrorStats(const volatile ErrorStats &other)
+        : packetTimeoutCount(other.packetTimeoutCount),
+          framingErrorCount(other.framingErrorCount),
+          shortPacketCount(other.shortPacketCount) {}
+
+    // Volatile assignment operator. This returns void to avoid a warning
+    // of non-use.
+    // See: https://stackoverflow.com/questions/13869318/gcc-warning-about-implicit-dereference
+    void operator=(const ErrorStats &other) volatile {
+      packetTimeoutCount = other.packetTimeoutCount;
+      framingErrorCount = other.framingErrorCount;
+      shortPacketCount = other.shortPacketCount;
+    }
+
+    friend class Receiver;
+  };
+
   // Creates a new receiver and uses the given UART for communication.
   explicit Receiver(HardwareSerial &uart);
 
@@ -186,7 +305,7 @@ class Receiver final : public TeensyDMX {
   // has been disabled; it is not enabled automatically.
   void setTXEnabled(bool flag);
 
-  // Starts up the serial port.
+  // Starts up the serial port. This resets all the stats.
   //
   // Call setSetTXNotRXFunc() to set an appropriate pin toggle function before
   // calling begin(). If one is set, this will call it to enable receive.
@@ -211,7 +330,12 @@ class Receiver final : public TeensyDMX {
   //
   // Note that this returns the latest data received, even if the receiver has
   // been stopped.
-  int readPacket(uint8_t *buf, int startChannel, int len);
+  //
+  // If the optional parameter, `stats`, is set to non-NULL, then the latest
+  // packet statistics are stored in that object. The values are read atomically
+  // with the latest packet data. This is an advantage over 'packetStats()`.
+  int readPacket(uint8_t *buf, int startChannel, int len,
+                 PacketStats *stats = nullptr);
 
   // Gets the latest value received for one channel. The start code can be read
   // at channel zero.
@@ -236,6 +360,18 @@ class Receiver final : public TeensyDMX {
   // been stopped.
   uint16_t get16Bit(int channel, bool *rangeError = nullptr) const;
 
+  // Returns the latest packet statistics. These are reset when the receiver is
+  // started or restarted.
+  //
+  // Please refer to the `PacketStats` docs for more information.
+  //
+  // Note that the values returned here may not apply to the data read from the
+  // most recent or next packet received. Use `readPacket` to retrieve
+  // them atomically.
+  PacketStats packetStats() const {
+    return packetStats_;
+  }
+
   // Returns the timestamp of the last received packet. Under the covers,
   // millis() is called when a packet is received. Note that this may not
   // indicate freshness of the channels you're interested in because they may
@@ -252,8 +388,10 @@ class Receiver final : public TeensyDMX {
   // For example, unplugging a cable might result in a valid packet, but not
   // containing the channels you need. Using this value to detect the last valid
   // data received would give a value that's later than the true value.
+  //
+  // This returns the same value as `packetStats().timestamp`.
   uint32_t lastPacketTimestamp() const {
-    return packetTimestamp_;
+    return packetStats_.timestamp;
   }
 
   // Sets the responder for the supplied start code. This holds on to the
@@ -303,21 +441,12 @@ class Receiver final : public TeensyDMX {
     connectChangeFunc_ = f;
   }
 
-  // Returns the total number of packets received or transmitted since the
-  // receiver was started.
-  uint32_t packetTimeoutCount() const {
-    return packetTimeoutCount_;
-  }
-
-  // Returns the total number of framing errors encountered. This includes
-  // BREAKs that are too short.
-  uint32_t framingErrorCount() const {
-    return framingErrorCount_;
-  }
-
-  // Returns the total number of packets that were too short.
-  uint32_t shortPacketCount() const {
-    return shortPacketCount_;
+  // Returns the latest error statistics. These are reset when the receiver is
+  // started or restarted.
+  //
+  // Please refer to the `ErrorStats` docs for more information.
+  ErrorStats errorStats() const {
+    return errorStats_;
   }
 
  private:
@@ -430,12 +559,9 @@ class Receiver final : public TeensyDMX {
   // packet data is read.
   volatile int packetSize_;
 
-  // This is the same as packetSize_, except that it does not get set to zero
-  // when packet data is read with readPacket().
-  volatile int lastPacketSize_;
-
-  // The timestamp of the last received packet, in milliseconds.
-  volatile uint32_t packetTimestamp_;
+  // Holds statistics about the last packet. This replaces lastPacketSize_ and
+  // packetTimestamp_, and adds other information.
+  volatile PacketStats packetStats_;
 
   // Current and last BREAK start times, in microseconds. The last start time is
   // zero if we can consider that there's been no prior packet, and the current
@@ -453,10 +579,8 @@ class Receiver final : public TeensyDMX {
   // This is called when the connection state changes.
   void (*volatile connectChangeFunc_)(Receiver *r);
 
-  // Counts
-  volatile uint32_t packetTimeoutCount_;
-  volatile uint32_t framingErrorCount_;
-  volatile uint32_t shortPacketCount_;
+  // Error stats.
+  volatile ErrorStats errorStats_;
 
   // Responders state
   std::unique_ptr<std::shared_ptr<Responder>[]> responders_;
@@ -549,7 +673,7 @@ class Sender final : public TeensyDMX {
   // Destructs Sender. This calls end().
   ~Sender();
 
-  // Starts up the serial port.
+  // Starts up the serial port. This resets all the stats.
   void begin() override;
 
   // Ends sending. Note that this does not wait for the current packet to

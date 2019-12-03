@@ -107,6 +107,7 @@ void Sender::begin() {
     return;
   }
 
+  // Reset all the stats
   resetPacketCount();
 
   // Set up the instance for the ISRs

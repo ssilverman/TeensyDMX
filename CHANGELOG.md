@@ -10,6 +10,9 @@ This document details the changes between each release.
 * Added the ability to enable and disable the transmitter in the receiver via
   a new `Receiver::setTXEnabled` function. This is useful when it is known that
   the receiver will be receive-only and it is not desired to drive the TX line.
+* New `Receiver::packetStats()` and `Receiver::errorStats()` functions with
+  associated `Receiver::PacketStats` and `Receiver::ErrorStats` classes for
+  examining the latest packet statistics and error counts.
 * Teensy 4 support.
 
 ### Changed
@@ -19,6 +22,18 @@ This document details the changes between each release.
   setting values where we don't need to and has the effect of shaving some
   microseconds off the Mark after BREAK (MAB) so that it is closer to the
   desired duration.
+* `Receiver::begin()` now resets all the packet statistics.
+* Error counts and packet statistics functions have been replaced with functions
+  to retrieve `Receiver::ErrorStats` and `Receiver::PacketStats`, respectively:
+  `Receiver::errorStats()` and `Receiver::packetStats()`.
+* `Receiver::readPacket` has an additional but optional parameter that provides
+  a place to store the packet statistics, a `PacketStats*`, allowing atomic
+  retrieval with the packet data.
+
+### Removed
+* `Receiver::packetTimeoutCount()`, `Receiver::framingErrorCount()`, and
+  `Receiver::shortPacketCount()` were replaced by `Receiver::errorStats()` and
+  its associated `Receiver::ErrorStats` class.
 
 ## [4.0.0-alpha.2]
 
