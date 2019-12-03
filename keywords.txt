@@ -9,6 +9,8 @@
 Receiver	KEYWORD1
 Sender	KEYWORD1
 Responder	KEYWORD1
+PacketStats	KEYWORD1
+ErrorStats	KEYWORD1
 
 #######################################
 # Methods and Functions (KEYWORD2)
@@ -17,21 +19,23 @@ Responder	KEYWORD1
 begin	KEYWORD2
 end	KEYWORD2
 packetCount	KEYWORD2
+setTXEnabled	KEYWORD2
 readPacket	KEYWORD2
 get	KEYWORD2
+get16Bit	KEYWORD2
+packetStats	KEYWORD2
 lastPacketTimestamp	KEYWORD2
 setResponder	KEYWORD2
 setSetTXNotRXFunc	KEYWORD2
 connected	KEYWORD2
 onConnectChange	KEYWORD2
-packetTimeoutCount	KEYWORD2
-framingErrorCount	KEYWORD2
-shortPacketCount	KEYWORD2
+errorStats	KEYWORD2
 breakTime	KEYWORD2
 mabTime	KEYWORD2
 setPacketSize	KEYWORD2
 packetSize	KEYWORD2
 set	KEYWORD2
+set16Bit	KEYWORD2
 clear	KEYWORD2
 setRefreshRate	KEYWORD2
 refreshRate	KEYWORD2
@@ -48,6 +52,7 @@ markAfterBreakTime	KEYWORD2
 isSendBreakForLastPacket	KEYWORD2
 preBreakDelay	KEYWORD2
 preNoBreakDelay	KEYWORD2
+preDataDelay	KEYWORD2
 eatPacket	KEYWORD2
 processByte	KEYWORD2
 receivePacket	KEYWORD2
