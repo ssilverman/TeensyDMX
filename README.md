@@ -32,11 +32,11 @@ Some notable features of this library:
    Packets or System Information Packets (SIP), but responses can be sent back
    to the transmitter, for example for RDM.
 
-### Receiver timing limitations
+### Receiver timing limitations and RX line monitoring
 
-There are limitations in the handling of received DMX frame timing. For BREAK
-and Mark after Break (MAB) times, only the following cases are checked and not
-accepted as a valid DMX frame start:
+When the RX line is not being monitored, there are limitations in the handling
+of received DMX frame timing. For BREAK and Mark after Break (MAB) times, only
+the following cases are checked and not accepted as a valid DMX frame start:
 
 1. BREAK duration &lt; ~44us.
 2. BREAK duration + MAB duration &lt; ~96us.
@@ -52,8 +52,9 @@ in having a duration of 43us, their sum is 96us, and so the packet will be
 accepted. More generally, this will allow BREAKs that are shorter than the
 minimum required 88us if the MAB is shorter than 44us.
 
-This limitation is solvable if code is added to watch for RX line changes, but
-this likely won't happen until a future release.
+This limitation does not exist if the RX line is monitored. To monitor the line,
+connect it to a digital I/O-capable pin and call `setRXWatchPin` with the pin
+number. The pin cannot be the same as the RX pin.
 
 ## How to use
 
@@ -223,14 +224,21 @@ Packet statistics are tracked and the latest can be retrieved from a
 1. `size`: The latest received packet size.
 2. `timestamp`: The timestamp of the last packet received.
 3. `breakPlusMABTime`: The sum of the BREAK and MAB times. Note that it's not
-   currently possible to determine where the BREAK ends and the MAB starts, with
-   the current incarnation of the code.
+   currently possible to determine where the BREAK ends and the MAB starts
+   without using another pin to watch the RX line. Note that when an RX watch
+   pin is used, the value of this field may be close to but not equal to the sum
+   of `breakTime` and `mabTime`; it's calculated in a different way.
 4. `breakToBreakTime`: The latest measured BREAK-to-BREAK time. Note that this
    is not collected at the same time as the other variables and only represents
    the last known duration. This will be out of sync with the rest of the values
    in the presence of packet errors.
 5. `packetTime`: The duration of the last packet, measured from BREAK start to
    the end of the last slot.
+6. `breakTime`: The packet's BREAK time.
+7. `mabTime`: The packet's MAB time.
+
+If the RX line is not being monitored, then the BREAK and MAB times will be set
+to zero.
 
 There is also an optional parameter in `readPacket`, a `PacketStats*`, that
 enables retrieval of this data atomically with the packet data.
