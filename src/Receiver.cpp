@@ -736,6 +736,8 @@ void Receiver::receiveByte(uint8_t b) {
         packetStats_.mabTime = eopTime - 44 - rxRiseTime_;
       } else {
         rxChangeTimeState_ = 0;
+        packetStats_.breakTime = 0;
+        packetStats_.mabTime = 0;
         // This is only a rudimentary check for short BREAKs. It does not
         // detect short BREAKs followed by long MABs. It only detects
         // whether BREAK + MAB time is at least 88us + 8us.
