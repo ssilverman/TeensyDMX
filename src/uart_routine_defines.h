@@ -191,15 +191,13 @@
         /* Check that the 9th bit is high; used as the first stop bit */   \
         if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                \
           errFlag = true;                                                  \
-          instance->errorStats_.framingErrorCount++;                       \
-          instance->completePacket();                                      \
+          instance->receiveBadBreak();                                     \
         }                                                                  \
         instance->receiveByte(UART##N##_D, timestamp += 44);               \
       }                                                                    \
       status = UART##N##_S1;                                               \
       if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                  \
-        instance->errorStats_.framingErrorCount++;                         \
-        instance->completePacket();                                        \
+        instance->receiveBadBreak();                                       \
       }                                                                    \
       instance->receiveByte(UART##N##_D, timestamp + 44);                  \
     }                                                                      \
@@ -214,8 +212,7 @@
   if ((status & STAT_PREFIX##_RDRF) != 0) {                          \
     /* Check that the 9th bit is high; used as the first stop bit */ \
     if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                          \
-      instance->errorStats_.framingErrorCount++;                     \
-      instance->completePacket();                                    \
+      instance->receiveBadBreak();                                   \
     }                                                                \
     instance->receiveByte(DATA, micros());                           \
   } else if ((status & STAT_PREFIX##_IDLE) != 0) {                   \

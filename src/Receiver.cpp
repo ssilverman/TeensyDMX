@@ -672,11 +672,17 @@ void Receiver::checkPacketTimeout() {
   uint32_t t = micros();
 
   if (state_ == RecvStates::kBreak) {
-    // This catches the case where a short BREAK is followed by a longer MAB
-    if ((t - breakStartTime_) < 88 + 44) {
-      errorStats_.framingErrorCount++;
-      completePacket();
-      setConnected(false);
+    if (rxChangeState_ == 2) {
+      rxChangeState_ = 0;
+      if ((rxRiseTime_ - rxFallTime_) < 88) {
+        receiveBadBreak();
+      }
+    } else {
+      rxChangeState_ = 0;
+      // This catches the case where a short BREAK is followed by a longer MAB
+      if ((t - breakStartTime_) < 88 + 44) {
+        receiveBadBreak();
+      }
     }
   } else if (state_ == RecvStates::kData) {
     if ((t - breakStartTime_) > kMaxDMXPacketTime ||
