@@ -207,6 +207,7 @@ class Receiver final : public TeensyDMX {
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
       packetTime = other.packetTime;
+      breakTime = other.breakTime;
       mabTime = other.mabTime;
       return *this;
     }
