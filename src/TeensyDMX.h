@@ -179,12 +179,19 @@ class Receiver final : public TeensyDMX {
   //   `Receiver::lastPacketTimestamp()` docs for more information.
   // * BREAK-plus-MAB time: This is the sum of the BREAK and MAB times, in
   //   microseconds. Currently, it's not possible to determine where the BREAK
-  // ends and the MAB starts.
+  //   ends and the MAB starts without using another pin to watch the RX line.
+  //   Note that when an RX watch pin is used, the value of this field may be
+  //   close to but not equal to the sum of `breakTime` and `mabTime`; it's
+  //   calculated in a different way.
   // * BREAK-to-BREAK time: This may not be set at the same time as the other
   //   variables; it just represents the last known duration. This is
   //   in microseconds.
   // * Packet time: The duration of the last packet, from the BREAK start to the
   //   last slot end, in microseconds.
+  // * BREAK time: The packet's BREAK time. This will be zero if the RX line is
+  //   not being monitored.
+  // * MAB time: The packet's MAB time. This will be zero if the RX line is not
+  //   being monitored.
   class PacketStats final {
    public:
     // Initializes everything to zero.
@@ -193,7 +200,12 @@ class Receiver final : public TeensyDMX {
           timestamp(0),
           breakPlusMABTime(0),
           breakToBreakTime(0),
-          packetTime(0) {}
+          packetTime(0),
+          breakTime(0),
+          mabTime(0),
+          nextBreakPlusMABTime(0),
+          nextBreakTime(0),
+          nextMABTime(0) {}
 
     ~PacketStats() = default;
 
@@ -210,6 +222,10 @@ class Receiver final : public TeensyDMX {
     uint32_t packetTime;        // Packet time, from BREAK start to slot end,
                                 // in microseconds
 
+    // The following are only set when there's an RX monitoring pin
+    uint32_t breakTime;  // BREAK time, in microseconds
+    uint32_t mabTime;    // MAB time, in microseconds
+
    private:
     // Volatile copy constructor.
     PacketStats(const volatile PacketStats &other)
@@ -217,7 +233,12 @@ class Receiver final : public TeensyDMX {
           timestamp(other.timestamp),
           breakPlusMABTime(other.breakPlusMABTime),
           breakToBreakTime(other.breakToBreakTime),
-          packetTime(other.packetTime) {}
+          packetTime(other.packetTime),
+          breakTime(other.breakTime),
+          mabTime(other.mabTime),
+          nextBreakPlusMABTime(other.nextBreakPlusMABTime),
+          nextBreakTime(other.nextBreakTime),
+          nextMABTime(other.nextMABTime) {}
 
     // Volatile assignment operator. This returns void to avoid a warning
     // of non-use.
@@ -228,6 +249,11 @@ class Receiver final : public TeensyDMX {
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
       packetTime = other.packetTime;
+      breakTime = other.breakTime;
+      mabTime = other.mabTime;
+      nextBreakPlusMABTime = other.nextBreakPlusMABTime;
+      nextBreakTime = other.nextBreakTime;
+      nextMABTime = other.nextMABTime;
     }
 
     // Other-way volatile assignment operator.
@@ -237,8 +263,19 @@ class Receiver final : public TeensyDMX {
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
       packetTime = other.packetTime;
+      breakTime = other.breakTime;
+      mabTime = other.mabTime;
+      nextBreakPlusMABTime = other.nextBreakPlusMABTime;
+      nextBreakTime = other.nextBreakTime;
+      nextMABTime = other.nextMABTime;
       return *this;
     }
+
+    // Store the 'next' values to solve the one-ahead problem of completing the
+    // packet on the next BREAK (or timeout or size limit)
+    uint32_t nextBreakPlusMABTime;
+    uint32_t nextBreakTime;
+    uint32_t nextMABTime;
 
     friend class Receiver;
   };
@@ -425,6 +462,10 @@ class Receiver final : public TeensyDMX {
     setTXNotRXFunc_ = f;
   }
 
+  // Sets the pin that monitors the RX line to determine BREAK and MAB timing.
+  // Set to a negative value to unset. The default is unset.
+  void setRXWatchPin(uint8_t pin);
+
   // Returns whether this is considered to be connected to a DMX transmitter. A
   // connection is considered to have been broken if a timeout was detected or a
   // BREAK plus Mark after Break (MAB) was too short.
@@ -518,11 +559,15 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void receiveByte(uint8_t b);
 
+  // ISR functions.
+  void rxPinFell_isr();
+  void rxPinRose_isr();
+
   // Sets whether to enable or disable TX or RX through some external means.
   // This is needed when responding to a received message and transmission
   // needs to occur. This is also called at the end of begin() with 'false'
   // to enable RX.
-  void setTXNotRX(bool flag) {
+  void setTXNotRX(bool flag) const {
     if (setTXNotRXFunc_ == nullptr) {
       return;
     }
@@ -592,12 +637,36 @@ class Receiver final : public TeensyDMX {
   // Function for enabling/disabling RX and TX.
   void (*volatile setTXNotRXFunc_)(bool flag);
 
+  // Pin that monitors the RX line to determing BREAK and MAB timing. -1 if the
+  // pin is not set.
+  volatile int rxWatchPin_;
+
+  // Things measured by the RX watch pin interrupt
+  volatile int rxChangeState_;  // Tracks the RX state transitions for measuring
+                                // a BREAK
+  uint32_t rxFallTime_;
+  uint32_t rxRiseTime_;
+
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
 
   // Transmit BREAK function for the current UART. The MAB (mark after break)
   // time is spcified because different UARTs send BREAKs differently.
   void (*txBreakFunc_)(int count, uint32_t mabTime);
+
+  // RX pin change ISRs
+  friend void rxPinFellSerial0_isr();
+  friend void rxPinRoseSerial0_isr();
+  friend void rxPinFellSerial1_isr();
+  friend void rxPinRoseSerial1_isr();
+  friend void rxPinFellSerial2_isr();
+  friend void rxPinRoseSerial2_isr();
+  friend void rxPinFellSerial3_isr();
+  friend void rxPinRoseSerial3_isr();
+  friend void rxPinFellSerial4_isr();
+  friend void rxPinRoseSerial4_isr();
+  friend void rxPinFellSerial5_isr();
+  friend void rxPinRoseSerial5_isr();
 
   // These error ISRs need to access private functions
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
@@ -905,9 +974,9 @@ class Sender final : public TeensyDMX {
   // Stored LPUART parameters for quickly setting the baud rate between break
   // and slots. Used for Teensy 3.6 and Teensy 4.
   struct LPUARTParams final {
-    uint32_t baud;
-    uint32_t stat;
-    uint32_t ctrl;
+    uint32_t baud = 0x0f000004;  // 5-bit OSR is 0x0f and 13-bit SBR is 0x0004
+    uint32_t stat = 0;
+    uint32_t ctrl = 0;
   };
 
   // The minimum allowed packet time for senders, either BREAK plus data,

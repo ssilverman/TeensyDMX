@@ -2,6 +2,14 @@
 
 This document details the changes between each release.
 
+## [4.0.0-alpha.4]
+
+### Added
+* The RX pin can be monitored for separate BREAK and MAB timing by connecting
+  it to a digital I/O-capable pin and calling the new `Receiver::setRXWatchPin`
+  function. This removes the limitations the receiver has when checking for
+  packets having invalid timing, but only when using this feature.
+
 ## [4.0.0-alpha.3]
 
 ### Added

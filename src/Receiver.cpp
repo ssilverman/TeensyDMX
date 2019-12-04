@@ -103,11 +103,46 @@ Receiver *volatile rxInstances[8]{nullptr};
 Receiver *volatile rxInstances[7]{nullptr};
 #endif
 
+// Forward declarations of RX watch pin ISRs.
+void rxPinFellSerial0_isr();
+void rxPinFellSerial1_isr();
+void rxPinFellSerial2_isr();
+void rxPinFellSerial3_isr();
+void rxPinFellSerial4_isr();
+void rxPinFellSerial5_isr();
+void rxPinRoseSerial0_isr();
+void rxPinRoseSerial1_isr();
+void rxPinRoseSerial2_isr();
+void rxPinRoseSerial3_isr();
+void rxPinRoseSerial4_isr();
+void rxPinRoseSerial5_isr();
+
+// RX watch pin fell ISRs.
+void (*rxPinFellISRs[6])() {
+    rxPinFellSerial0_isr,
+    rxPinFellSerial1_isr,
+    rxPinFellSerial2_isr,
+    rxPinFellSerial3_isr,
+    rxPinFellSerial4_isr,
+    rxPinFellSerial5_isr,
+};
+
+// RX watch pin rose ISRs.
+void (*rxPinRoseISRs[6])() {
+    rxPinRoseSerial0_isr,
+    rxPinRoseSerial1_isr,
+    rxPinRoseSerial2_isr,
+    rxPinRoseSerial3_isr,
+    rxPinRoseSerial4_isr,
+    rxPinRoseSerial5_isr,
+};
+
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
       txEnabled_(true),
       began_(false),
       state_{RecvStates::kIdle},
+      feStartTime_(0),
       buf1_{0},
       buf2_{0},
       activeBuf_(buf1_),
@@ -123,7 +158,13 @@ Receiver::Receiver(HardwareSerial &uart)
       errorStats_{},
       responderCount_(0),
       responderOutBufLen_{0},
-      setTXNotRXFunc_(nullptr) {
+      setTXNotRXFunc_(nullptr),
+      rxWatchPin_(-1),
+      rxChangeState_(0),
+      rxFallTime_(0),
+      rxRiseTime_(0),
+      txFunc_(nullptr),
+      txBreakFunc_(nullptr) {
   switch(serialIndex_) {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
     case 0:
@@ -378,6 +419,7 @@ void Receiver::begin() {
   // Reset all the stats
   resetPacketCount();
   packetSize_ = 0;
+  lastBreakStartTime_ = 0;
   packetStats_ = PacketStats{};
   errorStats_ = ErrorStats{};
 
@@ -756,6 +798,7 @@ void Receiver::completePacket() {
   }
 
   incPacketCount();
+
   packetStats_.size = packetSize_ = activeBufIndex_;
   packetStats_.timestamp = t;
   if (lastSlotEndTime_ >= breakStartTime_) {
@@ -763,6 +806,9 @@ void Receiver::completePacket() {
   } else {
     packetStats_.packetTime = 0;
   }
+  packetStats_.breakPlusMABTime = packetStats_.nextBreakPlusMABTime;
+  packetStats_.breakTime = packetStats_.nextBreakTime;
+  packetStats_.mabTime = packetStats_.nextMABTime;
 
   // Let the responder, if any, process the packet
   if (responders_ != nullptr) {
@@ -776,6 +822,11 @@ void Receiver::completePacket() {
   }
 
   activeBufIndex_ = 0;
+
+  if (rxWatchPin_ >= 0) {
+    rxChangeState_ = 0;
+    attachInterrupt(rxWatchPin_, rxPinFellISRs[serialIndex_], FALLING);
+  }
 }
 
 void Receiver::checkPacketTimeout() {
@@ -838,16 +889,35 @@ void Receiver::receiveByte(uint8_t b) {
   // Character time: 44us
 
   switch (state_) {
-    case RecvStates::kBreak:
-      // This is only a rudimentary check for short BREAKs. It does not
-      // detect short BREAKs followed by long MABs. It only detects
-      // whether BREAK + MAB time is at least 88us + 8us.
-      if ((eopTime - breakStartTime_) < 88 + 8 + 44) {
-        // First byte is too early, discard any data
-        receiveBadBreak();
-        return;
-      } else if (connected_) {  // This condition indicates we haven't
-                                // seen some timeout
+    case RecvStates::kBreak: {
+      // BREAK and MAB timing check
+      // Measure the BREAK and MAB, but don't set until after a
+      // potential completePacket()
+      uint32_t breakTime = 0;
+      uint32_t mabTime = 0;
+      if (rxChangeState_ == 2) {
+        rxChangeState_ = 0;
+        if ((rxRiseTime_ - rxFallTime_ < 88) ||
+            (eopTime - rxRiseTime_ < 8 + 44)) {
+          receiveBadBreak();
+          return;
+        }
+        breakTime = rxRiseTime_ - rxFallTime_;
+        mabTime = eopTime - 44 - rxRiseTime_;
+      } else {
+        rxChangeState_ = 0;
+        // This is only a rudimentary check for short BREAKs. It does not
+        // detect short BREAKs followed by long MABs. It only detects
+        // whether BREAK + MAB time is at least 88us + 8us.
+        if ((eopTime - breakStartTime_) < 88 + 8 + 44) {
+          // First byte is too early, discard any data
+          receiveBadBreak();
+          return;
+        }
+      }
+
+      if (connected_) {  // This condition indicates we haven't seen
+                         // some timeout
         // Complete any un-flushed bytes
         uint32_t dt = breakStartTime_ - lastBreakStartTime_;
         packetStats_.breakToBreakTime = dt;
@@ -864,11 +934,20 @@ void Receiver::receiveByte(uint8_t b) {
       } else {
         activeBufIndex_ = 0;
       }
-      packetStats_.breakPlusMABTime = eopTime - 44 - breakStartTime_;
+
+      // Packet BREAK and MAB measurements
+      // Store 'next' values because packets aren't completed until the
+      // following BREAK (or timeout or size limit) and we need the
+      // previous values
+      packetStats_.nextBreakPlusMABTime = eopTime - 44 - breakStartTime_;
+      packetStats_.nextBreakTime = breakTime;
+      packetStats_.nextMABTime = mabTime;
+
       lastBreakStartTime_ = breakStartTime_;
       setConnected(true);
       state_ = RecvStates::kData;
       break;
+    }
 
     case RecvStates::kData:
       // Checking this here accounts for buffered input, where several
@@ -884,6 +963,10 @@ void Receiver::receiveByte(uint8_t b) {
       break;
 
     case RecvStates::kIdle:
+      if (rxWatchPin_ >= 0) {
+        rxChangeState_ = 0;
+        attachInterrupt(rxWatchPin_, rxPinFellISRs[serialIndex_], FALLING);
+      }
       return;
 
     default:
@@ -1187,6 +1270,96 @@ void Receiver::enableIRQs() const {
       break;
 #endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
+}
+
+// ---------------------------------------------------------------------------
+//  RX pin interrupt and ISRs
+// ---------------------------------------------------------------------------
+
+void Receiver::setRXWatchPin(uint8_t pin) {
+  __disable_irq();
+  if (pin < 0) {
+    if (rxWatchPin_ >= 0) {
+      detachInterrupt(rxWatchPin_);
+    }
+    rxWatchPin_ = -1;
+    rxChangeState_ = 0;
+  } else {
+    if (rxWatchPin_ != pin) {
+      detachInterrupt(rxWatchPin_);
+      rxWatchPin_ = pin;
+      rxChangeState_ = 0;
+    }
+  }
+  __enable_irq();
+}
+
+void Receiver::rxPinFell_isr() {
+  rxFallTime_ = micros();
+  if (rxChangeState_ == 0) {
+    rxChangeState_ = 1;
+    attachInterrupt(rxWatchPin_, rxPinRoseISRs[serialIndex_], RISING);
+  } else {
+    rxChangeState_ = 0;
+  }
+}
+
+void Receiver::rxPinRose_isr() {
+  rxRiseTime_ = micros();
+  if (rxChangeState_ == 1) {
+    rxChangeState_ = 2;
+    detachInterrupt(rxWatchPin_);
+  } else {
+    rxChangeState_ = 0;
+  }
+}
+
+void rxPinFellSerial0_isr() {
+  rxInstances[0]->rxPinFell_isr();
+}
+
+void rxPinRoseSerial0_isr() {
+  rxInstances[0]->rxPinRose_isr();
+}
+
+void rxPinFellSerial1_isr() {
+  rxInstances[1]->rxPinFell_isr();
+}
+
+void rxPinRoseSerial1_isr() {
+  rxInstances[1]->rxPinRose_isr();
+}
+
+void rxPinFellSerial2_isr() {
+  rxInstances[2]->rxPinFell_isr();
+}
+
+void rxPinRoseSerial2_isr() {
+  rxInstances[2]->rxPinRose_isr();
+}
+
+void rxPinFellSerial3_isr() {
+  rxInstances[3]->rxPinFell_isr();
+}
+
+void rxPinRoseSerial3_isr() {
+  rxInstances[3]->rxPinRose_isr();
+}
+
+void rxPinFellSerial4_isr() {
+  rxInstances[4]->rxPinFell_isr();
+}
+
+void rxPinRoseSerial4_isr() {
+  rxInstances[4]->rxPinRose_isr();
+}
+
+void rxPinFellSerial5_isr() {
+  rxInstances[5]->rxPinFell_isr();
+}
+
+void rxPinRoseSerial5_isr() {
+  rxInstances[5]->rxPinRose_isr();
 }
 
 // ---------------------------------------------------------------------------
