@@ -1055,27 +1055,45 @@ void Receiver::rxPinRose_isr() {
 }
 
 void rxPinRoseSerial0_isr() {
-  rxInstances[0]->rxPinRose_isr();
+  Receiver *r = rxInstances[0];
+  if (r != nullptr) {
+    r->rxPinRose_isr();
+  }
 }
 
 void rxPinRoseSerial1_isr() {
-  rxInstances[1]->rxPinRose_isr();
+  Receiver *r = rxInstances[1];
+  if (r != nullptr) {
+    r->rxPinRose_isr();
+  }
 }
 
 void rxPinRoseSerial2_isr() {
-  rxInstances[2]->rxPinRose_isr();
+  Receiver *r = rxInstances[2];
+  if (r != nullptr) {
+    r->rxPinRose_isr();
+  }
 }
 
 void rxPinRoseSerial3_isr() {
-  rxInstances[3]->rxPinRose_isr();
+  Receiver *r = rxInstances[3];
+  if (r != nullptr) {
+    r->rxPinRose_isr();
+  }
 }
 
 void rxPinRoseSerial4_isr() {
-  rxInstances[4]->rxPinRose_isr();
+  Receiver *r = rxInstances[4];
+  if (r != nullptr) {
+    r->rxPinRose_isr();
+  }
 }
 
 void rxPinRoseSerial5_isr() {
-  rxInstances[5]->rxPinRose_isr();
+  Receiver *r = rxInstances[5];
+  if (r != nullptr) {
+    r->rxPinRose_isr();
+  }
 }
 
 // ---------------------------------------------------------------------------
