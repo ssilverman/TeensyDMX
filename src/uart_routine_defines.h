@@ -181,6 +181,7 @@
       return;                                                              \
     } else {                                                               \
       __enable_irq();                                                      \
+      uint32_t timestamp = micros() - 44*avail;                            \
       /* Read all but the last available, then read S1 and the final value \
        * So says the chip docs,                                            \
        * Section 47.3.5 UART Status Register 1 (UART_S1)                   \
@@ -190,17 +191,17 @@
         /* Check that the 9th bit is high; used as the first stop bit */   \
         if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                \
           errFlag = true;                                                  \
-          instance->errorStats_.framingErrorCount++;                      \
+          instance->errorStats_.framingErrorCount++;                       \
           instance->completePacket();                                      \
         }                                                                  \
-        instance->receiveByte(UART##N##_D);                                \
+        instance->receiveByte(UART##N##_D, timestamp += 44);               \
       }                                                                    \
       status = UART##N##_S1;                                               \
       if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                  \
-        instance->errorStats_.framingErrorCount++;                        \
+        instance->errorStats_.framingErrorCount++;                         \
         instance->completePacket();                                        \
       }                                                                    \
-      instance->receiveByte(UART##N##_D);                                  \
+      instance->receiveByte(UART##N##_D, timestamp + 44);                  \
     }                                                                      \
   }
 
@@ -213,10 +214,10 @@
   if ((status & STAT_PREFIX##_RDRF) != 0) {                          \
     /* Check that the 9th bit is high; used as the first stop bit */ \
     if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                          \
-      instance->errorStats_.framingErrorCount++;                    \
+      instance->errorStats_.framingErrorCount++;                     \
       instance->completePacket();                                    \
     }                                                                \
-    instance->receiveByte(DATA);                                     \
+    instance->receiveByte(DATA, micros());                           \
   } else if ((status & STAT_PREFIX##_IDLE) != 0) {                   \
     instance->checkPacketTimeout();                                  \
     UART_RX_CLEAR_IDLE_##N                                           \
@@ -256,13 +257,14 @@
   UART_RX_##REG
 
 // N is the register number.
-#define UART_RX_ERROR_FLUSH_FIFO(N)       \
-  /* Flush anything in the buffer */      \
-  uint8_t avail = UART##N##_RCFIFO;       \
-  if (avail > 1) {                        \
-    while (--avail > 0) {                 \
-      instance->receiveByte(UART##N##_D); \
-    }                                     \
+#define UART_RX_ERROR_FLUSH_FIFO(N)                        \
+  /* Flush anything in the buffer */                       \
+  uint8_t avail = UART##N##_RCFIFO;                        \
+  if (avail > 1) {                                         \
+    uint32_t timestamp = micros() - 44*avail;              \
+    while (--avail > 0) {                                  \
+      instance->receiveByte(UART##N##_D, timestamp += 44); \
+    }                                                      \
   }
 
 // ---------------------------------------------------------------------------

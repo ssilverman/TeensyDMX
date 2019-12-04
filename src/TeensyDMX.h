@@ -515,9 +515,10 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void receiveBadBreak();
 
-  // Receives a byte.
+  // Receives a byte. The `eopTime` parameter is the timestamp of the end of the
+  // character, in microseconds.
   // This is called from an ISR.
-  void receiveByte(uint8_t b);
+  void receiveByte(uint8_t b, uint32_t eopTime);
 
   // ISR functions.
   void rxPinFell_isr();
