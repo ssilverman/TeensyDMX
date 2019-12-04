@@ -295,6 +295,7 @@ void Receiver::begin() {
   // Reset all the stats
   resetPacketCount();
   packetSize_ = 0;
+  lastBreakStartTime_ = 0;
   packetStats_ = PacketStats{};
   errorStats_ = ErrorStats{};
 
