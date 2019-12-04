@@ -9,6 +9,7 @@ This document details the changes between each release.
   it to a digital I/O-capable pin and calling the new `Receiver::setRXWatchPin`
   function. This removes the limitations the receiver has when checking for
   packets having invalid timing, but only when using this feature.
+* Teensy 4 support.
 
 ## [4.0.0-alpha.3]
 
@@ -21,7 +22,6 @@ This document details the changes between each release.
 * New `Receiver::packetStats()` and `Receiver::errorStats()` functions with
   associated `Receiver::PacketStats` and `Receiver::ErrorStats` classes for
   examining the latest packet statistics and error counts.
-* Teensy 4 support.
 
 ### Changed
 * In the sender, changed how the baud rate is set when switching between the
