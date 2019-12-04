@@ -44,6 +44,8 @@ Sender *volatile txInstances[6]{nullptr};
 
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
+      lpuartBreakParams_{},
+      lpuartSlotsParams_{},
       lpuartParamsSet_(false),
       began_(false),
       state_(XmitStates::kIdle),
@@ -52,6 +54,7 @@ Sender::Sender(HardwareSerial &uart)
       packetSize_(kMaxDMXPacketSize),
       refreshRate_(INFINITY),
       breakToBreakTime_(0),
+      timeSinceBreak_{0},
       paused_(false),
       resumeCounter_(0),
       transmitting_(false),

@@ -833,9 +833,9 @@ class Sender final : public TeensyDMX {
   // Stored LPUART parameters for quickly setting the baud rate between break
   // and slots. Used for Teensy 3.6 and Teensy 4.
   struct LPUARTParams final {
-    uint32_t baud;
-    uint32_t stat;
-    uint32_t ctrl;
+    uint32_t baud = 0x0f000004;  // 5-bit OSR is 0x0f and 13-bit SBR is 0x0004
+    uint32_t stat = 0;
+    uint32_t ctrl = 0;
   };
 
   // The minimum allowed packet time for senders, either BREAK plus data,
