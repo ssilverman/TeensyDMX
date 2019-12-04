@@ -61,16 +61,16 @@ Receiver *volatile rxInstances[6]{nullptr};
 
 // Forward declarations of RX watch pin ISRs.
 void rxPinFellSerial0_isr();
-void rxPinFellSerial1_isr();
-void rxPinFellSerial2_isr();
-void rxPinFellSerial3_isr();
-void rxPinFellSerial4_isr();
-void rxPinFellSerial5_isr();
 void rxPinRoseSerial0_isr();
+void rxPinFellSerial1_isr();
 void rxPinRoseSerial1_isr();
+void rxPinFellSerial2_isr();
 void rxPinRoseSerial2_isr();
+void rxPinFellSerial3_isr();
 void rxPinRoseSerial3_isr();
+void rxPinFellSerial4_isr();
 void rxPinRoseSerial4_isr();
+void rxPinFellSerial5_isr();
 void rxPinRoseSerial5_isr();
 
 // RX watch pin fell ISRs.
