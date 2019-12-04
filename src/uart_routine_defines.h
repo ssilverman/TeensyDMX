@@ -242,10 +242,10 @@
       }                                                            \
       return;                                                      \
     } else {                                                       \
-      /* TODO: Do single characters get delayed if there's only    \
-       *       one available, on the Teensy 4, like they seem to   \
-       *       do on the Teensy 3? */                              \
       uint32_t timestamp = micros() - 44*avail;                    \
+      if (avail < ((LPUART##N##_WATER >> 16) & 0x03)) {            \
+        timestamp -= 44;                                           \
+      }                                                            \
       while (avail-- > 0) {                                        \
         instance->receiveByte(LPUART##N##_DATA, timestamp += 44);  \
       }                                                            \
