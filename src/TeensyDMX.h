@@ -139,12 +139,17 @@ class Receiver final : public TeensyDMX {
   //   `Receiver::lastPacketTimestamp()` docs for more information.
   // * BREAK-plus-MAB time: This is the sum of the BREAK and MAB times, in
   //   microseconds. Currently, it's not possible to determine where the BREAK
-  // ends and the MAB starts.
+  //   ends and the MAB starts without using another pin to watch the RX line.
+  //   Note that when an RX watch pin is used, the value of this field may be
+  //   close to but not equal to the sum of `breakTime` and `mabTime`; it's
+  //   calculated in a different way.
   // * BREAK-to-BREAK time: This may not be set at the same time as the other
   //   variables; it just represents the last known duration. This is
   //   in microseconds.
   // * Packet time: The duration of the last packet, from the BREAK start to the
   //   last slot end, in microseconds.
+  // * BREAK time: The actual packet BREAK time.
+  // * MAB time: The actual packet MAB time.
   class PacketStats final {
    public:
     // Initializes everything to zero.
