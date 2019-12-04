@@ -148,8 +148,10 @@ class Receiver final : public TeensyDMX {
   //   in microseconds.
   // * Packet time: The duration of the last packet, from the BREAK start to the
   //   last slot end, in microseconds.
-  // * BREAK time: The actual packet BREAK time.
-  // * MAB time: The actual packet MAB time.
+  // * BREAK time: The packet's BREAK time. This will be zero if the RX line is
+  //   not being monitored.
+  // * MAB time: The packet's MAB time. This will be zero if the RX line is not
+  //   being monitored.
   class PacketStats final {
    public:
     // Initializes everything to zero.
