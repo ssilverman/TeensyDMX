@@ -396,7 +396,7 @@ class Receiver final : public TeensyDMX {
     setTXNotRXFunc_ = f;
   }
 
-  // Sets the pin that monitors the RX line to determing BREAK and MAB timing.
+  // Sets the pin that monitors the RX line to determine BREAK and MAB timing.
   // Set to a negative value to unset. The default is unset.
   void setRXWatchPin(uint8_t pin);
 
