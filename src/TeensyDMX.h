@@ -178,11 +178,9 @@ class Receiver final : public TeensyDMX {
   //   This may not be what you expect. Please refer to the
   //   `Receiver::lastPacketTimestamp()` docs for more information.
   // * BREAK-plus-MAB time: This is the sum of the BREAK and MAB times, in
-  //   microseconds. Currently, it's not possible to determine where the BREAK
-  //   ends and the MAB starts without using another pin to watch the RX line.
-  //   Note that when an RX watch pin is used, the value of this field may be
-  //   close to but not equal to the sum of `breakTime` and `mabTime`; it's
-  //   calculated in a different way.
+  //   microseconds. It's not possible to determine where the BREAK ends and the
+  //   MAB starts without using another pin to watch the RX line. See
+  //   `setRXWatchPin` for setting up a connected pin.
   // * BREAK-to-BREAK time: This may not be set at the same time as the other
   //   variables; it just represents the last known duration. This is
   //   in microseconds.
@@ -538,6 +536,9 @@ class Receiver final : public TeensyDMX {
   // Called when the connection state changes.
   void setConnected(bool flag);
 
+  // Sets up to watch for a falling state on the RX pin.
+  void watchRXPin();
+
   // Makes a new packet available and resets state.
   // This is called from an ISR.
   void completePacket();
@@ -645,7 +646,6 @@ class Receiver final : public TeensyDMX {
   // Things measured by the RX watch pin interrupt
   volatile int rxChangeState_;  // Tracks the RX state transitions for measuring
                                 // a BREAK
-  uint32_t rxFallTime_;
   uint32_t rxRiseTime_;
 
   // Transmit function for the current UART.
