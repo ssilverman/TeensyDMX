@@ -135,7 +135,7 @@
         if (timeSinceBreak < instance->breakToBreakTime_) {           \
           CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
           if (instance->breakToBreakTime_ != UINT32_MAX) {            \
-            /* Non-infinite break time */                             \
+            /* Non-infinite BREAK time */                             \
             if (!instance->refreshRateTimer_.begin(                   \
                     []() {                                            \
                       Sender *s = txInstances[INSTANCE];              \
@@ -214,15 +214,13 @@
         /* Check that the 9th bit is high; used as the first stop bit */   \
         if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                \
           errFlag = true;                                                  \
-          instance->errorStats_.framingErrorCount++;                       \
-          instance->completePacket();                                      \
+          instance->receiveBadBreak();                                     \
         }                                                                  \
         instance->receiveByte(UART##N##_D, timestamp += 44);               \
       }                                                                    \
       status = UART##N##_S1;                                               \
       if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                  \
-        instance->errorStats_.framingErrorCount++;                         \
-        instance->completePacket();                                        \
+        instance->receiveBadBreak();                                       \
       }                                                                    \
       instance->receiveByte(UART##N##_D, timestamp + 44);                  \
     }                                                                      \
@@ -257,8 +255,7 @@
   if ((status & UART_S1_RDRF) != 0) {                                \
     /* Check that the 9th bit is high; used as the first stop bit */ \
     if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                          \
-      instance->errorStats_.framingErrorCount++;                     \
-      instance->completePacket();                                    \
+      instance->receiveBadBreak();                                   \
     }                                                                \
     instance->receiveByte(UART##N##_D, micros());                    \
   } else if ((status & UART_S1_IDLE) != 0) {                         \
@@ -288,10 +285,10 @@
     return;                                                                \
   }                                                                        \
                                                                            \
-  /* A framing error likely indicates a break */                           \
+  /* A framing error likely indicates a BREAK */                           \
   if ((status & STAT_PREFIX##_FE) != 0) {                                  \
-    /* Only allow a packet whose framing error actually indicates a break. \
-     * A value of zero indicates a true break and not some other           \
+    /* Only allow a packet whose framing error actually indicates a BREAK. \
+     * A value of zero indicates a true BREAK and not some other           \
      * framing error. */                                                   \
                                                                            \
     instance->feStartTime_ = micros();                                     \

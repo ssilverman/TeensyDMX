@@ -15,21 +15,21 @@ namespace teensydmx {
 
 // Notes on transmit timing:
 // According to https://en.wikipedia.org/wiki/DMX512,
-// the minimum break and Mark After Break (MAB) times are
+// the minimum BREAK and Mark after BREAK (MAB) times are
 // 92us and 12us, respectively.
 //
 // If we assume 12us is the length of a stop bit, then 1/12us ≈ 83333 baud.
 // For 8N1, the length of the 9 bits before the stop bit ≈ 108us.
 //
-// Minimum accepted receive break-to-break time = 1196us.
+// Minimum accepted receive BREAK-to-BREAK time = 1196us.
 // This means that we must transmit at least 24 slots (25 including the
 // start code) at full speed.
 //
 // Some other timing options:
-// 8N2: 1000000/11 (90909) baud, 99us break, 22us MAB
-// 8E2: 100000 baud, 100us break, 20us MAB
-// 8N1: 50000 baud, 180us break, 20us MAB <-- Closer to "typical" in ANSI E1.11
-// 8E1: 45500 baud, 220us break, 22us MAB
+// 8N2: 1000000/11 (90909) baud, 99us BREAK, 22us MAB
+// 8E2: 100000 baud, 100us BREAK, 20us MAB
+// 8N1: 50000 baud, 180us BREAK, 20us MAB <-- Closer to "typical" in ANSI E1.11
+// 8E1: 45500 baud, 220us BREAK, 22us MAB
 
 constexpr uint32_t kBreakBaud   = 50000;       // 20us
 constexpr uint32_t kBreakFormat = SERIAL_8N1;  // 9:1
@@ -86,7 +86,7 @@ Sender::~Sender() {
   attachInterruptVector(IRQ_LPUART##N, lpuart##N##_tx_isr); \
   LPUART##N##_CTRL = LPUART_CTRL_TX_ACTIVE;
 
-// Gleans the LPUART parameters. The break baud rate and format is expected to
+// Gleans the LPUART parameters. The BREAK baud rate and format is expected to
 // have been set.
 #define GLEAN_LPUART_PARAMS(N)                                \
   if (!lpuartParamsSet_) {                                    \

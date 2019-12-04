@@ -865,11 +865,17 @@ void Receiver::checkPacketTimeout() {
   uint32_t t = micros();
 
   if (state_ == RecvStates::kBreak) {
-    // This catches the case where a short BREAK is followed by a longer MAB
-    if ((t - breakStartTime_) < 88 + 44) {
-      errorStats_.framingErrorCount++;
-      completePacket();
-      setConnected(false);
+    if (rxChangeState_ == 2) {
+      rxChangeState_ = 0;
+      if ((rxRiseTime_ - rxFallTime_) < 88) {
+        receiveBadBreak();
+      }
+    } else {
+      rxChangeState_ = 0;
+      // This catches the case where a short BREAK is followed by a longer MAB
+      if ((t - breakStartTime_) < 88 + 44) {
+        receiveBadBreak();
+      }
     }
   } else if (state_ == RecvStates::kData) {
     if ((t - breakStartTime_) > kMaxDMXPacketTime ||
@@ -898,7 +904,7 @@ void Receiver::receivePotentialBreak() {
 }
 
 void Receiver::receiveBadBreak() {
-  // Not a break
+  // Not a BREAK
   errorStats_.framingErrorCount++;
 
   // Don't keep the packet
@@ -906,14 +912,14 @@ void Receiver::receiveBadBreak() {
   activeBufIndex_ = 0;
   completePacket();
 
-  // Consider this case as not seeing a break
+  // Consider this case as not seeing a BREAK
   // This may be line noise, so now we can't tell for sure where the
-  // last break was
+  // last BREAK was
   setConnected(false);
 }
 
 void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
-  // Bad breaks are detected when BREAK + MAB + character time is too short
+  // Bad BREAKs are detected when BREAK + MAB + character time is too short
   // BREAK: 88us
   // MAB: 8us
   // Character time: 44us

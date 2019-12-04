@@ -56,6 +56,19 @@ This limitation does not exist if the RX line is monitored. To monitor the line,
 connect it to a digital I/O-capable pin and call `setRXWatchPin` with the pin
 number. The pin cannot be the same as the RX pin.
 
+## Changes since v3
+
+This section summarizes the changes and new features since v3.
+
+1. Changed responders to use shared pointers instead of raw pointers when adding
+   them to a receiver.
+2. Added the ability to disable the transmitter pin in the receiver.
+3. Added a way to set and retrieve 16-bit slot values.
+4. Added a new way to retrieve packet and error statistics.
+5. Added the ability to accurately measure received BREAK and MAB times using
+   another digital I/O pin to watch the RX line.
+6. Teensy 4 support.
+
 ## How to use
 
 The classes you'll need are in the `qindesign::teensydmx` namespace: `Receiver`

@@ -30,19 +30,19 @@ class Responder {
   };
 
   // Gets the BREAK length, in 11-bit characters at 250kbps, i.e. 44us per
-  // character. For example, returning 4 would mean the break length would be
+  // character. For example, returning 4 would mean the BREAK length would be
   // 4*44us=176us. This returns zero by default.
   virtual uint32_t breakLength() const {
     return 0;
   };
 
-  // Gets the mark after break time, in microseconds. This returns zero
+  // Gets the Mark after BREAK time, in microseconds. This returns zero
   // by default.
   virtual uint32_t markAfterBreakTime() const {
     return 0;
   }
 
-  // Returns whether we should send a break for the last valid response packet.
+  // Returns whether we should send a BREAK for the last valid response packet.
   // An output packet is considered valid if processByte() returned a positive
   // value. The default implementation returns true.
   virtual bool isSendBreakForLastPacket() const {
@@ -50,7 +50,7 @@ class Responder {
   }
 
   // Returns the delay, in microseconds, to wait before enabling the transmit
-  // driver and sending a break. A delay only happens if
+  // driver and sending a BREAK. A delay only happens if
   // isSendBreakForLastPacket() returns true. The default implementation
   // returns zero.
   virtual uint32_t preBreakDelay() const {
@@ -58,14 +58,14 @@ class Responder {
   }
 
   // Returns the delay, in microseconds, to wait before enabling the transmit
-  // driver (and not sending a break). This delay only happens if
+  // driver (and not sending a BREAK). This delay only happens if
   // isSendBreakForLastPacket() returns false. The default implementation
   // returns zero.
   virtual uint32_t preNoBreakDelay() const {
     return 0;
   }
 
-  // Returns the delay, in microseconds, to wait before sending either a break
+  // Returns the delay, in microseconds, to wait before sending either a BREAK
   // or data. This occurs after either the preBreakDelay() or preNoBreakDelay().
   // The default implementation returns zero.
   virtual uint32_t preDataDelay() const {
