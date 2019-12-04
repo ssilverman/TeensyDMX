@@ -582,14 +582,8 @@ class Receiver final : public TeensyDMX {
   volatile int rxWatchPin_;
 
   // Things measured by the RX watch pin interrupt
-  volatile int rxChangeState_;  // If the pin was enabled after the fall and
-                                // before the rise of a BREAK, we need to know
-                                // the fall time isn't valid. As well, if no
-                                // interrupts come in for whatever reason, or if
-                                // both have not come in, then we need to
-                                // track this.
-  // bool rxRiseTimeValid_;  // We need both of these to indicate that both
-  //                         // interrupts have actually come in
+  volatile int rxChangeState_;  // Tracks the RX state transitions for measuring
+                                // a BREAK
   uint32_t rxFallTime_;
   uint32_t rxRiseTime_;
 
