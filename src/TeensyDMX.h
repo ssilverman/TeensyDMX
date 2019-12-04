@@ -536,9 +536,6 @@ class Receiver final : public TeensyDMX {
   // Called when the connection state changes.
   void setConnected(bool flag);
 
-  // Sets up to watch for a falling state on the RX pin.
-  void watchRXPin();
-
   // Makes a new packet available and resets state.
   // This is called from an ISR.
   void completePacket();
