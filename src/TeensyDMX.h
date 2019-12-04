@@ -153,7 +153,9 @@ class Receiver final : public TeensyDMX {
           timestamp(0),
           breakPlusMABTime(0),
           breakToBreakTime(0),
-          packetTime(0) {}
+          packetTime(0),
+          breakTime(0),
+          mabTime(0) {}
 
     ~PacketStats() = default;
 
@@ -170,6 +172,10 @@ class Receiver final : public TeensyDMX {
     uint32_t packetTime;        // Packet time, from BREAK start to slot end,
                                 // in microseconds
 
+    // The following are only set when there's an RX monitoring pin
+    uint32_t breakTime;  // BREAK time, in microseconds
+    uint32_t mabTime;    // MAB time, in microseconds
+
    private:
     // Volatile copy constructor.
     PacketStats(const volatile PacketStats &other)
@@ -177,7 +183,9 @@ class Receiver final : public TeensyDMX {
           timestamp(other.timestamp),
           breakPlusMABTime(other.breakPlusMABTime),
           breakToBreakTime(other.breakToBreakTime),
-          packetTime(other.packetTime) {}
+          packetTime(other.packetTime),
+          breakTime(other.breakTime),
+          mabTime(other.mabTime) {}
 
     // Volatile assignment operator. This returns void to avoid a warning
     // of non-use.
@@ -188,6 +196,8 @@ class Receiver final : public TeensyDMX {
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
       packetTime = other.packetTime;
+      breakTime = other.breakTime;
+      mabTime = other.mabTime;
     }
 
     // Other-way volatile assignment operator.
@@ -197,6 +207,7 @@ class Receiver final : public TeensyDMX {
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
       packetTime = other.packetTime;
+      mabTime = other.mabTime;
       return *this;
     }
 
@@ -385,6 +396,10 @@ class Receiver final : public TeensyDMX {
     setTXNotRXFunc_ = f;
   }
 
+  // Sets the pin that monitors the RX line to determing BREAK and MAB timing.
+  // Set to a negative value to unset. The default is unset.
+  void setRXWatchPin(uint8_t pin);
+
   // Returns whether this is considered to be connected to a DMX transmitter. A
   // connection is considered to have been broken if a timeout was detected or a
   // BREAK plus Mark after Break (MAB) was too short.
@@ -478,6 +493,10 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void receiveByte(uint8_t b);
 
+  // ISR functions.
+  void rxPinFell_isr();
+  void rxPinRose_isr();
+
   // Sets whether to enable or disable TX or RX through some external means.
   // This is needed when responding to a received message and transmission
   // needs to occur. This is also called at the end of begin() with 'false'
@@ -552,12 +571,42 @@ class Receiver final : public TeensyDMX {
   // Function for enabling/disabling RX and TX.
   void (*volatile setTXNotRXFunc_)(bool flag);
 
+  // Pin that monitors the RX line to determing BREAK and MAB timing. -1 if the
+  // pin is not set.
+  volatile int rxWatchPin_;
+
+  // Things measured by the RX watch pin interrupt
+  volatile int rxChangeTimeState_;  // If the pin was enabled after the fall and
+                                    // before the rise of a BREAK, we need to
+                                    // know the fall time isn't valid. As well,
+                                    // if no interrupts come in for whatever
+                                    // reason, or if both have not come in, then
+                                    // we need to track this.
+  // bool rxRiseTimeValid_;  // We need both of these to indicate that both
+  //                         // interrupts have actually come in
+  uint32_t rxFallTime_;
+  uint32_t rxRiseTime_;
+
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
 
   // Transmit BREAK function for the current UART. The MAB (mark after break)
   // time is spcified because different UARTs send BREAKs differently.
   void (*txBreakFunc_)(int count, uint32_t mabTime);
+
+  // RX pin change ISRs
+  friend void rxPinFellSerial0_isr();
+  friend void rxPinRoseSerial0_isr();
+  friend void rxPinFellSerial1_isr();
+  friend void rxPinRoseSerial1_isr();
+  friend void rxPinFellSerial2_isr();
+  friend void rxPinRoseSerial2_isr();
+  friend void rxPinFellSerial3_isr();
+  friend void rxPinRoseSerial3_isr();
+  friend void rxPinFellSerial4_isr();
+  friend void rxPinRoseSerial4_isr();
+  friend void rxPinFellSerial5_isr();
+  friend void rxPinRoseSerial5_isr();
 
   // These error ISRs need to access private functions
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
