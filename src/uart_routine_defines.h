@@ -203,8 +203,9 @@
       instance->checkPacketTimeout();                                      \
       return;                                                              \
     } else if (avail == 1 && UART##N##_RWFIFO > 1) {                       \
+      __enable_irq();                                                      \
       /* It appears that the data-available flag isn't triggered until     \
-       * one character time after there is only one character availble,    \
+       * one character time after there is only one character available,   \
        * so accommodate this when the FIFO has only one element */         \
       status = UART##N##_S1;                                               \
       if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                              \
