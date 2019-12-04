@@ -482,7 +482,7 @@ class Receiver final : public TeensyDMX {
   // This is needed when responding to a received message and transmission
   // needs to occur. This is also called at the end of begin() with 'false'
   // to enable RX.
-  void setTXNotRX(bool flag) {
+  void setTXNotRX(bool flag) const {
     if (setTXNotRXFunc_ == nullptr) {
       return;
     }
