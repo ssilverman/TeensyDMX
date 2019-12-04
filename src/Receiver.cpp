@@ -116,7 +116,7 @@ Receiver::Receiver(HardwareSerial &uart)
       responderOutBufLen_{0},
       setTXNotRXFunc_(nullptr),
       rxWatchPin_(-1),
-      rxChangeTimeState_(0),
+      rxChangeState_(0),
       rxFallTime_(0),
       rxRiseTime_(0),
       txFunc_(nullptr),
@@ -658,7 +658,7 @@ void Receiver::completePacket() {
   activeBufIndex_ = 0;
 
   if (rxWatchPin_ >= 0) {
-    rxChangeTimeState_ = 0;
+    rxChangeState_ = 0;
     attachInterrupt(rxWatchPin_, rxPinFellISRs[serialIndex_], FALLING);
   }
 }
@@ -725,8 +725,8 @@ void Receiver::receiveByte(uint8_t b) {
   switch (state_) {
     case RecvStates::kBreak:
       // BREAK and MAB timing check
-      if (rxChangeTimeState_ == 2) {
-        rxChangeTimeState_ = 0;
+      if (rxChangeState_ == 2) {
+        rxChangeState_ = 0;
         if ((rxRiseTime_ - rxFallTime_ < 88) ||
             (eopTime - rxRiseTime_ < 8 + 44)) {
           receiveBadBreak();
@@ -735,7 +735,7 @@ void Receiver::receiveByte(uint8_t b) {
         packetStats_.breakTime = rxRiseTime_ - rxFallTime_;
         packetStats_.mabTime = eopTime - 44 - rxRiseTime_;
       } else {
-        rxChangeTimeState_ = 0;
+        rxChangeState_ = 0;
         packetStats_.breakTime = 0;
         packetStats_.mabTime = 0;
         // This is only a rudimentary check for short BREAKs. It does not
@@ -787,7 +787,7 @@ void Receiver::receiveByte(uint8_t b) {
 
     case RecvStates::kIdle:
       if (rxWatchPin_ >= 0) {
-        rxChangeTimeState_ = 0;
+        rxChangeState_ = 0;
         attachInterrupt(rxWatchPin_, rxPinFellISRs[serialIndex_], FALLING);
       }
       return;
@@ -1034,12 +1034,12 @@ void Receiver::setRXWatchPin(uint8_t pin) {
       detachInterrupt(rxWatchPin_);
     }
     rxWatchPin_ = -1;
-    rxChangeTimeState_ = 0;
+    rxChangeState_ = 0;
   } else {
     if (rxWatchPin_ != pin) {
       detachInterrupt(rxWatchPin_);
       rxWatchPin_ = pin;
-      rxChangeTimeState_ = 0;
+      rxChangeState_ = 0;
     }
   }
   __enable_irq();
@@ -1047,21 +1047,21 @@ void Receiver::setRXWatchPin(uint8_t pin) {
 
 void Receiver::rxPinFell_isr() {
   rxFallTime_ = micros();
-  if (rxChangeTimeState_ == 0) {
-    rxChangeTimeState_ = 1;
+  if (rxChangeState_ == 0) {
+    rxChangeState_ = 1;
     attachInterrupt(rxWatchPin_, rxPinRoseISRs[serialIndex_], RISING);
   } else {
-    rxChangeTimeState_ = 0;
+    rxChangeState_ = 0;
   }
 }
 
 void Receiver::rxPinRose_isr() {
   rxRiseTime_ = micros();
-  if (rxChangeTimeState_ == 1) {
-    rxChangeTimeState_ = 2;
+  if (rxChangeState_ == 1) {
+    rxChangeState_ = 2;
     detachInterrupt(rxWatchPin_);
   } else {
-    rxChangeTimeState_ = 0;
+    rxChangeState_ = 0;
   }
 }
 
