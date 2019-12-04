@@ -637,6 +637,7 @@ void Receiver::completePacket() {
   }
 
   incPacketCount();
+
   packetStats_.size = packetSize_ = activeBufIndex_;
   packetStats_.timestamp = t;
   if (lastSlotEndTime_ >= breakStartTime_) {
@@ -644,6 +645,9 @@ void Receiver::completePacket() {
   } else {
     packetStats_.packetTime = 0;
   }
+  packetStats_.breakPlusMABTime = packetStats_.nextBreakPlusMABTime;
+  packetStats_.breakTime = packetStats_.nextBreakTime;
+  packetStats_.mabTime = packetStats_.nextMABTime;
 
   // Let the responder, if any, process the packet
   if (responders_ != nullptr) {
@@ -771,9 +775,12 @@ void Receiver::receiveByte(uint8_t b) {
       }
 
       // Packet BREAK and MAB measurements
-      packetStats_.breakPlusMABTime = eopTime - 44 - breakStartTime_;
-      packetStats_.breakTime = breakTime;
-      packetStats_.mabTime = mabTime;
+      // Store 'next' values because packets aren't completed until the
+      // following BREAK (or timeout or size limit) and we need the
+      // previous values
+      packetStats_.nextBreakPlusMABTime = eopTime - 44 - breakStartTime_;
+      packetStats_.nextBreakTime = breakTime;
+      packetStats_.nextMABTime = mabTime;
 
       lastBreakStartTime_ = breakStartTime_;
       setConnected(true);

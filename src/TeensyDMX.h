@@ -160,7 +160,10 @@ class Receiver final : public TeensyDMX {
           breakToBreakTime(0),
           packetTime(0),
           breakTime(0),
-          mabTime(0) {}
+          mabTime(0),
+          nextBreakPlusMABTime(0),
+          nextBreakTime(0),
+          nextMABTime(0) {}
 
     ~PacketStats() = default;
 
@@ -190,7 +193,10 @@ class Receiver final : public TeensyDMX {
           breakToBreakTime(other.breakToBreakTime),
           packetTime(other.packetTime),
           breakTime(other.breakTime),
-          mabTime(other.mabTime) {}
+          mabTime(other.mabTime),
+          nextBreakPlusMABTime(other.nextBreakPlusMABTime),
+          nextBreakTime(other.nextBreakTime),
+          nextMABTime(other.nextMABTime) {}
 
     // Volatile assignment operator. This returns void to avoid a warning
     // of non-use.
@@ -203,6 +209,9 @@ class Receiver final : public TeensyDMX {
       packetTime = other.packetTime;
       breakTime = other.breakTime;
       mabTime = other.mabTime;
+      nextBreakPlusMABTime = other.nextBreakPlusMABTime;
+      nextBreakTime = other.nextBreakTime;
+      nextMABTime = other.nextMABTime;
     }
 
     // Other-way volatile assignment operator.
@@ -214,8 +223,17 @@ class Receiver final : public TeensyDMX {
       packetTime = other.packetTime;
       breakTime = other.breakTime;
       mabTime = other.mabTime;
+      nextBreakPlusMABTime = other.nextBreakPlusMABTime;
+      nextBreakTime = other.nextBreakTime;
+      nextMABTime = other.nextMABTime;
       return *this;
     }
+
+    // Store the 'next' values to solve the one-ahead problem of completing the
+    // packet on the next BREAK (or timeout or size limit)
+    uint32_t nextBreakPlusMABTime;
+    uint32_t nextBreakTime;
+    uint32_t nextMABTime;
 
     friend class Receiver;
   };
