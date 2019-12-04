@@ -912,9 +912,7 @@ void Receiver::receiveBadBreak() {
   setConnected(false);
 }
 
-void Receiver::receiveByte(uint8_t b) {
-  uint32_t eopTime = micros();
-
+void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
   // Bad breaks are detected when BREAK + MAB + character time is too short
   // BREAK: 88us
   // MAB: 8us

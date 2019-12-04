@@ -204,6 +204,7 @@
       return;                                                              \
     } else {                                                               \
       __enable_irq();                                                      \
+      uint32_t timestamp = micros() - 44*avail;                            \
       /* Read all but the last available, then read S1 and the final value \
        * So says the chip docs,                                            \
        * Section 47.3.5 UART Status Register 1 (UART_S1)                   \
@@ -213,17 +214,17 @@
         /* Check that the 9th bit is high; used as the first stop bit */   \
         if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                \
           errFlag = true;                                                  \
-          instance->errorStats_.framingErrorCount++;                      \
+          instance->errorStats_.framingErrorCount++;                       \
           instance->completePacket();                                      \
         }                                                                  \
-        instance->receiveByte(UART##N##_D);                                \
+        instance->receiveByte(UART##N##_D, timestamp += 44);               \
       }                                                                    \
       status = UART##N##_S1;                                               \
       if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                  \
-        instance->errorStats_.framingErrorCount++;                        \
+        instance->errorStats_.framingErrorCount++;                         \
         instance->completePacket();                                        \
       }                                                                    \
-      instance->receiveByte(UART##N##_D);                                  \
+      instance->receiveByte(UART##N##_D, timestamp + 44);                  \
     }                                                                      \
   }
 
@@ -240,8 +241,9 @@
       }                                                            \
       return;                                                      \
     } else {                                                       \
+      uint32_t timestamp = micros() - 44*avail;                    \
       while (avail-- > 0) {                                        \
-        instance->receiveByte(LPUART##N##_DATA);                   \
+        instance->receiveByte(LPUART##N##_DATA, timestamp += 44);  \
       }                                                            \
     }                                                              \
   }
@@ -255,10 +257,10 @@
   if ((status & UART_S1_RDRF) != 0) {                                \
     /* Check that the 9th bit is high; used as the first stop bit */ \
     if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                          \
-      instance->errorStats_.framingErrorCount++;                    \
+      instance->errorStats_.framingErrorCount++;                     \
       instance->completePacket();                                    \
     }                                                                \
-    instance->receiveByte(UART##N##_D);                              \
+    instance->receiveByte(UART##N##_D, micros());                    \
   } else if ((status & UART_S1_IDLE) != 0) {                         \
     instance->checkPacketTimeout();                                  \
     UART_RX_CLEAR_IDLE_##N                                           \
@@ -266,13 +268,13 @@
 
 // Assumes status = LPUARTy_STAT.
 // N is the register number.
-#define LPUART_RX_NO_FIFO(N)                     \
-  /* If the receive buffer is full */            \
-  if ((status & LPUART_STAT_RDRF) != 0) {        \
-    instance->receiveByte(LPUART##N##_DATA);     \
-  } else if ((status & LPUART_STAT_IDLE) != 0) { \
-    instance->checkPacketTimeout();              \
-    LPUART##N##_STAT |= LPUART_STAT_IDLE;        \
+#define LPUART_RX_NO_FIFO(N)                           \
+  /* If the receive buffer is full */                  \
+  if ((status & LPUART_STAT_RDRF) != 0) {              \
+    instance->receiveByte(LPUART##N##_DATA, micros()); \
+  } else if ((status & LPUART_STAT_IDLE) != 0) {       \
+    instance->checkPacketTimeout();                    \
+    LPUART##N##_STAT |= LPUART_STAT_IDLE;              \
   }
 
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
@@ -309,25 +311,27 @@
   UART_RX_##REG
 
 // N is the register number.
-#define UART_RX_ERROR_FLUSH_FIFO(N)         \
-  /* Flush anything in the buffer */        \
-  uint8_t avail = UART##N##_RCFIFO;         \
-  if (avail > 1) {                          \
-    /* Read everything but the last byte */ \
-    while (--avail > 0) {                   \
-      instance->receiveByte(UART##N##_D);   \
-    }                                       \
+#define UART_RX_ERROR_FLUSH_FIFO(N)                        \
+  /* Flush anything in the buffer */                       \
+  uint8_t avail = UART##N##_RCFIFO;                        \
+  if (avail > 1) {                                         \
+    /* Read everything but the last byte */                \
+    uint32_t timestamp = micros() - 44*avail;              \
+    while (--avail > 0) {                                  \
+      instance->receiveByte(UART##N##_D, timestamp += 44); \
+    }                                                      \
   }
 
 // N is the register number.
-#define LPUART_RX_ERROR_FLUSH_FIFO(N)               \
-  /* Flush anything in the buffer */                \
-  uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07; \
-  if (avail > 1) {                                  \
-    /* Read everything but the last byte */         \
-    while (--avail > 0) {                           \
-      instance->receiveByte(LPUART##N##_DATA);      \
-    }                                               \
+#define LPUART_RX_ERROR_FLUSH_FIFO(N)                           \
+  /* Flush anything in the buffer */                            \
+  uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;             \
+  if (avail > 1) {                                              \
+    /* Read everything but the last byte */                     \
+    uint32_t timestamp = micros() - 44*avail;                   \
+    while (--avail > 0) {                                       \
+      instance->receiveByte(LPUART##N##_DATA, timestamp += 44); \
+    }                                                           \
   }
 
 // ---------------------------------------------------------------------------
