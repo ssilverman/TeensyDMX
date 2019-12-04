@@ -723,7 +723,7 @@ void Receiver::receiveByte(uint8_t b) {
   // Character time: 44us
 
   switch (state_) {
-    case RecvStates::kBreak:
+    case RecvStates::kBreak: {
       // BREAK and MAB timing check
       // Measure the BREAK and MAB, but don't set until after a
       // potential completePacket()
@@ -778,6 +778,7 @@ void Receiver::receiveByte(uint8_t b) {
       setConnected(true);
       state_ = RecvStates::kData;
       break;
+    }
 
     case RecvStates::kData:
       // Checking this here accounts for buffered input, where several
