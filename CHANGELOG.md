@@ -10,6 +10,10 @@ This document details the changes between each release.
   function. This removes the limitations the receiver has when checking for
   packets having invalid timing, but only when using this feature.
 
+### Fixed
+* MAB and BREAK-plus-MAB time calculations have been fixed when bytes are
+  received all at once from a FIFO.
+
 ## [4.0.0-alpha.3]
 
 ### Added
