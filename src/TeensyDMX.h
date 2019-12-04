@@ -428,7 +428,7 @@ class Receiver final : public TeensyDMX {
 
   // Returns whether this is considered to be connected to a DMX transmitter. A
   // connection is considered to have been broken if a timeout was detected or a
-  // BREAK plus Mark after Break (MAB) was too short.
+  // BREAK plus Mark after BREAK (MAB) was too short.
   bool connected() const {
     return connected_;
   }
@@ -454,8 +454,8 @@ class Receiver final : public TeensyDMX {
  private:
   // State that tracks where we are in the receive process.
   enum class RecvStates {
-    kBreak,  // Break
-    kMAB,    // Mark after break
+    kBreak,  // BREAK
+    kMAB,    // Mark after BREAK
     kData,   // Packet data
     kIdle,   // The end of data for one packet has been reached
   };
@@ -483,7 +483,7 @@ class Receiver final : public TeensyDMX {
   // in microseconds.
   static constexpr uint32_t kMinDMXPacketTime = 1196;
 
-  // The maximum allowed IDLE and Mark Before Break (MBB) time,
+  // The maximum allowed IDLE and Mark Before BREAK (MBB) time,
   // in microseconds, exclusive.
   static constexpr uint32_t kMaxDMXIdleTime = 1000000;
 
@@ -506,11 +506,11 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void checkPacketTimeout();
 
-  // A potential break has just been received.
+  // A potential BREAK has just been received.
   // This is called from an ISR.
   void receivePotentialBreak();
 
-  // An invalid start-of-break was received. There were non-zero bytes in the
+  // An invalid start-of-BREAK was received. There were non-zero bytes in the
   // framing error.
   // This is called from an ISR.
   void receiveBadBreak();
@@ -611,7 +611,7 @@ class Receiver final : public TeensyDMX {
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
 
-  // Transmit BREAK function for the current UART. The MAB (mark after break)
+  // Transmit BREAK function for the current UART. The MAB (Mark after BREAK)
   // time is spcified because different UARTs send BREAKs differently.
   void (*txBreakFunc_)(int count, uint32_t mabTime);
 
@@ -683,7 +683,7 @@ class Sender final : public TeensyDMX {
   // Returns this sender's BREAK time, in microseconds.
   uint32_t breakTime() const;
 
-  // Returns this sender's MARK after BREAK (MAB) time, in microseconds.
+  // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
   //
   // Note that due to some UART intricacies, the actual time may be longer.
   uint32_t mabTime() const;
@@ -880,7 +880,7 @@ class Sender final : public TeensyDMX {
  private:
    // State that tracks what to transmit and when.
   enum class XmitStates {
-    kBreak,  // Need to transmit a break
+    kBreak,  // Need to transmit a BREAK
     kData,   // Need to transmit data
     kIdle,   // The end of data for one packet has been reached
   };
@@ -900,7 +900,7 @@ class Sender final : public TeensyDMX {
     const Sender &s_;
   };
 
-  // Stored LPUART parameters for quickly setting the baud rate between break
+  // Stored LPUART parameters for quickly setting the baud rate between BREAK
   // and slots. Used for Teensy 3.6 and Teensy 4.
   struct LPUARTParams final {
     uint32_t baud = 0x0f000004;  // 5-bit OSR is 0x0f and 13-bit SBR is 0x0004
@@ -951,7 +951,7 @@ class Sender final : public TeensyDMX {
   // This is specified in microseconds.
   volatile uint32_t breakToBreakTime_;
 
-  // Keeps track of the time since the last break.
+  // Keeps track of the time since the last BREAK.
   elapsedMicros timeSinceBreak_;
 
   // For pausing

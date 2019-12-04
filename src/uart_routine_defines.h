@@ -112,7 +112,7 @@
         if (timeSinceBreak < instance->breakToBreakTime_) {           \
           CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
           if (instance->breakToBreakTime_ != UINT32_MAX) {            \
-            /* Non-infinite break time */                             \
+            /* Non-infinite BREAK time */                             \
             if (!instance->refreshRateTimer_.begin(                   \
                     []() {                                            \
                       Sender *s = txInstances[INSTANCE];              \
@@ -234,10 +234,10 @@
     return;                                                                \
   }                                                                        \
                                                                            \
-  /* A framing error likely indicates a break */                           \
+  /* A framing error likely indicates a BREAK */                           \
   if ((status & STAT_PREFIX##_FE) != 0) {                                  \
-    /* Only allow a packet whose framing error actually indicates a break. \
-     * A value of zero indicates a true break and not some other           \
+    /* Only allow a packet whose framing error actually indicates a BREAK. \
+     * A value of zero indicates a true BREAK and not some other           \
      * framing error. */                                                   \
                                                                            \
     instance->feStartTime_ = micros();                                     \
