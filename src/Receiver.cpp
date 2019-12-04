@@ -64,6 +64,7 @@ Receiver::Receiver(HardwareSerial &uart)
       txEnabled_(true),
       began_(false),
       state_{RecvStates::kIdle},
+      feStartTime_(0),
       buf1_{0},
       buf2_{0},
       activeBuf_(buf1_),
@@ -79,7 +80,9 @@ Receiver::Receiver(HardwareSerial &uart)
       errorStats_{},
       responderCount_(0),
       responderOutBufLen_{0},
-      setTXNotRXFunc_(nullptr) {
+      setTXNotRXFunc_(nullptr),
+      txFunc_(nullptr),
+      txBreakFunc_(nullptr) {
   switch(serialIndex_) {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
     case 0:
