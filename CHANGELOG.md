@@ -14,6 +14,7 @@ This document details the changes between each release.
 ### Fixed
 * MAB and BREAK-plus-MAB time calculations have been fixed when bytes are
   received all at once from a FIFO.
+* Data is now discarded at all places a framing error is encountered.
 
 ## [4.0.0-alpha.3]
 
