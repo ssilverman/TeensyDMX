@@ -667,6 +667,12 @@ class Receiver final : public TeensyDMX {
   friend void rxPinRoseSerial4_isr();
   friend void rxPinFellSerial5_isr();
   friend void rxPinRoseSerial5_isr();
+  friend void rxPinFellSerial6_isr();
+  friend void rxPinRoseSerial6_isr();
+#if defined(__IMXRT1062__)
+  friend void rxPinFellSerial7_isr();
+  friend void rxPinRoseSerial7_isr();
+#endif
 
   // These error ISRs need to access private functions
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)

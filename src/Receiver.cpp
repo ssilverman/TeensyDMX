@@ -110,32 +110,64 @@ void rxPinFellSerial2_isr();
 void rxPinFellSerial3_isr();
 void rxPinFellSerial4_isr();
 void rxPinFellSerial5_isr();
+void rxPinFellSerial6_isr();
 void rxPinRoseSerial0_isr();
 void rxPinRoseSerial1_isr();
 void rxPinRoseSerial2_isr();
 void rxPinRoseSerial3_isr();
 void rxPinRoseSerial4_isr();
 void rxPinRoseSerial5_isr();
+void rxPinRoseSerial6_isr();
+#if defined(__IMXRT1052__)
+void rxPinFellSerial7_isr();
+void rxPinRoseSerial7_isr();
+#endif
 
+#if defined(__IMXRT1052__)
 // RX watch pin fell ISRs.
-void (*rxPinFellISRs[6])() {
+void (*rxPinFellISRs[8])() {
     rxPinFellSerial0_isr,
     rxPinFellSerial1_isr,
     rxPinFellSerial2_isr,
     rxPinFellSerial3_isr,
     rxPinFellSerial4_isr,
     rxPinFellSerial5_isr,
+    rxPinFellSerial6_isr,
+    rxPinFellSerial7_isr,
 };
-
 // RX watch pin rose ISRs.
-void (*rxPinRoseISRs[6])() {
+void (*rxPinRoseISRs[8])() {
     rxPinRoseSerial0_isr,
     rxPinRoseSerial1_isr,
     rxPinRoseSerial2_isr,
     rxPinRoseSerial3_isr,
     rxPinRoseSerial4_isr,
     rxPinRoseSerial5_isr,
+    rxPinRoseSerial6_isr,
+    rxPinRoseSerial7_isr,
 };
+#else
+// RX watch pin fell ISRs.
+void (*rxPinFellISRs[7])() {
+    rxPinFellSerial0_isr,
+    rxPinFellSerial1_isr,
+    rxPinFellSerial2_isr,
+    rxPinFellSerial3_isr,
+    rxPinFellSerial4_isr,
+    rxPinFellSerial5_isr,
+    rxPinFellSerial6_isr,
+};
+// RX watch pin rose ISRs.
+void (*rxPinRoseISRs[7])() {
+    rxPinRoseSerial0_isr,
+    rxPinRoseSerial1_isr,
+    rxPinRoseSerial2_isr,
+    rxPinRoseSerial3_isr,
+    rxPinRoseSerial4_isr,
+    rxPinRoseSerial5_isr,
+    rxPinRoseSerial6_isr,
+};
+#endif
 
 Receiver::Receiver(HardwareSerial &uart)
     : TeensyDMX(uart),
@@ -1361,6 +1393,24 @@ void rxPinFellSerial5_isr() {
 void rxPinRoseSerial5_isr() {
   rxInstances[5]->rxPinRose_isr();
 }
+
+void rxPinFellSerial6_isr() {
+  rxInstances[6]->rxPinFell_isr();
+}
+
+void rxPinRoseSerial6_isr() {
+  rxInstances[6]->rxPinRose_isr();
+}
+
+#if defined(__IMXRT1052__)
+void rxPinFellSerial7_isr() {
+  rxInstances[7]->rxPinFell_isr();
+}
+
+void rxPinRoseSerial7_isr() {
+  rxInstances[7]->rxPinRose_isr();
+}
+#endif
 
 // ---------------------------------------------------------------------------
 //  UART0 synchronous TX
