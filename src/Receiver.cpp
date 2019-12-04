@@ -725,6 +725,10 @@ void Receiver::receiveByte(uint8_t b) {
   switch (state_) {
     case RecvStates::kBreak:
       // BREAK and MAB timing check
+      // Measure the BREAK and MAB, but don't set until after a
+      // potential completePacket()
+      uint32_t breakTime = 0;
+      uint32_t mabTime = 0;
       if (rxChangeState_ == 2) {
         rxChangeState_ = 0;
         if ((rxRiseTime_ - rxFallTime_ < 88) ||
@@ -732,12 +736,10 @@ void Receiver::receiveByte(uint8_t b) {
           receiveBadBreak();
           return;
         }
-        packetStats_.breakTime = rxRiseTime_ - rxFallTime_;
-        packetStats_.mabTime = eopTime - 44 - rxRiseTime_;
+        breakTime = rxRiseTime_ - rxFallTime_;
+        mabTime = eopTime - 44 - rxRiseTime_;
       } else {
         rxChangeState_ = 0;
-        packetStats_.breakTime = 0;
-        packetStats_.mabTime = 0;
         // This is only a rudimentary check for short BREAKs. It does not
         // detect short BREAKs followed by long MABs. It only detects
         // whether BREAK + MAB time is at least 88us + 8us.
@@ -766,7 +768,12 @@ void Receiver::receiveByte(uint8_t b) {
       } else {
         activeBufIndex_ = 0;
       }
+
+      // Packet BREAK and MAB measurements
       packetStats_.breakPlusMABTime = eopTime - 44 - breakStartTime_;
+      packetStats_.breakTime = breakTime;
+      packetStats_.mabTime = mabTime;
+
       lastBreakStartTime_ = breakStartTime_;
       setConnected(true);
       state_ = RecvStates::kData;
