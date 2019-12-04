@@ -236,11 +236,10 @@ Packet statistics are tracked and the latest can be retrieved from a
 
 1. `size`: The latest received packet size.
 2. `timestamp`: The timestamp of the last packet received.
-3. `breakPlusMABTime`: The sum of the BREAK and MAB times. Note that it's not
-   currently possible to determine where the BREAK ends and the MAB starts
-   without using another pin to watch the RX line. Note that when an RX watch
-   pin is used, the value of this field may be close to but not equal to the sum
-   of `breakTime` and `mabTime`; it's calculated in a different way.
+3. `breakPlusMABTime`: The sum of the BREAK and MAB times. It's not possible to
+   determine where the BREAK ends and the MAB starts without using another pin
+   to watch the RX line. To set up a connected pin, see `setRXWatchPin` and the
+   section above on _RX line monitoring_.
 4. `breakToBreakTime`: The latest measured BREAK-to-BREAK time. Note that this
    is not collected at the same time as the other variables and only represents
    the last known duration. This will be out of sync with the rest of the values
