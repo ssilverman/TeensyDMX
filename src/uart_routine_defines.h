@@ -202,19 +202,12 @@
       __enable_irq();                                                      \
       instance->checkPacketTimeout();                                      \
       return;                                                              \
-    } else if (avail == 1 && UART##N##_RWFIFO > 1) {                       \
-      __enable_irq();                                                      \
-      /* It appears that the data-available flag isn't triggered until     \
-       * one character time after there is only one character available,   \
-       * so accommodate this when the FIFO has only one element */         \
-      status = UART##N##_S1;                                               \
-      if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                              \
-        instance->receiveBadBreak();                                       \
-      }                                                                    \
-      instance->receiveByte(UART##N##_D, micros() - 44);                   \
     } else {                                                               \
       __enable_irq();                                                      \
       uint32_t timestamp = micros() - 44*avail;                            \
+      if (avail < UART##N##_RWFIFO) {                                      \
+        timestamp -= 44;                                                   \
+      }                                                                    \
       /* Read all but the last available, then read S1 and the final value \
        * So says the chip docs,                                            \
        * Section 47.3.5 UART Status Register 1 (UART_S1)                   \
