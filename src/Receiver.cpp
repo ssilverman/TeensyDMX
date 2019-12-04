@@ -60,28 +60,12 @@ void lpuart0_tx_break(int count, uint32_t mabTime);
 Receiver *volatile rxInstances[6]{nullptr};
 
 // Forward declarations of RX watch pin ISRs.
-void rxPinFellSerial0_isr();
 void rxPinRoseSerial0_isr();
-void rxPinFellSerial1_isr();
 void rxPinRoseSerial1_isr();
-void rxPinFellSerial2_isr();
 void rxPinRoseSerial2_isr();
-void rxPinFellSerial3_isr();
 void rxPinRoseSerial3_isr();
-void rxPinFellSerial4_isr();
 void rxPinRoseSerial4_isr();
-void rxPinFellSerial5_isr();
 void rxPinRoseSerial5_isr();
-
-// RX watch pin fell ISRs.
-void (*rxPinFellISRs[6])() {
-    rxPinFellSerial0_isr,
-    rxPinFellSerial1_isr,
-    rxPinFellSerial2_isr,
-    rxPinFellSerial3_isr,
-    rxPinFellSerial4_isr,
-    rxPinFellSerial5_isr,
-};
 
 // RX watch pin rose ISRs.
 void (*rxPinRoseISRs[6])() {
@@ -117,7 +101,6 @@ Receiver::Receiver(HardwareSerial &uart)
       setTXNotRXFunc_(nullptr),
       rxWatchPin_(-1),
       rxChangeState_(0),
-      rxFallTime_(0),
       rxRiseTime_(0),
       txFunc_(nullptr),
       txBreakFunc_(nullptr) {
@@ -661,20 +644,15 @@ void Receiver::completePacket() {
   }
 
   activeBufIndex_ = 0;
-
-  if (rxWatchPin_ >= 0) {
-    rxChangeState_ = 0;
-    attachInterrupt(rxWatchPin_, rxPinFellISRs[serialIndex_], FALLING);
-  }
 }
 
 void Receiver::checkPacketTimeout() {
   uint32_t t = micros();
 
   if (state_ == RecvStates::kBreak) {
-    if (rxChangeState_ == 2) {
+    if (rxChangeState_ == 1) {
       rxChangeState_ = 0;
-      if ((rxRiseTime_ - rxFallTime_) < 88) {
+      if ((rxRiseTime_ - breakStartTime_) < 88) {
         receiveBadBreak();
       }
     } else {
@@ -708,6 +686,11 @@ void Receiver::receivePotentialBreak() {
   // data because the BREAK may be invalid. In other words, don't make any
   // framing error or short packet decisions until we know the nature of
   // this BREAK.
+
+  if (rxWatchPin_ >= 0) {
+    rxChangeState_ = 0;
+    attachInterrupt(rxWatchPin_, rxPinRoseISRs[serialIndex_], RISING);
+  }
 }
 
 void Receiver::receiveBadBreak() {
@@ -738,14 +721,14 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       // potential completePacket()
       uint32_t breakTime = 0;
       uint32_t mabTime = 0;
-      if (rxChangeState_ == 2) {
+      if (rxChangeState_ == 1) {
         rxChangeState_ = 0;
-        if ((rxRiseTime_ - rxFallTime_ < 88) ||
+        if ((rxRiseTime_ - breakStartTime_ < 88) ||
             (eopTime - rxRiseTime_ < 8 + 44)) {
           receiveBadBreak();
           return;
         }
-        breakTime = rxRiseTime_ - rxFallTime_;
+        breakTime = rxRiseTime_ - breakStartTime_;
         mabTime = eopTime - 44 - rxRiseTime_;
       } else {
         rxChangeState_ = 0;
@@ -806,10 +789,6 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       break;
 
     case RecvStates::kIdle:
-      if (rxWatchPin_ >= 0) {
-        rxChangeState_ = 0;
-        attachInterrupt(rxWatchPin_, rxPinFellISRs[serialIndex_], FALLING);
-      }
       return;
 
     default:
@@ -1065,68 +1044,34 @@ void Receiver::setRXWatchPin(uint8_t pin) {
   __enable_irq();
 }
 
-void Receiver::rxPinFell_isr() {
-  rxFallTime_ = micros();
-  if (rxChangeState_ == 0) {
-    rxChangeState_ = 1;
-    attachInterrupt(rxWatchPin_, rxPinRoseISRs[serialIndex_], RISING);
-  } else {
-    rxChangeState_ = 0;
-  }
-}
-
 void Receiver::rxPinRose_isr() {
   rxRiseTime_ = micros();
-  if (rxChangeState_ == 1) {
-    rxChangeState_ = 2;
+  if (rxChangeState_ == 0) {
+    rxChangeState_ = 1;
     detachInterrupt(rxWatchPin_);
   } else {
     rxChangeState_ = 0;
   }
 }
 
-void rxPinFellSerial0_isr() {
-  rxInstances[0]->rxPinFell_isr();
-}
-
 void rxPinRoseSerial0_isr() {
   rxInstances[0]->rxPinRose_isr();
-}
-
-void rxPinFellSerial1_isr() {
-  rxInstances[1]->rxPinFell_isr();
 }
 
 void rxPinRoseSerial1_isr() {
   rxInstances[1]->rxPinRose_isr();
 }
 
-void rxPinFellSerial2_isr() {
-  rxInstances[2]->rxPinFell_isr();
-}
-
 void rxPinRoseSerial2_isr() {
   rxInstances[2]->rxPinRose_isr();
-}
-
-void rxPinFellSerial3_isr() {
-  rxInstances[3]->rxPinFell_isr();
 }
 
 void rxPinRoseSerial3_isr() {
   rxInstances[3]->rxPinRose_isr();
 }
 
-void rxPinFellSerial4_isr() {
-  rxInstances[4]->rxPinFell_isr();
-}
-
 void rxPinRoseSerial4_isr() {
   rxInstances[4]->rxPinRose_isr();
-}
-
-void rxPinFellSerial5_isr() {
-  rxInstances[5]->rxPinFell_isr();
 }
 
 void rxPinRoseSerial5_isr() {
