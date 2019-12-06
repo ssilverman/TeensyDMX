@@ -67,6 +67,7 @@ class Chaser final : public Sketch {
  private:
   static constexpr int kChannel = 1;
   static constexpr unsigned long kChaseInterval = 1000;  // 1s
+  static constexpr int kPacketSize = 513;
 
   teensydmx::Sender dmx_;
   int channel_;
@@ -236,6 +237,7 @@ void Chaser::setup() {
   for (int i = 2; i < 513; i++) {
     dmx_.set(i, 0);
   }
+  dmx_.setPacketSize(kPacketSize);
   dmx_.begin();
 
   channel_ = 1;
@@ -258,7 +260,7 @@ void Chaser::loop() {
   // to 255
   dmx_.set(channel_, 0);
   channel_++;
-  if (channel_ > 512) {
+  if (channel_ >= dmx_.packetSize()) {
     channel_ = 1;
   }
   dmx_.set(channel_, 255);
