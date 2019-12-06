@@ -262,6 +262,9 @@
   uint8_t avail = UART##N##_RCFIFO;                        \
   if (avail > 1) {                                         \
     uint32_t timestamp = micros() - 44*avail;              \
+    if (avail < UART##N##_RWFIFO) {                        \
+      timestamp -= 44;                                     \
+    }                                                      \
     while (--avail > 0) {                                  \
       instance->receiveByte(UART##N##_D, timestamp += 44); \
     }                                                      \
