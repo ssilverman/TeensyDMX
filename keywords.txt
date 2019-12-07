@@ -31,7 +31,9 @@ setRXWatchPin	KEYWORD2
 connected	KEYWORD2
 onConnectChange	KEYWORD2
 errorStats	KEYWORD2
+setBreakTime	KEYWORD2
 breakTime	KEYWORD2
+setMABTime	KEYWORD2
 mabTime	KEYWORD2
 setPacketSize	KEYWORD2
 packetSize	KEYWORD2
