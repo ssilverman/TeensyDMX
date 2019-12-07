@@ -67,7 +67,8 @@ This section summarizes the changes and new features since v3.
 4. Added a new way to retrieve packet and error statistics.
 5. Added the ability to accurately measure received BREAK and MAB times using
    another digital I/O pin to watch the RX line.
-6. Teensy 4 support.
+6. Added a way for the transmitter to specify the BREAK and MAB timings.
+7. Teensy 4 support.
 
 ## How to use
 
