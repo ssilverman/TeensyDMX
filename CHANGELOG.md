@@ -9,6 +9,10 @@ This document details the changes between each release.
   it to a digital I/O-capable pin and calling the new `Receiver::setRXWatchPin`
   function. This removes the limitations the receiver has when checking for
   packets having invalid timing, but only when using this feature.
+* The BREAK and MAB times in the transmitter can now be specified more
+  accurately via new `Sender::setBreakTime` and `Sender::setMABTime` functions.
+  The actual times will be close but the MAB may be a little longer
+  than specified.
 
 ### Fixed
 * MAB and BREAK-plus-MAB time calculations have been fixed when bytes are
