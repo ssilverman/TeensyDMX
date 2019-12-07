@@ -62,7 +62,7 @@ constexpr uint32_t kMABTimerAdjust = 2;  // 5.75, 2-5 works
 constexpr uint32_t kMABDelayAdjustedAdjust = 1;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
 // constexpr uint32_t kMABBaudAdjust = 4;   // 4.5
-constexpr uint32_t kMABTimerAdjust = 0;  // 2.25
+constexpr uint32_t kMABTimerAdjust = 0;  // 2.25, 0-3 works
 constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #else
 // constexpr uint32_t kMABBaudAdjust = 0;
