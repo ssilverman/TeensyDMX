@@ -21,13 +21,15 @@ Some notable features of this library:
    adjacent to other packets. In other words, the asynchronous transmitter can
    be used synchronously. For example, System Information Packets (SIP) require
    this. See Annex D5 of ANSI E1.11.
-6. The receiver checks for timeouts according to the DMX specification. It
+6. The transmitter BREAK and MAB times can be specified (where the actual MAB
+   time is something only slightly larger than requested).
+7. The receiver checks for timeouts according to the DMX specification. It
    knows of the concept of being disconnected from a DMX transmitter when
    timeouts or bad BREAKs are encountered in the data stream.
-7. Error counts are available in the receiver. These can be used to detect
+8. Error counts are available in the receiver. These can be used to detect
    protocol problems, including timeouts, framing errors and bad BREAKs, and
    short packets (those less than 1196us).
-8. The receiver can be used synchronously through the use of the `Responder`
+9. The receiver can be used synchronously through the use of the `Responder`
    API. Alternate start codes can not only be handled, for example, for Text
    Packets or System Information Packets (SIP), but responses can be sent back
    to the transmitter, for example for RDM.
@@ -68,7 +70,6 @@ This section summarizes the changes and new features since v3.
 5. Added the ability to accurately measure received BREAK and MAB times using
    another digital I/O pin to watch the RX line.
 6. Added a way for the transmitter to specify the BREAK and MAB timings.
-7. Teensy 4 support.
 
 ## How to use
 
