@@ -5,11 +5,11 @@ This document details the changes between each release.
 ## [4.0.0-alpha.4]
 
 ### Added
-* BREAK and MAB times can be determined separately, in addition to their sum, if
-  the RX pin is monitored by connecting it to a digital I/O-capable pin and
-  calling the new `Receiver::setRXWatchPin` function. This removes the
-  limitations the receiver has when checking for packets having invalid timing,
-  but only when using this feature.
+* BREAK and MAB times can be determined separately in the receiver, in addition
+  to their sum, if the RX pin is monitored by connecting it to a digital
+  I/O-capable pin and calling the new `Receiver::setRXWatchPin` function. This
+  removes the limitations the receiver has when checking for packets having
+  invalid timing, but only when using this feature.
 * The BREAK and MAB times in the transmitter can now be specified more
   accurately via new `Sender::setBreakTime` and `Sender::setMABTime` functions.
   The actual times will be close but the MAB may be a little longer
