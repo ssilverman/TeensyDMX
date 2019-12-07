@@ -112,8 +112,8 @@
                   }                                                   \
                 },                                                    \
                 instance->breakTime_)) {                              \
-          CTRLINV |= CTRLINV_PREFIX##_TXINV;                          \
           CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
+          CTRLINV |= CTRLINV_PREFIX##_TXINV;                          \
         } else {                                                      \
           /* Starting the timer failed, revert to the original way */ \
           UART_TX_SET_BREAK_BAUD_##REG                                \
