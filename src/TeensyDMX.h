@@ -677,13 +677,28 @@ class Sender final : public TeensyDMX {
   // transmission is still active. See pause() and isTransmitting().
   void end() override;
 
+  // Sets the BREAK time, in microseconds. Note that if the timing could not be
+  // achieved due to an internal problem then it will be sent as a default
+  // of 180us.
+  void setBreakTime(uint32_t t);
+
   // Returns this sender's BREAK time, in microseconds.
-  uint32_t breakTime() const;
+  uint32_t breakTime() const {
+    return breakTime_;
+  }
+
+  // Sets the MAB time, in microseconds. Note that if the timing could not be
+  // achieved due to an internal problem then it will be sent as a default of
+  // about 20us. Also, due to some system timing, the actual MAB time may
+  // be longer.
+  void setMABTime(uint32_t t);
 
   // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
   //
   // Note that due to some UART intricacies, the actual time may be longer.
-  uint32_t mabTime() const;
+  uint32_t mabTime() const {
+    return mabTime_;
+  }
 
   // Sets the transmit packet size, in number of channels plus the start code.
   // This does nothing if the size is greater than 513 or negative.
@@ -937,12 +952,17 @@ class Sender final : public TeensyDMX {
   volatile uint8_t outputBuf_[kMaxDMXPacketSize];
   int outputBufIndex_;
 
+  // BREAK and MAB timings
+  volatile uint32_t breakTime_;
+  uint32_t mabTime_;
+  volatile uint32_t adjustedMABTime_;  // Adjusted for the real world; requested
+
   // The size of the packet to be sent.
   volatile int packetSize_;
 
   // The packet refresh rate, in Hz.
   float refreshRate_;
-  IntervalTimer refreshRateTimer_;  // Accompanying timer
+  IntervalTimer intervalTimer_;  // General purpose timer
 
   // The BREAK-to-BREAK timing, matching the refresh rate.
   // This is specified in microseconds.

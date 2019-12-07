@@ -36,8 +36,30 @@ constexpr uint32_t kBreakFormat = SERIAL_8N1;  // 9:1
 constexpr uint32_t kSlotsBaud   = 250000;      // 4us
 constexpr uint32_t kSlotsFormat = SERIAL_8N2;  // 9:2
 
-constexpr uint32_t kBreakTime = 1000000/kBreakBaud * 9;  // In us
-constexpr uint32_t kMABTime   = 1000000/kBreakBaud * 1;  // In us
+constexpr uint32_t kSerialBreakTime = 1000000/kBreakBaud * 9;  // In us
+constexpr uint32_t kSerialMABTime   = 1000000/kBreakBaud * 1;  // In us
+
+// Empirically observed MAB generation adjustment constants, for 20us
+#if defined(__MK20DX128__) || defined(__MK20DX256__)
+constexpr uint32_t kMABBaudAdjust = 9;
+constexpr uint32_t kMABTimerAdjust = 5;  // 5.5
+constexpr uint32_t kMABDelayAdjustedAdjust = 0;
+#elif defined(__MKL26Z64__)
+constexpr uint32_t kMABBaudAdjust = 6;
+constexpr uint32_t kMABTimerAdjust = 10;  // Ranges from 9-12
+constexpr uint32_t kMABDelayAdjustedAdjust = 2;
+#elif defined(__MK64FX512__)
+constexpr uint32_t kMABBaudAdjust = 5;
+constexpr uint32_t kMABTimerAdjust = 4;  // Empirical but ranges from 7.25-7.5
+constexpr uint32_t kMABDelayAdjustedAdjust = 1;
+#elif defined(__MK66FX1M0__)
+constexpr uint32_t kMABBaudAdjust = 5;
+constexpr uint32_t kMABTimerAdjust = 5;  // 5.75
+constexpr uint32_t kMABDelayAdjustedAdjust = 1;
+#else
+constexpr uint32_t kMABBaudAdjust = 0;
+constexpr uint32_t kMABTimerAdjust = 0;
+#endif
 
 // Used by the TX ISRs
 Sender *volatile txInstances[6]{nullptr};
@@ -51,6 +73,9 @@ Sender::Sender(HardwareSerial &uart)
       state_(XmitStates::kIdle),
       outputBuf_{0},
       outputBufIndex_(0),
+      breakTime_(kSerialBreakTime),
+      mabTime_(kSerialMABTime),
+      adjustedMABTime_(mabTime_),
       packetSize_(kMaxDMXPacketSize),
       refreshRate_(INFINITY),
       breakToBreakTime_(0),
@@ -58,7 +83,9 @@ Sender::Sender(HardwareSerial &uart)
       paused_(false),
       resumeCounter_(0),
       transmitting_(false),
-      doneTXFunc_{nullptr} {}
+      doneTXFunc_{nullptr} {
+  setMABTime(kSerialMABTime);
+}
 
 Sender::~Sender() {
   end();
@@ -86,13 +113,13 @@ Sender::~Sender() {
 // have been set.
 #define GLEAN_LPUART_PARAMS(N)                                \
   if (!lpuartParamsSet_) {                                    \
-    lpuartBreakParams_ = {LPUART##N##_BAUD, LPUART##N##_STAT, \
-                          LPUART##N##_CTRL};                  \
-    uart_.begin(kSlotsBaud, kSlotsFormat);                    \
     lpuartSlotsParams_ = {LPUART##N##_BAUD, LPUART##N##_STAT, \
                           LPUART##N##_CTRL};                  \
-    /* Put it back so that the code is consistent */          \
     uart_.begin(kBreakBaud, kBreakFormat);                    \
+    lpuartBreakParams_ = {LPUART##N##_BAUD, LPUART##N##_STAT, \
+                          LPUART##N##_CTRL};                  \
+    /* Put it back so that the code is consistent */          \
+    uart_.begin(kSlotsBaud, kSlotsFormat);                    \
     lpuartParamsSet_ = true;                                  \
   }
 
@@ -118,47 +145,56 @@ void Sender::begin() {
 
   transmitting_ = false;
   state_ = XmitStates::kIdle;
-  uart_.begin(kBreakBaud, kBreakFormat);
+  uart_.begin(kSlotsBaud, kSlotsFormat);
+
+  // Also set the interval timer priority to match the UART priority
 
   switch (serialIndex_) {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
     case 0:
       ACTIVATE_UART_TX_SERIAL(0)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
       break;
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       ACTIVATE_UART_TX_SERIAL(1)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
       break;
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       ACTIVATE_UART_TX_SERIAL(2)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
 #if defined(HAS_KINETISK_UART3)
     case 3:
       ACTIVATE_UART_TX_SERIAL(3)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
       break;
 #endif  // HAS_KINETISK_UART3
 
 #if defined(HAS_KINETISK_UART4)
     case 4:
       ACTIVATE_UART_TX_SERIAL(4)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
       break;
 #endif  // HAS_KINETISK_UART4
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
       ACTIVATE_UART_TX_SERIAL(5)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
       GLEAN_LPUART_PARAMS(0)
       ACTIVATE_LPUART_TX_SERIAL(0)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART0));
       break;
 #endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5
   }
@@ -182,7 +218,7 @@ void Sender::end() {
   // so disable the IRQs first
 
   uart_.end();
-  refreshRateTimer_.end();
+  intervalTimer_.end();
 
   // Remove the reference from the instances,
   // but only if we're the ones who added it
@@ -191,12 +227,17 @@ void Sender::end() {
   }
 }
 
-uint32_t Sender::breakTime() const {
-  return kBreakTime;
+void Sender::setBreakTime(uint32_t t) {
+  breakTime_ = t;
 }
 
-uint32_t Sender::mabTime() const {
-  return kMABTime;
+void Sender::setMABTime(uint32_t t) {
+  mabTime_ = t;
+  if (t < kMABTimerAdjust) {
+    adjustedMABTime_ = 0;
+  } else {
+    adjustedMABTime_ = t - kMABTimerAdjust;
+  }
 }
 
 // memcpy implementation that accepts a volatile destination.
@@ -490,7 +531,7 @@ void uart0_tx_isr() {
   uint8_t status = UART0_S1;
   uint8_t control = UART0_C2;
 
-  UART_TX(0, 0, UART0_C2, UART0_D, UART_C2, UART_S1)
+  UART_TX(0, 0, UART0_C2, UART0_C3, UART0_D, UART_C2, UART_C3, UART_S1)
 
   UART_TX_COMPLETE(0, UART0_C2, UART_C2, UART_S1)
 }
@@ -530,7 +571,7 @@ void uart1_tx_isr() {
   uint8_t status = UART1_S1;
   uint8_t control = UART1_C2;
 
-  UART_TX(1, 1, UART1_C2, UART1_D, UART_C2, UART_S1)
+  UART_TX(1, 1, UART1_C2, UART1_C3, UART1_D, UART_C2, UART_C3, UART_S1)
 
   UART_TX_COMPLETE(1, UART1_C2, UART_C2, UART_S1)
 }
@@ -566,7 +607,7 @@ void uart2_tx_isr() {
   uint8_t status = UART2_S1;
   uint8_t control = UART2_C2;
 
-  UART_TX(2, 2, UART2_C2, UART2_D, UART_C2, UART_S1)
+  UART_TX(2, 2, UART2_C2, UART2_C3, UART2_D, UART_C2, UART_C3, UART_S1)
 
   UART_TX_COMPLETE(2, UART2_C2, UART_C2, UART_S1)
 }
@@ -595,7 +636,7 @@ void uart3_tx_isr() {
   uint8_t status = UART3_S1;
   uint8_t control = UART3_C2;
 
-  UART_TX(3, 3, UART3_C2, UART3_D, UART_C2, UART_S1)
+  UART_TX(3, 3, UART3_C2, UART3_C3, UART3_D, UART_C2, UART_C3, UART_S1)
 
   UART_TX_COMPLETE(3, UART3_C2, UART_C2, UART_S1)
 }
@@ -624,7 +665,7 @@ void uart4_tx_isr() {
   uint8_t status = UART4_S1;
   uint8_t control = UART4_C2;
 
-  UART_TX(4, 4, UART4_C2, UART4_D, UART_C2, UART_S1)
+  UART_TX(4, 4, UART4_C2, UART4_C3, UART4_D, UART_C2, UART_C3, UART_S1)
 
   UART_TX_COMPLETE(4, UART4_C2, UART_C2, UART_S1)
 }
@@ -653,7 +694,7 @@ void uart5_tx_isr() {
   uint8_t status = UART5_S1;
   uint8_t control = UART5_C2;
 
-  UART_TX(5, 5, UART5_C2, UART5_D, UART_C2, UART_S1)
+  UART_TX(5, 5, UART5_C2, UART5_C3, UART5_D, UART_C2, UART_C3, UART_S1)
 
   UART_TX_COMPLETE(5, UART5_C2, UART_C2, UART_S1)
 }
@@ -680,7 +721,8 @@ void lpuart0_tx_isr() {
   uint32_t status = LPUART0_STAT;
   uint32_t control = LPUART0_CTRL;
 
-  UART_TX(5, 0, LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL, LPUART_STAT)
+  UART_TX(5, 0, LPUART0_CTRL, LPUART0_CTRL, LPUART0_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
 
   UART_TX_COMPLETE(0, LPUART0_CTRL, LPUART_CTRL, LPUART_STAT)
 }

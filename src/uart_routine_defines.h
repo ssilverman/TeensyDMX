@@ -71,7 +71,8 @@
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Needs to have UART_TX_DATA_STATE_REG defined.
 // Needs to have UART_TX_SET_BREAK_BAUD_REG defined.
-#define UART_TX(INSTANCE, REG, CTRL, DATA, CTRL_PREFIX, STAT_PREFIX)  \
+#define UART_TX(INSTANCE, REG, CTRL, CTRLINV, DATA, CTRL_PREFIX,      \
+                CTRLINV_PREFIX, STAT_PREFIX)                          \
   Sender *instance = txInstances[INSTANCE];                           \
   if (instance == nullptr) {                                          \
     return;                                                           \
@@ -82,16 +83,51 @@
       (status & STAT_PREFIX##_TDRE) != 0) {                           \
     switch (instance->state_) {                                       \
       case Sender::XmitStates::kBreak:                                \
-        DATA = 0;                                                     \
+        if (instance->intervalTimer_.begin(                           \
+                []() {                                                \
+                  Sender *s = txInstances[INSTANCE];                  \
+                  if (s == nullptr) {                                 \
+                    return;                                           \
+                  }                                                   \
+                  CTRLINV &= ~CTRLINV_PREFIX##_TXINV;                 \
+                  /* Calling update() here doesn't seem to restart    \
+                   * things in time, so do begin() */                 \
+                  if (!s->intervalTimer_.begin(                       \
+                          []() {                                      \
+                            Sender *s = txInstances[INSTANCE];        \
+                            if (s == nullptr) {                       \
+                              return;                                 \
+                            }                                         \
+                            s->intervalTimer_.end();                  \
+                            s->state_ = Sender::XmitStates::kData;    \
+                            CTRL = CTRL_PREFIX##_TX_ACTIVE;           \
+                          },                                          \
+                          s->adjustedMABTime_)) {                     \
+                    /* Fallback if the MAB timer couldn't start */    \
+                    s->intervalTimer_.end();                          \
+                    delayMicroseconds(s->adjustedMABTime_ +           \
+                                      kMABDelayAdjustedAdjust);       \
+                    s->state_ = Sender::XmitStates::kData;            \
+                    CTRL = CTRL_PREFIX##_TX_ACTIVE;                   \
+                  }                                                   \
+                },                                                    \
+                instance->breakTime_)) {                              \
+          CTRLINV |= CTRLINV_PREFIX##_TXINV;                          \
+          CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
+        } else {                                                      \
+          /* Starting the timer failed, revert to the original way */ \
+          UART_TX_SET_BREAK_BAUD_##REG                                \
+          DATA = 0;                                                   \
+          CTRL = CTRL_PREFIX##_TX_COMPLETING;                         \
+        }                                                             \
         instance->timeSinceBreak_ = 0;                                \
-        CTRL = CTRL_PREFIX##_TX_COMPLETING;                           \
         break;                                                        \
                                                                       \
       case Sender::XmitStates::kData:                                 \
         UART_TX_DATA_STATE_##REG                                      \
         break;                                                        \
                                                                       \
-      case Sender::XmitStates::kIdle:                                 \
+      case Sender::XmitStates::kIdle: {                               \
         /* Pause management */                                        \
         if (instance->paused_) {                                      \
           CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
@@ -105,7 +141,6 @@
                                                                       \
         instance->transmitting_ = true;                               \
         instance->state_ = Sender::XmitStates::kBreak;                \
-        UART_TX_SET_BREAK_BAUD_##REG                                  \
                                                                       \
         /* Delay so that we can achieve the specified refresh rate */ \
         uint32_t timeSinceBreak = instance->timeSinceBreak_;          \
@@ -113,11 +148,11 @@
           CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
           if (instance->breakToBreakTime_ != UINT32_MAX) {            \
             /* Non-infinite BREAK time */                             \
-            if (!instance->refreshRateTimer_.begin(                   \
+            if (!instance->intervalTimer_.begin(                      \
                     []() {                                            \
                       Sender *s = txInstances[INSTANCE];              \
                       if (s != nullptr) {                             \
-                        s->refreshRateTimer_.end();                   \
+                        s->intervalTimer_.end();                      \
                         CTRL = CTRL_PREFIX##_TX_ACTIVE;               \
                       }                                               \
                     },                                                \
@@ -130,6 +165,10 @@
           /* No delay necessary */                                    \
           CTRL = CTRL_PREFIX##_TX_ACTIVE;                             \
         }                                                             \
+        break;                                                        \
+      }                                                               \
+                                                                      \
+      default:                                                        \
         break;                                                        \
     }                                                                 \
   }
@@ -150,7 +189,11 @@
       case Sender::XmitStates::kData:                         \
         instance->completePacket();                           \
         break;                                                \
+                                                              \
       case Sender::XmitStates::kIdle:                         \
+        break;                                                \
+                                                              \
+      default:                                                \
         break;                                                \
     }                                                         \
     CTRL = CTRL_PREFIX##_TX_ACTIVE;                           \
