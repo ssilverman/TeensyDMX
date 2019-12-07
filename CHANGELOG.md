@@ -12,7 +12,7 @@ This document details the changes between each release.
   invalid timing, but only when using this feature.
 * The BREAK and MAB times in the transmitter can now be specified more
   accurately via new `Sender::setBreakTime` and `Sender::setMABTime` functions.
-  The actual times will be close but the MAB may be a little longer
+  The actual times will be close, but the MAB may be a little longer
   than specified.
 * Teensy 4 support.
 
