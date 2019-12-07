@@ -45,27 +45,27 @@ constexpr uint32_t kSerialMABTime   = 1000000/kBreakBaud * 1;  // In us
 // adjusted delay when requesting delayMicroseconds if the second timer call to
 // create the MAB fails.
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
-constexpr uint32_t kMABBaudAdjust = 9;
+// constexpr uint32_t kMABBaudAdjust = 9;
 constexpr uint32_t kMABTimerAdjust = 5;  // 5.5, 5-8 works
 constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #elif defined(__MKL26Z64__)
-constexpr uint32_t kMABBaudAdjust = 6;
+// constexpr uint32_t kMABBaudAdjust = 6;
 constexpr uint32_t kMABTimerAdjust = 9;  // Ranges from 9-12, (5)8(9 best)-10
 constexpr uint32_t kMABDelayAdjustedAdjust = 2;
 #elif defined(__MK64FX512__)
-constexpr uint32_t kMABBaudAdjust = 5;
+// constexpr uint32_t kMABBaudAdjust = 5;
 constexpr uint32_t kMABTimerAdjust = 2;  // Ranges from 7.25-7.5, 2-4 works
 constexpr uint32_t kMABDelayAdjustedAdjust = 1;
 #elif defined(__MK66FX1M0__)
-constexpr uint32_t kMABBaudAdjust = 5;
+// constexpr uint32_t kMABBaudAdjust = 5;
 constexpr uint32_t kMABTimerAdjust = 2;  // 5.75, 2-5 works
 constexpr uint32_t kMABDelayAdjustedAdjust = 1;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
-constexpr uint32_t kMABBaudAdjust = 4;   // 4.5
+// constexpr uint32_t kMABBaudAdjust = 4;   // 4.5
 constexpr uint32_t kMABTimerAdjust = 0;  // 2.25
 constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #else
-constexpr uint32_t kMABBaudAdjust = 0;
+// constexpr uint32_t kMABBaudAdjust = 0;
 constexpr uint32_t kMABTimerAdjust = 0;
 constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #endif
