@@ -56,9 +56,14 @@ constexpr uint32_t kMABDelayAdjustedAdjust = 1;
 constexpr uint32_t kMABBaudAdjust = 5;
 constexpr uint32_t kMABTimerAdjust = 5;  // 5.75
 constexpr uint32_t kMABDelayAdjustedAdjust = 1;
+#elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
+constexpr uint32_t kMABBaudAdjust = 4;   // 4.5
+constexpr uint32_t kMABTimerAdjust = 0;  // 2.25
+constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #else
 constexpr uint32_t kMABBaudAdjust = 0;
 constexpr uint32_t kMABTimerAdjust = 0;
+constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #endif
 
 // Used by the TX ISRs
