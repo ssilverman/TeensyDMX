@@ -40,6 +40,10 @@ constexpr uint32_t kSerialBreakTime = 1000000/kBreakBaud * 9;  // In us
 constexpr uint32_t kSerialMABTime   = 1000000/kBreakBaud * 1;  // In us
 
 // Empirically observed MAB generation adjustment constants, for 20us
+// The timer adjust values are subtracted from the requested MAB to get the
+// actual MAB. The "delay adjusted adjust" is a value that's added to the
+// adjusted delay when requesting delayMicroseconds if the second timer call to
+// create the MAB fails.
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
 constexpr uint32_t kMABBaudAdjust = 9;
 constexpr uint32_t kMABTimerAdjust = 5;  // 5.5, 5-8 works
