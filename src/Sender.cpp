@@ -172,6 +172,7 @@ void Sender::begin() {
     case 0:
       GLEAN_LPUART_PARAMS(6)
       ACTIVATE_LPUART_TX_SERIAL(6)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART6));
       break;
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
 
@@ -184,6 +185,7 @@ void Sender::begin() {
     case 1:
       GLEAN_LPUART_PARAMS(4)
       ACTIVATE_LPUART_TX_SERIAL(4)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART4));
       break;
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
 
@@ -196,6 +198,7 @@ void Sender::begin() {
     case 2:
       GLEAN_LPUART_PARAMS(2)
       ACTIVATE_LPUART_TX_SERIAL(2)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART2));
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUAR2
 
@@ -208,6 +211,7 @@ void Sender::begin() {
     case 3:
       GLEAN_LPUART_PARAMS(3)
       ACTIVATE_LPUART_TX_SERIAL(3)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART3));
       break;
 #endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
 
@@ -220,6 +224,7 @@ void Sender::begin() {
     case 4:
       GLEAN_LPUART_PARAMS(8)
       ACTIVATE_LPUART_TX_SERIAL(8)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART8));
       break;
 #endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
 
@@ -238,6 +243,7 @@ void Sender::begin() {
     case 5:
       GLEAN_LPUART_PARAMS(1)
       ACTIVATE_LPUART_TX_SERIAL(1)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART1));
       break;
 #endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5 || IMXRT_LPUART1
 
@@ -245,6 +251,7 @@ void Sender::begin() {
     case 6:
       GLEAN_LPUART_PARAMS(7)
       ACTIVATE_LPUART_TX_SERIAL(7)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART7));
       break;
 #endif  // IMXRT_LPUART7
 
@@ -252,6 +259,7 @@ void Sender::begin() {
     case 7:
       GLEAN_LPUART_PARAMS(5)
       ACTIVATE_LPUART_TX_SERIAL(5)
+      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART5));
       break;
 #endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
