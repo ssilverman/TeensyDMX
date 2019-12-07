@@ -67,7 +67,8 @@ This section summarizes the changes and new features since v3.
 4. Added a new way to retrieve packet and error statistics.
 5. Added the ability to accurately measure received BREAK and MAB times using
    another digital I/O pin to watch the RX line.
-6. Teensy 4 support.
+6. Added a way for the transmitter to specify the BREAK and MAB timings.
+7. Teensy 4 support.
 
 ## How to use
 
@@ -445,6 +446,21 @@ sent before the transmitter is paused again.
 Complete synchronous operation examples using SIP can be found in
 `SIPSenderAsync` and `SIPSenderSync`. The first uses the asynchronous
 notification approach and the second uses the polling approach.
+
+### Choosing BREAK and MAB times
+
+The BREAK and MAB times can be specified using the `setBreakTime` and
+`setMABTime` functions. The BREAK will be transmitted with a duration very close
+to the specified value, but the actual MAB time may be slightly larger
+than requested.
+
+This feature uses one of the _PIT_ timers via `IntervalTimer`, but if none are
+available, then the transmitter will fall back on using the baud rate generator
+to achieve a 180us BREAK and something a little larger than a 20us MAB.
+
+If the UART is used to generate the BREAK and MAB timings then they are
+otherwise restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, of 10:1.
+These correspond to the UART formats, 8N2, 8E2, 8N1, and 8E1.
 
 ## Technical notes
 
