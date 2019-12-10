@@ -502,7 +502,7 @@ class Receiver final : public TeensyDMX {
 
   // Look for potential packet timeouts when an IDLE condition was detected.
   // This is called from an ISR.
-  void checkPacketTimeout();
+  void receiveIdle();
 
   // A potential BREAK has just been received.
   // This is called from an ISR.

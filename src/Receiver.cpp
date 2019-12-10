@@ -646,7 +646,7 @@ void Receiver::completePacket() {
   activeBufIndex_ = 0;
 }
 
-void Receiver::checkPacketTimeout() {
+void Receiver::receiveIdle() {
   uint32_t t = micros();
 
   if (state_ == RecvStates::kBreak) {

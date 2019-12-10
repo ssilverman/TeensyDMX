@@ -220,7 +220,7 @@
       UART##N##_D;                                                         \
       UART##N##_CFIFO = UART_CFIFO_RXFLUSH;                                \
       __enable_irq();                                                      \
-      instance->checkPacketTimeout();                                      \
+      instance->receiveIdle();                                             \
       return;                                                              \
     } else {                                                               \
       __enable_irq();                                                      \
@@ -262,7 +262,7 @@
     }                                                                \
     instance->receiveByte(DATA, micros());                           \
   } else if ((status & STAT_PREFIX##_IDLE) != 0) {                   \
-    instance->checkPacketTimeout();                                  \
+    instance->receiveIdle();                                         \
     UART_RX_CLEAR_IDLE_##N                                           \
   }
 
