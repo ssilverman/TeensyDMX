@@ -243,7 +243,7 @@
       UART##N##_D;                                                         \
       UART##N##_CFIFO = UART_CFIFO_RXFLUSH;                                \
       __enable_irq();                                                      \
-      instance->checkPacketTimeout();                                      \
+      instance->receiveIdle();                                             \
       return;                                                              \
     } else {                                                               \
       __enable_irq();                                                      \
@@ -279,7 +279,7 @@
   if ((status & (LPUART_STAT_RDRF | LPUART_STAT_IDLE)) != 0) {     \
     uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;              \
     if (avail == 0) {                                              \
-      instance->checkPacketTimeout();                              \
+      instance->receiveIdle();                                     \
       if ((status & LPUART_STAT_IDLE) != 0) {                      \
         LPUART##N##_STAT |= LPUART_STAT_IDLE;                      \
       }                                                            \
@@ -308,7 +308,7 @@
     }                                                                \
     instance->receiveByte(UART##N##_D, micros());                    \
   } else if ((status & UART_S1_IDLE) != 0) {                         \
-    instance->checkPacketTimeout();                                  \
+    instance->receiveIdle();                                         \
     UART_RX_CLEAR_IDLE_##N                                           \
   }
 
@@ -319,7 +319,7 @@
   if ((status & LPUART_STAT_RDRF) != 0) {              \
     instance->receiveByte(LPUART##N##_DATA, micros()); \
   } else if ((status & LPUART_STAT_IDLE) != 0) {       \
-    instance->checkPacketTimeout();                    \
+    instance->receiveIdle();                           \
     LPUART##N##_STAT |= LPUART_STAT_IDLE;              \
   }
 
