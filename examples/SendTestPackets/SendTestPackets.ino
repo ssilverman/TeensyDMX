@@ -1,5 +1,6 @@
 /*
  * Demonstrates outputting DMX test packets (start code 0x55).
+ * See section D3 of the DMX specification.
  *
  * (c) 2019 Shawn Silverman
  */
