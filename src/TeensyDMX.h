@@ -696,7 +696,8 @@ class Sender final : public TeensyDMX {
   // about 20us. Also, due to some system timing, the actual MAB time may
   // be longer.
   //
-  // Note that the specification states that the MAB time must be at least 12us.
+  // Note that the specification states that the MAB time must be at least 12us
+  // and less than 1s.
   void setMABTime(uint32_t t);
 
   // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
