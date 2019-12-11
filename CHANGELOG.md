@@ -5,7 +5,7 @@ This document details the changes between each release.
 ## [4.0.0-alpha.5]
 
 ### Added
-* There are two new constants, `kMinTxBreakTime` and `kMinTxMABTime`, that hold
+* There are two new constants, `kMinTXBreakTime` and `kMinTXMABTime`, that hold
   the minimum BREAK and MAB times allowed by the specification for transmitters.
 
 ### Changed

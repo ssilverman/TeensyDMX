@@ -75,11 +75,11 @@ constexpr int kMinDMXPacketSize = 25;
 
 // The minimum BREAK time allowed by the specification for transmitters,
 // in microseconds.
-constexpr int kMinTxBreakTime = 92;
+constexpr int kMinTXBreakTime = 92;
 
 // The minimum MAB time allowed by the specification for transmitters,
 // in microseconds.
-constexpr int kMinTxMABTime = 12;
+constexpr int kMinTXMABTime = 12;
 
 // TeensyDMX implements either a receiver or transmitter on one of hardware
 // serial ports 1-6.
@@ -691,7 +691,7 @@ class Sender final : public TeensyDMX {
   // of 180us.
   //
   // Note that the specification states that the BREAK time must be at
-  // least 92us. See `kMinTxBreakTime`.
+  // least 92us. See `kMinTXBreakTime`.
   void setBreakTime(uint32_t t);
 
   // Returns this sender's BREAK time, in microseconds.
@@ -705,7 +705,7 @@ class Sender final : public TeensyDMX {
   // be longer.
   //
   // Note that the specification states that the MAB time must be at least 12us
-  // and less than 1s. See `kMinTxMABTime`.
+  // and less than 1s. See `kMinTXMABTime`.
   void setMABTime(uint32_t t);
 
   // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
