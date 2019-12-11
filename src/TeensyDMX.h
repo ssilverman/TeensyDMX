@@ -109,8 +109,17 @@ constexpr int kMaxDMXPacketSize = 513;
 
 // The minimum size of a DMX packet, including the start code. This value is
 // used for senders and is a guideline for how many slots will fit in a packet,
-// assuming full-speed transmission.
+// assuming full-speed transmission. This value ensures that the packet
+// transmission time does not exceed 1204us.
 constexpr int kMinDMXPacketSize = 25;
+
+// The minimum BREAK time allowed by the specification for transmitters,
+// in microseconds.
+constexpr int kMinTXBreakTime = 92;
+
+// The minimum MAB time allowed by the specification for transmitters,
+// in microseconds.
+constexpr int kMinTXMABTime = 12;
 
 // TeensyDMX implements either a receiver or transmitter on one of hardware
 // serial ports 1-6.
@@ -758,6 +767,9 @@ class Sender final : public TeensyDMX {
   // Sets the BREAK time, in microseconds. Note that if the timing could not be
   // achieved due to an internal problem then it will be sent as a default
   // of 180us.
+  //
+  // Note that the specification states that the BREAK time must be at
+  // least 92us. See `kMinTXBreakTime`.
   void setBreakTime(uint32_t t);
 
   // Returns this sender's BREAK time, in microseconds.
@@ -769,6 +781,9 @@ class Sender final : public TeensyDMX {
   // achieved due to an internal problem then it will be sent as a default of
   // about 20us. Also, due to some system timing, the actual MAB time may
   // be longer.
+  //
+  // Note that the specification states that the MAB time must be at least 12us
+  // and less than 1s. See `kMinTXMABTime`.
   void setMABTime(uint32_t t);
 
   // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
@@ -880,6 +895,13 @@ class Sender final : public TeensyDMX {
   // end() and then begin().
   //
   // For rates slower than the maximum, this uses an IntervalTimer internally.
+  //
+  // Note that the specification states that the BREAK-to-BREAK time must be at
+  // most 1s. This means that the minimum refresh rate is 1Hz. The minimum
+  // theoretical 513-slot time is 22.676us, so the maximum theoretical rate is
+  // ~44.099Hz. The minimum allowed BREAK-to-BREAK time is 1204us, so for a
+  // packet having all minimum timings, this means that a minimum 25-slot packet
+  // can be sent at a refresh rate of ~830.56Hz.
   void setRefreshRate(float rate);
 
   // Returns the packet refresh rate. The default is INFINITY, indicating

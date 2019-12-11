@@ -97,7 +97,7 @@ Sender::Sender(HardwareSerial &uart)
       resumeCounter_(0),
       transmitting_(false),
       doneTXFunc_{nullptr} {
-  setMABTime(kSerialMABTime);
+  setMABTime(mabTime_);
 }
 
 Sender::~Sender() {
