@@ -7,6 +7,8 @@ This document details the changes between each release.
 ### Added
 * There are two new constants, `kMinTXBreakTime` and `kMinTXMABTime`, that hold
   the minimum BREAK and MAB times allowed by the specification for transmitters.
+* Added a new `SendTestPackets` example that sends standard test packets, as
+  specified in section D3 of the DMX specification.
 
 ### Changed
 * Some improved documentation.
