@@ -14,10 +14,12 @@
 namespace qindesign {
 namespace teensydmx {
 
-constexpr uint32_t kSlotsBaud   = 250000;                // 4us
-constexpr uint32_t kSlotsFormat = SERIAL_8N2;            // 9:2
-constexpr uint32_t kBitTime     = 1000000 / kSlotsBaud;  // In microseconds
-constexpr uint32_t kCharTime    = 11 * kBitTime;         // In microseconds
+constexpr uint32_t kSlotsBaud    = 250000;                // 4us
+constexpr uint32_t kSlotsFormat  = SERIAL_8N2;            // 9:2
+constexpr uint32_t kBitTime      = 1000000 / kSlotsBaud;  // In microseconds
+constexpr uint32_t kCharTime     = 11 * kBitTime;         // In microseconds
+constexpr uint32_t kMinBreakTime = 88;                    // In microseconds
+constexpr uint32_t kMinMABTime   = 8;                     // In microseconds
 
 // Routines that do raw transmit
 // These don't affect the transmitter
@@ -652,13 +654,13 @@ void Receiver::receiveIdle() {
   if (state_ == RecvStates::kBreak) {
     if (rxChangeState_ == 1) {
       rxChangeState_ = 0;
-      if ((rxRiseTime_ - breakStartTime_) < 88) {
+      if ((rxRiseTime_ - breakStartTime_) < kMinBreakTime) {
         receiveBadBreak();
       }
     } else {
       rxChangeState_ = 0;
       // This catches the case where a short BREAK is followed by a longer MAB
-      if ((t - breakStartTime_) < 88 + 44) {
+      if ((t - breakStartTime_) < kMinBreakTime + kCharTime) {
         receiveBadBreak();
       }
     }
@@ -678,7 +680,7 @@ void Receiver::receivePotentialBreak() {
   // missing stop bit, about 44us.
   // Note that breakStartTime_ only represents a potential BREAK start
   // time until we receive the first character.
-  breakStartTime_ = feStartTime_ - 44;
+  breakStartTime_ = feStartTime_ - kCharTime;
 
   state_ = RecvStates::kBreak;
 
@@ -723,19 +725,20 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       uint32_t mabTime = 0;
       if (rxChangeState_ == 1) {
         rxChangeState_ = 0;
-        if ((rxRiseTime_ - breakStartTime_ < 88) ||
-            (eopTime - rxRiseTime_ < 8 + 44)) {
+        if ((rxRiseTime_ - breakStartTime_ < kMinBreakTime) ||
+            (eopTime - rxRiseTime_ < kMinMABTime + kCharTime)) {
           receiveBadBreak();
           return;
         }
         breakTime = rxRiseTime_ - breakStartTime_;
-        mabTime = eopTime - 44 - rxRiseTime_;
+        mabTime = eopTime - kCharTime - rxRiseTime_;
       } else {
         rxChangeState_ = 0;
         // This is only a rudimentary check for short BREAKs. It does not
         // detect short BREAKs followed by long MABs. It only detects
         // whether BREAK + MAB time is at least 88us + 8us.
-        if ((eopTime - breakStartTime_) < 88 + 8 + 44) {
+        if ((eopTime - breakStartTime_) <
+            kMinBreakTime + kMinMABTime + kCharTime) {
           // First byte is too early, discard any data
           receiveBadBreak();
           return;
@@ -765,7 +768,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       // Store 'next' values because packets aren't completed until the
       // following BREAK (or timeout or size limit) and we need the
       // previous values
-      packetStats_.nextBreakPlusMABTime = eopTime - 44 - breakStartTime_;
+      packetStats_.nextBreakPlusMABTime = eopTime - kCharTime - breakStartTime_;
       packetStats_.nextBreakTime = breakTime;
       packetStats_.nextMABTime = mabTime;
 
@@ -779,7 +782,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       // Checking this here accounts for buffered input, where several
       // bytes come in at the same time
       if (static_cast<int>(eopTime - breakStartTime_) <
-          88 + 8 + 44 + 44*activeBufIndex_) {
+          kMinBreakTime + kMinMABTime + kCharTime + kCharTime*activeBufIndex_) {
         // First byte is too early, discard any data
         receiveBadBreak();
         return;

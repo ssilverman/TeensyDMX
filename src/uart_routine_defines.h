@@ -224,9 +224,9 @@
       return;                                                              \
     } else {                                                               \
       __enable_irq();                                                      \
-      uint32_t timestamp = micros() - 44*avail;                            \
+      uint32_t timestamp = micros() - kCharTime*avail;                     \
       if (avail < UART##N##_RWFIFO) {                                      \
-        timestamp -= 44;                                                   \
+        timestamp -= kCharTime;                                            \
       }                                                                    \
       /* Read all but the last available, then read S1 and the final value \
        * So says the chip docs,                                            \
@@ -239,13 +239,13 @@
           errFlag = true;                                                  \
           instance->receiveBadBreak();                                     \
         }                                                                  \
-        instance->receiveByte(UART##N##_D, timestamp += 44);               \
+        instance->receiveByte(UART##N##_D, timestamp += kCharTime);        \
       }                                                                    \
       status = UART##N##_S1;                                               \
       if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                  \
         instance->receiveBadBreak();                                       \
       }                                                                    \
-      instance->receiveByte(UART##N##_D, timestamp + 44);                  \
+      instance->receiveByte(UART##N##_D, timestamp + kCharTime);           \
     }                                                                      \
   }
 
@@ -300,17 +300,17 @@
   UART_RX_##REG
 
 // N is the register number.
-#define UART_RX_ERROR_FLUSH_FIFO(N)                        \
-  /* Flush anything in the buffer */                       \
-  uint8_t avail = UART##N##_RCFIFO;                        \
-  if (avail > 1) {                                         \
-    uint32_t timestamp = micros() - 44*avail;              \
-    if (avail < UART##N##_RWFIFO) {                        \
-      timestamp -= 44;                                     \
-    }                                                      \
-    while (--avail > 0) {                                  \
-      instance->receiveByte(UART##N##_D, timestamp += 44); \
-    }                                                      \
+#define UART_RX_ERROR_FLUSH_FIFO(N)                               \
+  /* Flush anything in the buffer */                              \
+  uint8_t avail = UART##N##_RCFIFO;                               \
+  if (avail > 1) {                                                \
+    uint32_t timestamp = micros() - kCharTime*avail;              \
+    if (avail < UART##N##_RWFIFO) {                               \
+      timestamp -= kCharTime;                                     \
+    }                                                             \
+    while (--avail > 0) {                                         \
+      instance->receiveByte(UART##N##_D, timestamp += kCharTime); \
+    }                                                             \
   }
 
 // ---------------------------------------------------------------------------
