@@ -4,7 +4,7 @@
 #include "TeensyDMX.h"
 
 // C++ includes
-#include <cstring>
+#include <algorithm>
 #include <utility>
 
 // Project includes
@@ -485,7 +485,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len,
         if (startChannel + len > packetSize_) {
           len = packetSize_ - startChannel;
         }
-        memcpy(buf, &inactiveBuf_[startChannel], len);
+        std::copy_n(&inactiveBuf_[startChannel], len, &buf[0]);
         retval = len;
       }
       packetSize_ = 0;
