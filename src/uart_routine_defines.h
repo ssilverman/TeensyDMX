@@ -247,9 +247,9 @@
       return;                                                              \
     } else {                                                               \
       __enable_irq();                                                      \
-      uint32_t timestamp = micros() - 44*avail;                            \
+      uint32_t timestamp = micros() - kCharTime*avail;                     \
       if (avail < UART##N##_RWFIFO) {                                      \
-        timestamp -= 44;                                                   \
+        timestamp -= kCharTime;                                            \
       }                                                                    \
       /* Read all but the last available, then read S1 and the final value \
        * So says the chip docs,                                            \
@@ -262,37 +262,37 @@
           errFlag = true;                                                  \
           instance->receiveBadBreak();                                     \
         }                                                                  \
-        instance->receiveByte(UART##N##_D, timestamp += 44);               \
+        instance->receiveByte(UART##N##_D, timestamp += kCharTime);        \
       }                                                                    \
       status = UART##N##_S1;                                               \
       if (!errFlag && !UART_RX_TEST_FIRST_STOP_BIT_##N) {                  \
         instance->receiveBadBreak();                                       \
       }                                                                    \
-      instance->receiveByte(UART##N##_D, timestamp + 44);                  \
+      instance->receiveByte(UART##N##_D, timestamp + kCharTime);           \
     }                                                                      \
   }
 
 // Assumes status = LPUARTx_STAT.
 // N is the register number.
-#define LPUART_RX_WITH_FIFO(N)                                     \
-  /* If the receive buffer is full or there's an idle condition */ \
-  if ((status & (LPUART_STAT_RDRF | LPUART_STAT_IDLE)) != 0) {     \
-    uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;              \
-    if (avail == 0) {                                              \
-      instance->receiveIdle();                                     \
-      if ((status & LPUART_STAT_IDLE) != 0) {                      \
-        LPUART##N##_STAT |= LPUART_STAT_IDLE;                      \
-      }                                                            \
-      return;                                                      \
-    } else {                                                       \
-      uint32_t timestamp = micros() - 44*avail;                    \
-      if (avail < ((LPUART##N##_WATER >> 16) & 0x03)) {            \
-        timestamp -= 44;                                           \
-      }                                                            \
-      while (avail-- > 0) {                                        \
-        instance->receiveByte(LPUART##N##_DATA, timestamp += 44);  \
-      }                                                            \
-    }                                                              \
+#define LPUART_RX_WITH_FIFO(N)                                           \
+  /* If the receive buffer is full or there's an idle condition */       \
+  if ((status & (LPUART_STAT_RDRF | LPUART_STAT_IDLE)) != 0) {           \
+    uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;                    \
+    if (avail == 0) {                                                    \
+      instance->receiveIdle();                                           \
+      if ((status & LPUART_STAT_IDLE) != 0) {                            \
+        LPUART##N##_STAT |= LPUART_STAT_IDLE;                            \
+      }                                                                  \
+      return;                                                            \
+    } else {                                                             \
+      uint32_t timestamp = micros() - kCharTime*avail;                   \
+      if (avail < ((LPUART##N##_WATER >> 16) & 0x03)) {                  \
+        timestamp -= kCharTime;                                          \
+      }                                                                  \
+      while (avail-- > 0) {                                              \
+        instance->receiveByte(LPUART##N##_DATA, timestamp += kCharTime); \
+      }                                                                  \
+    }                                                                    \
   }
 
 // Assumes status = UARTx_S1.
@@ -357,30 +357,30 @@
   UART_RX_##REG
 
 // N is the register number.
-#define UART_RX_ERROR_FLUSH_FIFO(N)                        \
-  /* Flush anything in the buffer */                       \
-  uint8_t avail = UART##N##_RCFIFO;                        \
-  if (avail > 1) {                                         \
-    /* Read everything but the last byte */                \
-    uint32_t timestamp = micros() - 44*avail;              \
-    if (avail < UART##N##_RWFIFO) {                        \
-      timestamp -= 44;                                     \
-    }                                                      \
-    while (--avail > 0) {                                  \
-      instance->receiveByte(UART##N##_D, timestamp += 44); \
-    }                                                      \
+#define UART_RX_ERROR_FLUSH_FIFO(N)                               \
+  /* Flush anything in the buffer */                              \
+  uint8_t avail = UART##N##_RCFIFO;                               \
+  if (avail > 1) {                                                \
+    /* Read everything but the last byte */                       \
+    uint32_t timestamp = micros() - kCharTime*avail;              \
+    if (avail < UART##N##_RWFIFO) {                               \
+      timestamp -= kCharTime;                                     \
+    }                                                             \
+    while (--avail > 0) {                                         \
+      instance->receiveByte(UART##N##_D, timestamp += kCharTime); \
+    }                                                             \
   }
 
 // N is the register number.
-#define LPUART_RX_ERROR_FLUSH_FIFO(N)                           \
-  /* Flush anything in the buffer */                            \
-  uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;             \
-  if (avail > 1) {                                              \
-    /* Read everything but the last byte */                     \
-    uint32_t timestamp = micros() - 44*avail;                   \
-    while (--avail > 0) {                                       \
-      instance->receiveByte(LPUART##N##_DATA, timestamp += 44); \
-    }                                                           \
+#define LPUART_RX_ERROR_FLUSH_FIFO(N)                                  \
+  /* Flush anything in the buffer */                                   \
+  uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;                    \
+  if (avail > 1) {                                                     \
+    /* Read everything but the last byte */                            \
+    uint32_t timestamp = micros() - kCharTime*avail;                   \
+    while (--avail > 0) {                                              \
+      instance->receiveByte(LPUART##N##_DATA, timestamp += kCharTime); \
+    }                                                                  \
   }
 
 // ---------------------------------------------------------------------------
@@ -432,24 +432,19 @@
 
 // Needs to have UART_TX_FLUSH_FIFO_N defined.
 // N is the register number.
-#define UART_TX_BREAK(N)                                    \
-  if (count <= 0) {                                         \
-    return;                                                 \
-  }                                                         \
-                                                            \
-  UART_TX_FLUSH_FIFO_##N                                    \
-                                                            \
-  while ((UART##N##_S1 & UART_S1_TDRE) == 0) {              \
-    /* Wait until we can transmit */                        \
-  }                                                         \
-  UART##N##_C2 |= UART_C2_SBK;  /* Enable BREAK transmit */ \
-  /* Turn off in the middle of the last BREAK */            \
-  delayMicroseconds((count - 1)*kCharTime + kBitTime);      \
-  UART##N##_C2 &= ~UART_C2_SBK;                             \
-                                                            \
-  /* Account for the shift register time by 1 character;    \
-   * this overlaps */                                       \
-  delayMicroseconds(kCharTime - kBitTime + mabTime + 1);
+#define UART_TX_BREAK(N)                       \
+  UART_TX_FLUSH_FIFO_##N                       \
+                                               \
+  while ((UART##N##_S1 & UART_S1_TDRE) == 0) { \
+    /* Wait until we can transmit */           \
+  }                                            \
+                                               \
+  if (breakTime > 0) {                         \
+    UART##N##_C3 |= UART_C3_TXINV;             \
+    delayMicroseconds(breakTime);              \
+    UART##N##_C3 &= ~UART_C3_TXINV;            \
+  }                                            \
+  delayMicroseconds(mabTime);
 
 // N is the register number.
 #define LPUART_TX_FLUSH_FIFO(N)                   \
@@ -459,20 +454,18 @@
 
 // Needs to have LPUART_TX_FLUSH_FIFO_N defined.
 // N is the register number.
-#define LPUART_TX_BREAK(N)                                  \
-  if (count <= 0) {                                         \
-    return;                                                 \
-  }                                                         \
-                                                            \
-  LPUART_TX_FLUSH_FIFO_##N                                  \
-                                                            \
-  while (count-- > 0) {                                     \
-    while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) {    \
-      /* Wait until we can transmit*/                       \
-    }                                                       \
-    LPUART##N##_DATA = LPUART_DATA_FRETSC; /* T9 is zero */ \
-  }                                                         \
-                                                            \
+#define LPUART_TX_BREAK(N)                             \
+  LPUART_TX_FLUSH_FIFO_##N                             \
+                                                       \
+  while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) { \
+    /* Wait until we can transmit*/                    \
+  }                                                    \
+                                                       \
+  if (breakTime > 0) {                                 \
+    LPUART##N##_CTRL |= LPUART_CTRL_TXINV;             \
+    delayMicroseconds(breakTime);                      \
+    LPUART##N##_CTRL &= ~LPUART_CTRL_TXINV;            \
+  }                                                    \
   delayMicroseconds(mabTime);
 
 #endif  // UART_ROUTINE_DEFINES_H_

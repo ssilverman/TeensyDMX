@@ -1,6 +1,6 @@
 # BREAK Timing in DMX512-A
 
-This document discusses BREAK and Mark after Break (MAB) timing in
+This document discusses BREAK and Mark after BREAK (MAB) timing in
 [DMX512-A](http://tsp.esta.org/tsp/documents/docs/ANSI-ESTA_E1-11_2008R2018.pdf)
 using [serial port](https://en.wikipedia.org/wiki/Serial_port) terms.
 

@@ -50,8 +50,6 @@ resumedRemaining	KEYWORD2
 isTransmitting	KEYWORD2
 onDoneTransmitting	KEYWORD2
 outputBufferSize	KEYWORD2
-breakLength	KEYWORD2
-markAfterBreakTime	KEYWORD2
 isSendBreakForLastPacket	KEYWORD2
 preBreakDelay	KEYWORD2
 preNoBreakDelay	KEYWORD2

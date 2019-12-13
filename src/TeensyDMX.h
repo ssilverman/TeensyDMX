@@ -657,9 +657,9 @@ class Receiver final : public TeensyDMX {
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
 
-  // Transmit BREAK function for the current UART. The MAB (Mark after BREAK)
-  // time is spcified because different UARTs send BREAKs differently.
-  void (*txBreakFunc_)(int count, uint32_t mabTime);
+  // Transmit BREAK function for the current UART. This accepts both a BREAK
+  // time and a Mark after BREAK time.
+  void (*txBreakFunc_)(uint32_t breakTime, uint32_t mabTime);
 
   // RX pin change ISRs
   friend void rxPinFellSerial0_isr();
@@ -786,7 +786,7 @@ class Sender final : public TeensyDMX {
   // and less than 1s. See `kMinTXMABTime`.
   void setMABTime(uint32_t t);
 
-  // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
+  // Returns this sender's Mark after BREAK time, in microseconds.
   //
   // Note that due to some UART intricacies, the actual time may be longer.
   uint32_t mabTime() const {

@@ -37,7 +37,7 @@ Some notable features of this library:
 ### Receiver timing limitations and RX line monitoring
 
 When the RX line is not being monitored, there are limitations in the handling
-of received DMX frame timing. For BREAK and Mark after Break (MAB) times, only
+of received DMX frame timing. For BREAK and Mark after BREAK (MAB) times, only
 the following cases are checked and not accepted as a valid DMX frame start:
 
 1. BREAK duration &lt; ~44us.
