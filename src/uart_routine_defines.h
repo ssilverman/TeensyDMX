@@ -458,7 +458,7 @@
   LPUART_TX_FLUSH_FIFO_##N                             \
                                                        \
   while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) { \
-    /* Wait until we can transmit*/                    \
+    /* Wait until we can transmit */                   \
   }                                                    \
                                                        \
   if (breakTime > 0) {                                 \
