@@ -12,6 +12,10 @@ This document details the changes between each release.
 
 ### Changed
 * Some improved documentation.
+* Changed `Responder::breakLength()`, a function that returns the number of
+  11-bit character times, to `Responder::breakTime()`, a function that returns a
+  duration in microseconds. Also changed `Responder::markAfterBreakTime()`
+  to `Responder::mabTime()`.
 
 ## [4.0.0-alpha.4]
 
