@@ -5,6 +5,7 @@
 
 // C++ includes
 #include <algorithm>
+#include <numeric>
 
 // Gets a uint16_t value from the given array.
 uint16_t getUint16(const uint8_t *b) {
@@ -26,15 +27,6 @@ bool checkSIP(const uint8_t *buf, int len) {
   }
 
   return true;
-}
-
-// Calculates a 16-bit checksum.
-uint16_t checksum(const uint8_t *buf, int len) {
-  uint16_t c = 0;
-  for (int i = 0; i < len; i++) {
-    c += buf[i];
-  }
-  return ~c;
 }
 
 void SIPHandler::receivePacket(const uint8_t *buf, int len) {
@@ -68,8 +60,9 @@ void SIPHandler::receivePacket(const uint8_t *buf, int len) {
     // Check the checksum of the last packet
     uint16_t sipCheck = getUint16(&buf[3]);
     if (packetSize_ > 0) {
-      sipData_.checksumValid =
-          (sipCheck == checksum(const_cast<uint8_t *>(packet_), packetSize_));
+      uint16_t check =
+          ~std::accumulate(&packet_[0], &packet_[packetSize_], uint16_t{0});
+      sipData_.checksumValid = (sipCheck == check);
       sipData_.hasLastPacket = true;
     }
 
