@@ -29,16 +29,14 @@ class Responder {
     return 0;
   };
 
-  // Gets the BREAK length, in 11-bit characters at 250kbps, i.e. 44us per
-  // character. For example, returning 4 would mean the BREAK length would be
-  // 4*44us=176us. This returns zero by default.
-  virtual uint32_t breakLength() const {
+  // Gets the BREAK time, in microseconds. This returns zero by default.
+  virtual uint32_t breakTime() const {
     return 0;
   };
 
   // Gets the Mark after BREAK time, in microseconds. This returns zero
   // by default.
-  virtual uint32_t markAfterBreakTime() const {
+  virtual uint32_t mabTime() const {
     return 0;
   }
 

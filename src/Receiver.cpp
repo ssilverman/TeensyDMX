@@ -25,37 +25,37 @@ constexpr uint32_t kMinMABTime   = 8;                     // In microseconds
 // These don't affect the transmitter
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
 void uart0_tx(const uint8_t *b, int len);
-void uart0_tx_break(int count, uint32_t mabTime);
+void uart0_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
 void uart1_tx(const uint8_t *b, int len);
-void uart1_tx_break(int count, uint32_t mabTime);
+void uart1_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
 void uart2_tx(const uint8_t *b, int len);
-void uart2_tx_break(int count, uint32_t mabTime);
+void uart2_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
 #if defined(HAS_KINETISK_UART3)
 void uart3_tx(const uint8_t *b, int len);
-void uart3_tx_break(int count, uint32_t mabTime);
+void uart3_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART3
 
 #if defined(HAS_KINETISK_UART4)
 void uart4_tx(const uint8_t *b, int len);
-void uart4_tx_break(int count, uint32_t mabTime);
+void uart4_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART4
 
 #if defined(HAS_KINETISK_UART5)
 void uart5_tx(const uint8_t *b, int len);
-void uart5_tx_break(int count, uint32_t mabTime);
+void uart5_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART5
 
 #if defined(HAS_KINETISK_LPUART0)
 void lpuart0_tx(const uint8_t *b, int len);
-void lpuart0_tx_break(int count, uint32_t mabTime);
+void lpuart0_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_LPUART0
 
 // Used by the RX ISRs.
@@ -863,7 +863,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
     if (delay > 0) {
       delayMicroseconds(delay);
     }
-    txBreakFunc_(r->breakLength(), r->markAfterBreakTime());
+    txBreakFunc_(r->breakTime(), r->mabTime());
   } else {
     uint32_t delay = r->preNoBreakDelay();
     uint32_t dt = micros() - eopTime;
@@ -1117,7 +1117,7 @@ void uart0_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(0, UART0_S1, UART_S1, UART0_D)
 }
 
-void uart0_tx_break(int count, uint32_t mabTime) {
+void uart0_tx_break(uint32_t breakTime, uint32_t mabTime) {
   UART_TX_BREAK(0)
 }
 
@@ -1144,7 +1144,7 @@ void uart1_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(1, UART1_S1, UART_S1, UART1_D)
 }
 
-void uart1_tx_break(int count, uint32_t mabTime) {
+void uart1_tx_break(uint32_t breakTime, uint32_t mabTime) {
   UART_TX_BREAK(1)
 }
 
@@ -1166,7 +1166,7 @@ void uart2_tx(const uint8_t *b, int len) {
   UART_SYNC_TX(2, UART2_S1, UART_S1, UART2_D)
 }
 
-void uart2_tx_break(int count, uint32_t mabTime) {
+void uart2_tx_break(uint32_t breakTime, uint32_t mabTime) {
   UART_TX_BREAK(2)
 }
 
@@ -1191,7 +1191,7 @@ void uart3_tx(const uint8_t *b, int len) {
 
 #define UART_TX_FLUSH_FIFO_3
 
-void uart3_tx_break(int count, uint32_t mabTime) {
+void uart3_tx_break(uint32_t breakTime, uint32_t mabTime) {
   UART_TX_BREAK(3)
 }
 
@@ -1215,7 +1215,7 @@ void uart4_tx(const uint8_t *b, int len) {
 
 #define UART_TX_FLUSH_FIFO_4
 
-void uart4_tx_break(int count, uint32_t mabTime) {
+void uart4_tx_break(uint32_t breakTime, uint32_t mabTime) {
   UART_TX_BREAK(4)
 }
 
@@ -1239,7 +1239,7 @@ void uart5_tx(const uint8_t *b, int len) {
 
 #define UART_TX_FLUSH_FIFO_5
 
-void uart5_tx_break(int count, uint32_t mabTime) {
+void uart5_tx_break(uint32_t breakTime, uint32_t mabTime) {
   UART_TX_BREAK(5)
 }
 
@@ -1261,7 +1261,7 @@ void lpuart0_tx(const uint8_t *b, int len) {
 
 #undef UART_SYNC_TX_SEND_FIFO_0
 
-void lpuart0_tx_break(int count, uint32_t mabTime) {
+void lpuart0_tx_break(uint32_t breakTime, uint32_t mabTime) {
   LPUART_TX_BREAK(0)
 }
 
