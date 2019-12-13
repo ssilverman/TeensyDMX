@@ -708,7 +708,7 @@ class Sender final : public TeensyDMX {
   // and less than 1s. See `kMinTXMABTime`.
   void setMABTime(uint32_t t);
 
-  // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
+  // Returns this sender's Mark after BREAK time, in microseconds.
   //
   // Note that due to some UART intricacies, the actual time may be longer.
   uint32_t mabTime() const {
