@@ -781,8 +781,8 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
     case RecvStates::kData:
       // Checking this here accounts for buffered input, where several
       // bytes come in at the same time
-      if (static_cast<int>(eopTime - breakStartTime_) <
-          kMinBreakTime + kMinMABTime + kCharTime + kCharTime*activeBufIndex_) {
+      if (eopTime - breakStartTime_ < kMinBreakTime + kMinMABTime + kCharTime +
+                                          kCharTime*activeBufIndex_) {
         // First byte is too early, discard any data
         receiveBadBreak();
         return;
