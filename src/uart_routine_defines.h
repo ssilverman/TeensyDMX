@@ -370,12 +370,16 @@
   delayMicroseconds(mabTime);
 
 // N is the register number.
-#define LPUART_TX_BREAK(N)                  \
-  if (breakTime > 0) {                      \
-    LPUART##N##_CTRL |= LPUART_CTRL_TXINV;  \
-    delayMicroseconds(breakTime);           \
-    LPUART##N##_CTRL &= !LPUART_CTRL_TXINV; \
-  }                                         \
+#define LPUART_TX_BREAK(N)                             \
+  while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) { \
+    /* Wait until we can transmit */                   \
+  }                                                    \
+                                                       \
+  if (breakTime > 0) {                                 \
+    LPUART##N##_CTRL |= LPUART_CTRL_TXINV;             \
+    delayMicroseconds(breakTime);                      \
+    LPUART##N##_CTRL &= ~LPUART_CTRL_TXINV;            \
+  }                                                    \
   delayMicroseconds(mabTime);
 
 #endif  // UART_ROUTINE_DEFINES_H_
