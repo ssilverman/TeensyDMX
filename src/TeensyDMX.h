@@ -617,8 +617,8 @@ class Receiver final : public TeensyDMX {
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
 
-  // Transmit BREAK function for the current UART. This acceps both a BREAK time
-  // and a Mark after BREAK time.
+  // Transmit BREAK function for the current UART. This accepts both a BREAK
+  // time and a Mark after BREAK time.
   void (*txBreakFunc_)(uint32_t breakTime, uint32_t mabTime);
 
   // RX pin change ISRs
