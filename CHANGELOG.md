@@ -2,6 +2,15 @@
 
 This document details the changes between each release.
 
+## [4.0.0-alpha.6]
+
+### Changed
+* README updates.
+
+### Fixed
+* `Receiver::setRXWatchPin` didn't allow negative arguments because the
+  parameter was of type `uint8_t`; it's now an `int`.
+
 ## [4.0.0-alpha.5]
 
 ### Added
