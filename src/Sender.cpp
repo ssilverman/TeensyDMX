@@ -312,10 +312,7 @@ bool Sender::set16Bit(int startChannel, const uint16_t *values, int len) {
 void Sender::clear() {
   Lock lock{*this};
   //{
-    volatile uint8_t *b = outputBuf_;
-    for (int i = 0; i < kMaxDMXPacketSize; i++) {
-      *(b++) = 0;
-    }
+    std::fill_n(&outputBuf_[0], kMaxDMXPacketSize, uint8_t{0});
   //}
 }
 
