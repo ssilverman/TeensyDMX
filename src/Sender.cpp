@@ -5,7 +5,7 @@
 
 // C++ includes
 #include <algorithm>
-#include <cmath>
+#include <limits>
 
 // Project includes
 #include "uart_routine_defines.h"
@@ -86,7 +86,7 @@ Sender::Sender(HardwareSerial &uart)
       mabTime_(kSerialMABTime),
       adjustedMABTime_(mabTime_),
       packetSize_(kMaxDMXPacketSize),
-      refreshRate_(INFINITY),
+      refreshRate_(std::numeric_limits<float>::infinity()),
       breakToBreakTime_(0),
       timeSinceBreak_{0},
       paused_(false),
