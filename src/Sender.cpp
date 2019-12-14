@@ -288,6 +288,27 @@ bool Sender::set(int startChannel, const uint8_t *values, int len) {
   return true;
 }
 
+bool Sender::set16Bit(int startChannel, const uint16_t *values, int len) {
+  if (len < 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
+    return false;
+  }
+  if (len == 0) {
+    return true;
+  }
+  if (startChannel + len*2 <= 0 || kMaxDMXPacketSize < startChannel + len*2) {
+    return false;
+  }
+
+  Lock lock{*this};
+  //{
+    for (int i = 0; i < len; i++) {
+      outputBuf_[startChannel++] = values[i] >> 8;
+      outputBuf_[startChannel++] = values[i];
+    }
+  //}
+  return true;
+}
+
 void Sender::clear() {
   Lock lock{*this};
   //{

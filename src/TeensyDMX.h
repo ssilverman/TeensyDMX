@@ -806,6 +806,9 @@ class Sender final : public TeensyDMX {
   // finished before setting channel values.
   bool set(int startChannel, const uint8_t *values, int len);
 
+  // Sets 16-bit values for a range of channels. See `set` for more information.
+  bool set16Bit(int startChannel, const uint16_t *values, int len);
+
   // Clears all channels to zero. The behaviour is atomic.
   void clear();
 
