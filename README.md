@@ -142,6 +142,14 @@ that occupies the first byte of the packet. The maximum DMX packet size is
 Each call to `readPacket` is independent, meaning that if no packet has arrived
 after a call to this function, subsequent calls will return -1.
 
+### Retrieving 16-bit values
+
+Retrieving 16-bit values is easy with one available 16-bit function:
+1. `get16Bit` for single words.
+
+This works the same as the 8-bit `get` function, but uses the `uint16_t`
+type instead.
+
 ### Error counts and disconnection
 
 The DMX receiver keeps track of three types of errors:
@@ -375,6 +383,15 @@ dmxTx.set(6, 219);
 The other `set` function can set multiple channels at once. This is left as an
 exercise to the reader.
 
+### Setting 16-bit values
+
+Setting 16-bit values is easy with two available 16-bit functions:
+1. `set16Bit` for single words, and
+2. `set16Bit` for an array of words.
+
+These work the same as the 8-bit `set` functions, but use the `uint16_t`
+type instead.
+
 ### Packet size
 
 The packet size can be adjusted and retrieved via `setPacketSize` and
@@ -462,8 +479,17 @@ available, then the transmitter will fall back on using the baud rate generator
 to achieve a 180us BREAK and something a little larger than a 20us MAB.
 
 If the UART is used to generate the BREAK and MAB timings then they are
-otherwise restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, of 10:1.
+otherwise restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, or 10:1.
 These correspond to the UART formats, 8N2, 8E2, 8N1, and 8E1.
+
+### Error handling
+
+Several `Sender` functions that return a `bool` indicate whether an operation
+was successful. Prior versions of the library did nothing with, or silently
+ignored, bad arguments.
+
+Not all functions return a `bool`, but the ones that do indicate success
+or failure.
 
 ## Technical notes
 
