@@ -4,7 +4,7 @@
 #include "TeensyDMX.h"
 
 // C++ includes
-#include <cstring>
+#include <algorithm>
 #include <utility>
 
 // Project includes
@@ -665,7 +665,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len,
         if (startChannel + len > packetSize_) {
           len = packetSize_ - startChannel;
         }
-        memcpy(buf, &inactiveBuf_[startChannel], len);
+        std::copy_n(&inactiveBuf_[startChannel], len, &buf[0]);
         retval = len;
       }
       packetSize_ = 0;
@@ -710,8 +710,8 @@ uint16_t Receiver::get16Bit(int channel, bool *rangeError) const {
       if (rangeError != nullptr) {
         *rangeError = false;
       }
-      v = (static_cast<uint16_t>(inactiveBuf_[channel]) << 8) |
-          static_cast<uint16_t>(inactiveBuf_[channel + 1]);
+      v = (uint16_t{inactiveBuf_[channel]} << 8) |
+          uint16_t{inactiveBuf_[channel + 1]};
     }
     //}
     return v;

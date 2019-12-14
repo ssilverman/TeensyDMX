@@ -22,8 +22,8 @@ struct SIPData {
   uint16_t numPackets;  // Packets sent since last SIP
   uint16_t mfrIDs[5];   // Manufacturing IDs
 
-  bool checksumValid{false};
-  bool hasLastPacket{false};  // Whether there was data to check
+  bool checksumValid = false;
+  bool hasLastPacket = false;  // Whether there was data to check
 };
 
 // SIPHandler processes System Information Packets (SIP) together with
@@ -62,6 +62,9 @@ class SIPHandler final : public teensydmx::Responder {
     if (!sipDataValid_ || sipData == nullptr) {
       return false;
     }
+
+    // Ideally, we should define an `operator=` that takes a volatile parameter
+    // instead of using `const_cast`
     *sipData = *const_cast<SIPData *>(&sipData_);
     return true;
   }

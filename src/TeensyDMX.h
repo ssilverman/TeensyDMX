@@ -575,6 +575,8 @@ class Receiver final : public TeensyDMX {
   // This is needed when responding to a received message and transmission
   // needs to occur. This is also called at the end of begin() with 'false'
   // to enable RX.
+  //
+  // This does nothing if there is no TX/!RX function set.
   void setTXNotRX(bool flag) const {
     if (setTXNotRXFunc_ == nullptr) {
       return;
@@ -794,7 +796,8 @@ class Sender final : public TeensyDMX {
   }
 
   // Sets the transmit packet size, in number of channels plus the start code.
-  // This does nothing if the size is greater than 513 or negative.
+  // This returns false if the size is greater than 513 or negative. Otherwise,
+  // this returns true.
   //
   // When the maximum refresh rate is used, the packet size should be >= 25 so
   // that the total packet time does not fall below 1204us, per the ANSI E1.11
@@ -808,10 +811,12 @@ class Sender final : public TeensyDMX {
   // slots 1-24 containing the remainder of the packet data.
   //
   // The default is 513.
-  void setPacketSize(int size) {
-    if (0 <= size && size <= kMaxDMXPacketSize) {
-      packetSize_ = size;
+  bool setPacketSize(int size) {
+    if (size < 0 || kMaxDMXPacketSize < size) {
+      return false;
     }
+    packetSize_ = size;
+    return true;
   }
 
   // Returns the current packet size.
@@ -827,9 +832,9 @@ class Sender final : public TeensyDMX {
   // transmitted until changed. To set a value, this only needs to be
   // called once.
   //
-  // If the channel is not in the range 0-512 then the call is ignored. Note
-  // that it is possible to set channels outside the range of the packet size,
-  // but these values will not be sent.
+  // If the channel is not in the range 0-512 then this returns false.
+  // Otherwise, this returns true. Note that it is possible to set channels
+  // outside the range of the packet size, but these values will not be sent.
   //
   // For example, if the packet size is 25 and the channel is anywhere in the
   // range 25-512, then the value will be set internally but will not be
@@ -837,7 +842,7 @@ class Sender final : public TeensyDMX {
   //
   // After pausing with pause(), it is necessary to wait until transmission is
   // finished before setting channel values.
-  void set(int channel, uint8_t value);
+  bool set(int channel, uint8_t value);
 
   // Sets a 16-bit value at the specified channel. This stores the value in
   // big-endian order. Channel zero represents the start code.
@@ -846,9 +851,9 @@ class Sender final : public TeensyDMX {
   // transmitted until changed. To set a value, this only needs to be
   // called once.
   //
-  // If the channel is not in the range 0-511 then the call is ignored. Note
-  // that it is possible to set channels outside the range of the packet size,
-  // but these values will not be sent.
+  // If the channel is not in the range 0-511 then this returns false.
+  // Otherwise, this returns true. Note that it is possible to set channels
+  // outside the range of the packet size, but these values will not be sent.
   //
   // For example, if the packet size is 25 and the channel is anywhere in the
   // range 24-511, then the value will be set internally but will not be
@@ -858,7 +863,7 @@ class Sender final : public TeensyDMX {
   //
   // After pausing with pause(), it is necessary to wait until transmission is
   // finished before setting channel values.
-  void set16Bit(int channel, uint16_t value);
+  bool set16Bit(int channel, uint16_t value);
 
   // Sets the values for a range of channels. This also affects the packet
   // currently being transmitted. The behaviour is atomic.
@@ -867,8 +872,9 @@ class Sender final : public TeensyDMX {
   // transmitted until changed. To set some values, this only needs to be
   // called once.
   //
-  // This does nothing if any part of the channel range is not in the range
-  // 0-512. This limit is equal to kDMXMaxPacketSize-1.
+  // This returns false if any part of the channel range is not in the range
+  // 0-512, or if the length is negative. Otherwise, this returns true. The
+  // upper limit is equal to kDMXMaxPacketSize-1.
   //
   // See the other 'set' function for more information about setting
   // values outside the range of the current packet size (if the size
@@ -876,13 +882,17 @@ class Sender final : public TeensyDMX {
   //
   // After pausing with pause(), it is necessary to wait until transmission is
   // finished before setting channel values.
-  void set(int startChannel, const uint8_t *values, int len);
+  bool set(int startChannel, const uint8_t *values, int len);
+
+  // Sets 16-bit values for a range of channels. See `set` for more information.
+  bool set16Bit(int startChannel, const uint16_t *values, int len);
 
   // Clears all channels to zero. The behaviour is atomic.
   void clear();
 
-  // Sets the packet refresh rate. Negative and NaN values are ignored. The
-  // default is INFINITY, indicating "as fast as possible".
+  // Sets the packet refresh rate. This returns false for negative and NaN
+  // values, and true otherwise. The default is INFINITY, indicating "as fast
+  // as possible".
   //
   // If the rate is too high then this will simply transmit as fast as possible.
   // Transmitting as fast as possible is also the default.
@@ -902,7 +912,7 @@ class Sender final : public TeensyDMX {
   // ~44.099Hz. The minimum allowed BREAK-to-BREAK time is 1204us, so for a
   // packet having all minimum timings, this means that a minimum 25-slot packet
   // can be sent at a refresh rate of ~830.56Hz.
-  void setRefreshRate(float rate);
+  bool setRefreshRate(float rate);
 
   // Returns the packet refresh rate. The default is INFINITY, indicating
   // "as fast as possible".
@@ -939,7 +949,9 @@ class Sender final : public TeensyDMX {
   void resume();
 
   // Resumes sending, but pauses again after the specified number of packets are
-  // sent. Values < 0 will be ignored and a value of zero will resume.
+  // sent. A value of zero will resume. This will return false for values < 0
+  // and true for all other values. In other words, this will return true when
+  // sending is resumed.
   //
   // If sending is not already paused, only the next n packets will be sent, not
   // including any already in transmission.
@@ -947,19 +959,23 @@ class Sender final : public TeensyDMX {
   // There are two ways to determine when the packets are done being sent. The
   // first is by polling isTransmitting(). The second is to use a function that
   // receives transmission-complete notifications. It is called when the same
-  // conditions checked by isTransmitting() occur. onDoneTransmitting() sets
-  // this function.
-  void resumeFor(int n);
+  // conditions checked by isTransmitting() occur.
+  //
+  // This uses any function set by onDoneTransmitting().
+  bool resumeFor(int n);
 
   // Resumes sending, but pauses again after the specified number of packets are
-  // sent. Values < 0 will be ignored and a value of zero will resume.
+  // sent. A value of zero will resume. This will return false for values < 0
+  // and true for all other values. In other words, this will return true when
+  // sending is resumed.
   //
   // If sending is not already paused, only the next n packets will be sent, not
   // including any already in transmission.
   //
   // When transmitting is done, the given function will be called. This replaces
-  // any function set by onDoneTransmitting().
-  void resumeFor(int n, void (*doneTXFunc)(Sender *s));
+  // any function set by onDoneTransmitting(). Setting the function to nullptr
+  // is valid.
+  bool resumeFor(int n, void (*doneTXFunc)(Sender *s));
 
   // Returns the number of packets remaining to be sent before being paused.
   // This will return zero if there are no packets remaining.
@@ -985,6 +1001,8 @@ class Sender final : public TeensyDMX {
   //
   // The function is called when the same conditions checked by isTransmitting()
   // occur. It is called from an ISR.
+  //
+  // The function may be set to nullptr.
   void onDoneTransmitting(void (*f)(Sender *s)) {
     doneTXFunc_ = f;
   }

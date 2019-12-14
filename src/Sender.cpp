@@ -4,8 +4,8 @@
 #include "TeensyDMX.h"
 
 // C++ includes
-#include <cmath>
-#include <cstring>
+#include <algorithm>
+#include <limits>
 
 // Project includes
 #include "uart_routine_defines.h"
@@ -90,7 +90,7 @@ Sender::Sender(HardwareSerial &uart)
       mabTime_(kSerialMABTime),
       adjustedMABTime_(mabTime_),
       packetSize_(kMaxDMXPacketSize),
-      refreshRate_(INFINITY),
+      refreshRate_(std::numeric_limits<float>::infinity()),
       breakToBreakTime_(0),
       timeSinceBreak_{0},
       paused_(false),
@@ -301,30 +301,17 @@ void Sender::setMABTime(uint32_t t) {
   }
 }
 
-// memcpy implementation that accepts a volatile destination.
-// Derived from:
-// https://github.com/ARM-software/arm-trusted-firmware/blob/master/lib/libc/memcpy.c
-volatile void *memcpy(volatile void *dst, const void *src, size_t len) {
-  volatile char *d = reinterpret_cast<volatile char *>(dst);
-  const char *s = reinterpret_cast<const char *>(src);
-
-  while (len-- != 0) {
-    *(d++) = *(s++);
-  }
-
-  return dst;
-}
-
-void Sender::set(int channel, uint8_t value) {
+bool Sender::set(int channel, uint8_t value) {
   if (channel < 0 || kMaxDMXPacketSize <= channel) {
-    return;
+    return false;
   }
   outputBuf_[channel] = value;
+  return true;
 }
 
-void Sender::set16Bit(int channel, uint16_t value) {
+bool Sender::set16Bit(int channel, uint16_t value) {
   if (channel < 0 || kMaxDMXPacketSize - 1 <= channel) {
-    return;
+    return false;
   }
 
   Lock lock{*this};
@@ -332,38 +319,58 @@ void Sender::set16Bit(int channel, uint16_t value) {
     outputBuf_[channel] = value >> 8;
     outputBuf_[channel + 1] = value;
   //}
+  return true;
 }
 
-void Sender::set(int startChannel, const uint8_t *values, int len) {
-  if (len <= 0) {
-    return;
+bool Sender::set(int startChannel, const uint8_t *values, int len) {
+  if (len < 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
+    return false;
   }
-  if (startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
-    return;
+  if (len == 0) {
+    return true;
   }
   if (startChannel + len <= 0 || kMaxDMXPacketSize < startChannel + len) {
-    return;
+    return false;
   }
 
   Lock lock{*this};
   //{
-    memcpy(&outputBuf_[startChannel], values, len);
+    std::copy_n(&values[0], len, &outputBuf_[startChannel]);
   //}
+  return true;
+}
+
+bool Sender::set16Bit(int startChannel, const uint16_t *values, int len) {
+  if (len < 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
+    return false;
+  }
+  if (len == 0) {
+    return true;
+  }
+  if (startChannel + len*2 <= 0 || kMaxDMXPacketSize < startChannel + len*2) {
+    return false;
+  }
+
+  Lock lock{*this};
+  //{
+    for (int i = 0; i < len; i++) {
+      outputBuf_[startChannel++] = values[i] >> 8;
+      outputBuf_[startChannel++] = values[i];
+    }
+  //}
+  return true;
 }
 
 void Sender::clear() {
   Lock lock{*this};
   //{
-    volatile uint8_t *b = outputBuf_;
-    for (int i = 0; i < kMaxDMXPacketSize; i++) {
-      *(b++) = 0;
-    }
+    std::fill_n(&outputBuf_[0], kMaxDMXPacketSize, uint8_t{0});
   //}
 }
 
-void Sender::setRefreshRate(float rate) {
+bool Sender::setRefreshRate(float rate) {
   if ((rate != rate) || rate < 0.0f) {  // NaN or negative
-    return;
+    return false;
   }
   if (rate == 0.0f) {
     breakToBreakTime_ = UINT32_MAX;
@@ -375,19 +382,20 @@ void Sender::setRefreshRate(float rate) {
     breakToBreakTime_ = 1000000 / rate;
   }
   refreshRate_ = rate;
+  return true;
 }
 
 void Sender::resume() {
   resumeFor(0);
 }
 
-void Sender::resumeFor(int n) {
-  resumeFor(n, doneTXFunc_);
+bool Sender::resumeFor(int n) {
+  return resumeFor(n, doneTXFunc_);
 }
 
-void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
+bool Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
   if (n < 0) {
-    return;
+    return false;
   }
 
   // Pausing made transmission INACTIVE
@@ -479,6 +487,8 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
     }
     doneTXFunc_ = doneTXFunc;
   //}
+
+  return true;
 }
 
 bool Sender::isTransmitting() const {

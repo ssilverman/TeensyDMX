@@ -4,7 +4,8 @@
 #include "SIPHandler.h"
 
 // C++ includes
-#include <cstring>
+#include <algorithm>
+#include <numeric>
 
 // Gets a uint16_t value from the given array.
 uint16_t getUint16(const uint8_t *b) {
@@ -28,15 +29,6 @@ bool checkSIP(const uint8_t *buf, int len) {
   return true;
 }
 
-// Calculates a 16-bit checksum.
-uint16_t checksum(const uint8_t *buf, int len) {
-  uint16_t c = 0;
-  for (int i = 0; i < len; i++) {
-    c += buf[i];
-  }
-  return ~c;
-}
-
 void SIPHandler::receivePacket(const uint8_t *buf, int len) {
   bool copyData = true;
 
@@ -48,7 +40,7 @@ void SIPHandler::receivePacket(const uint8_t *buf, int len) {
       held_ = false;
 
       // Copy the packet data, maybe the next SIP will use this?
-      memcpy(const_cast<uint8_t *>(packet_), buf, len);
+      std::copy_n(&buf[0], len, &packet_[0]);
       packetSize_ = len;
       return;
     }
@@ -68,8 +60,9 @@ void SIPHandler::receivePacket(const uint8_t *buf, int len) {
     // Check the checksum of the last packet
     uint16_t sipCheck = getUint16(&buf[3]);
     if (packetSize_ > 0) {
-      sipData_.checksumValid =
-          (sipCheck == checksum(const_cast<uint8_t *>(packet_), packetSize_));
+      uint16_t check =
+          ~std::accumulate(&packet_[0], &packet_[packetSize_], uint16_t{0});
+      sipData_.checksumValid = (sipCheck == check);
       sipData_.hasLastPacket = true;
     }
 
@@ -146,7 +139,7 @@ void SIPHandler::receivePacket(const uint8_t *buf, int len) {
   }
 
   if (copyData) {
-    memcpy(const_cast<uint8_t *>(packet_), buf, len);
+    std::copy_n(&buf[0], len, &packet_[0]);
     packetSize_ = len;
   }
 }
@@ -169,8 +162,8 @@ int SIPHandler::readPacket(uint8_t *buf, int startChannel, int len) {
       if (startChannel + len > packetSize_) {
         len = packetSize_ - startChannel;
       }
-      // NOTE: Ideally, we should use a memcpy that takes a volatile source
-      memcpy(buf, const_cast<uint8_t *>(&packet_[startChannel]), len);
+      // NOTE: std::copy_n can take a volatile source
+      std::copy_n(&packet_[startChannel], len, &buf[0]);
       retval = len;
     }
     packetSize_ = 0;
