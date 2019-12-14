@@ -10,6 +10,8 @@ This document details the changes between each release.
 * Added a new `SendTestPackets` example that sends standard test packets, as
   specified in section D3 of the DMX specification. This was enabled by the new
   ability to specify the transmitter BREAK and MAB times.
+* There's a new `Sender::set16Bit` function that can set a range of
+  16-bit channels.
 
 ### Changed
 * Some improved documentation.
@@ -17,6 +19,13 @@ This document details the changes between each release.
   11-bit character times, to `Responder::breakTime()`, a function that returns a
   duration in microseconds. Also changed `Responder::markAfterBreakTime()`
   to `Responder::mabTime()`.
+* Updated the `SIPHandler` example to remove the need for using `const_cast` by
+  using `std::copy_n` instead of `memcpy`. Also replacing the `checksum`
+  function with `std::accumulate` to be more modern.
+* All the `set` and action functions in `Sender` that previously did nothing or
+  ignored the values on bad input now return a `bool` indicating success. These
+  include in `Sender`: the two 8-bit `set` functions, `set16Bit`,
+  `setRefreshRate`, the two `resumeFor` functions, and `setPacketSize`.
 
 ## [4.0.0-alpha.4]
 
