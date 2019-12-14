@@ -1029,7 +1029,7 @@ void Receiver::enableIRQs() const {
 //  RX pin interrupt and ISRs
 // ---------------------------------------------------------------------------
 
-void Receiver::setRXWatchPin(uint8_t pin) {
+void Receiver::setRXWatchPin(int pin) {
   __disable_irq();
   if (pin < 0) {
     if (rxWatchPin_ >= 0) {
