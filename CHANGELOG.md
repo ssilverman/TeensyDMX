@@ -39,7 +39,6 @@ This document details the changes between each release.
   accurately via new `Sender::setBreakTime` and `Sender::setMABTime` functions.
   The actual times will be close, but the MAB may be a little longer
   than specified.
-* Teensy 4 support.
 
 ### Fixed
 * MAB and BREAK-plus-MAB time calculations have been fixed when bytes are
