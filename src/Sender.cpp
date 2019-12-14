@@ -249,16 +249,17 @@ void Sender::setMABTime(uint32_t t) {
   }
 }
 
-void Sender::set(int channel, uint8_t value) {
+bool Sender::set(int channel, uint8_t value) {
   if (channel < 0 || kMaxDMXPacketSize <= channel) {
-    return;
+    return false;
   }
   outputBuf_[channel] = value;
+  return true;
 }
 
-void Sender::set16Bit(int channel, uint16_t value) {
+bool Sender::set16Bit(int channel, uint16_t value) {
   if (channel < 0 || kMaxDMXPacketSize - 1 <= channel) {
-    return;
+    return false;
   }
 
   Lock lock{*this};
@@ -266,23 +267,24 @@ void Sender::set16Bit(int channel, uint16_t value) {
     outputBuf_[channel] = value >> 8;
     outputBuf_[channel + 1] = value;
   //}
+  return true;
 }
 
-void Sender::set(int startChannel, const uint8_t *values, int len) {
-  if (len <= 0) {
-    return;
-  }
-  if (startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
-    return;
+bool Sender::set(int startChannel, const uint8_t *values, int len) {
+  if (len < 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
+    return false;
   }
   if (startChannel + len <= 0 || kMaxDMXPacketSize < startChannel + len) {
-    return;
+    return false;
   }
 
-  Lock lock{*this};
-  //{
-    std::copy_n(&values[0], len, &outputBuf_[startChannel]);
-  //}
+  if (len > 0) {
+    Lock lock{*this};
+    //{
+      std::copy_n(&values[0], len, &outputBuf_[startChannel]);
+    //}
+  }
+  return true;
 }
 
 void Sender::clear() {
@@ -295,9 +297,9 @@ void Sender::clear() {
   //}
 }
 
-void Sender::setRefreshRate(float rate) {
+bool Sender::setRefreshRate(float rate) {
   if ((rate != rate) || rate < 0.0f) {  // NaN or negative
-    return;
+    return false;
   }
   if (rate == 0.0f) {
     breakToBreakTime_ = UINT32_MAX;
@@ -309,19 +311,20 @@ void Sender::setRefreshRate(float rate) {
     breakToBreakTime_ = 1000000 / rate;
   }
   refreshRate_ = rate;
+  return true;
 }
 
 void Sender::resume() {
   resumeFor(0);
 }
 
-void Sender::resumeFor(int n) {
-  resumeFor(n, doneTXFunc_);
+bool Sender::resumeFor(int n) {
+  return resumeFor(n, doneTXFunc_);
 }
 
-void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
+bool Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
   if (n < 0) {
-    return;
+    return false;
   }
 
   // Pausing made transmission INACTIVE
@@ -377,6 +380,8 @@ void Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
     }
     doneTXFunc_ = doneTXFunc;
   //}
+
+  return true;
 }
 
 bool Sender::isTransmitting() const {
