@@ -1030,21 +1030,22 @@ void Receiver::enableIRQs() const {
 // ---------------------------------------------------------------------------
 
 void Receiver::setRXWatchPin(int pin) {
-  __disable_irq();
-  if (pin < 0) {
-    if (rxWatchPin_ >= 0) {
-      detachInterrupt(rxWatchPin_);
-    }
-    rxWatchPin_ = -1;
-    rxChangeState_ = 0;
-  } else {
-    if (rxWatchPin_ != pin) {
-      detachInterrupt(rxWatchPin_);
-      rxWatchPin_ = pin;
+  Lock lock{*this};
+  //{
+    if (pin < 0) {
+      if (rxWatchPin_ >= 0) {
+        detachInterrupt(rxWatchPin_);
+      }
+      rxWatchPin_ = -1;
       rxChangeState_ = 0;
+    } else {
+      if (rxWatchPin_ != pin) {
+        detachInterrupt(rxWatchPin_);
+        rxWatchPin_ = pin;
+        rxChangeState_ = 0;
+      }
     }
-  }
-  __enable_irq();
+  //}
 }
 
 void Receiver::rxPinRose_isr() {
