@@ -274,16 +274,17 @@ bool Sender::set(int startChannel, const uint8_t *values, int len) {
   if (len < 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
     return false;
   }
+  if (len == 0) {
+    return true;
+  }
   if (startChannel + len <= 0 || kMaxDMXPacketSize < startChannel + len) {
     return false;
   }
 
-  if (len > 0) {
-    Lock lock{*this};
-    //{
-      std::copy_n(&values[0], len, &outputBuf_[startChannel]);
-    //}
-  }
+  Lock lock{*this};
+  //{
+    std::copy_n(&values[0], len, &outputBuf_[startChannel]);
+  //}
   return true;
 }
 
