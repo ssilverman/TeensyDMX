@@ -483,14 +483,18 @@ If the UART is used to generate the BREAK and MAB timings then they are
 otherwise restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, or 10:1.
 These correspond to the UART formats, 8N2, 8E2, 8N1, and 8E1.
 
-### Error handling
+### Error handling in the API
 
 Several `Sender` functions that return a `bool` indicate whether an operation
 was successful. Prior versions of the library did nothing with, or silently
 ignored, bad arguments.
 
-Not all functions return a `bool`, but the ones that do indicate success
-or failure.
+The status-returning functions are as follows:
+1. `setPacketSize`,
+2. Both `set` functions,
+3. Both `set16Bit` functions,
+4. `setRefreshRate`, and
+5. Both `resumeFor` functions.
 
 ## Technical notes
 
