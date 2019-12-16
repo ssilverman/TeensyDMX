@@ -4,6 +4,12 @@ This document details the changes between each release.
 
 ## [4.0.0-alpha.6]
 
+### Added
+* There's a new alternative implementation of `IntervalTimer` that's being used
+  to generate BREAK and MAB timings. This version allows state to be passed to
+  the trigger function. It also has a slightly different API that allows other
+  ways to start and restart the timer.
+
 ### Changed
 * README updates.
 
