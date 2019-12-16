@@ -226,35 +226,36 @@ void IntervalTimer::end() {
   if (channel_ == nullptr) {
     return;
   }
+  channel_->TCTRL = 0;
 
 #if defined(KINETISK)
   int index = channel_ - KINETISK_PIT_CHANNELS;
+  funcs[index] = nullptr;
   NVIC_DISABLE_IRQ(IRQ_PIT_CH0 + index);
 #elif defined(KINETISL)
   int index = channel_ - KINETISK_PIT_CHANNELS;
+  funcs[index] = nullptr;
+  priorities[index] = 255;
   runningFlags &= ~(uint32_t{1} << index);
   if (runningFlags == 0) {
     NVIC_DISABLE_IRQ(IRQ_PIT);
+  } else {
+    NVIC_SET_PRIORITY(IRQ_PIT,
+                      *std::min_element(&priorities[0],
+                                        &priorities[kNumChannels]));
   }
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
   int index = channel_ - IMXRT_PIT_CHANNELS;
+  funcs[index] = nullptr;
+  priorities[index] = 255;
   runningFlags &= ~(uint32_t{1} << index);
   if (runningFlags == 0) {
     NVIC_DISABLE_IRQ(IRQ_PIT);
+  } else {
+    NVIC_SET_PRIORITY(IRQ_PIT,
+                      *std::min_element(&priorities[0],
+                                        &priorities[kNumChannels]));
   }
-#endif  // Processor check
-  funcs[index] = nullptr;
-  channel_->TCTRL = 0;
-#if defined(KINETISL)
-  priorities[index] = 255;
-  NVIC_SET_PRIORITY(IRQ_PIT,
-                    *std::min_element(&priorities[0],
-                                      &priorities[kNumChannels]));
-#elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
-  priorities[index] = 255;
-  NVIC_SET_PRIORITY(IRQ_PIT,
-                    *std::min_element(&priorities[0],
-                                      &priorities[kNumChannels]));
 #endif  // Processor check
   channel_ = nullptr;
 }
