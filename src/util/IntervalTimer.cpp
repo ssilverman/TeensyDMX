@@ -51,20 +51,22 @@ static constexpr uint32_t kFreq = 24000000;
 // Maximum period in microseconds.
 static constexpr uint32_t kMaxPeriod = UINT32_MAX / (kFreq / 1000000.0f);
 
-bool IntervalTimer::begin(void (*func)(void *), void *state, uint32_t micros) {
+bool IntervalTimer::begin(void (*func)(void *), void *state, uint32_t micros,
+                          void (*startFunc)(void *), void *startState) {
   if (micros == 0 || kMaxPeriod < micros) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000)*micros - 1;
-  return beginCycles(func, state, cycles);
+  return beginCycles(func, state, cycles, startFunc, startState);
 }
 
-bool IntervalTimer::begin(void (*func)(void *), void *state, float micros) {
+bool IntervalTimer::begin(void (*func)(void *), void *state, float micros,
+                          void (*startFunc)(void *), void *startState) {
   if (micros <= 0 || kMaxPeriod < micros) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000.0f)*micros - 0.5f;
-  return beginCycles(func, state, cycles);
+  return beginCycles(func, state, cycles, startFunc, startState);
 }
 
 bool IntervalTimer::restart(uint32_t micros) {
@@ -129,7 +131,8 @@ bool IntervalTimer::restartCycles(uint32_t cycles) {
 }
 
 bool IntervalTimer::beginCycles(void (*func)(void *), void *state,
-                                uint32_t cycles) {
+                                uint32_t cycles,
+                                void (*startFunc)(void *), void *startState) {
   if (cycles < 36) {  // TODO: Why 36?
     return false;
   }
@@ -185,6 +188,9 @@ bool IntervalTimer::beginCycles(void (*func)(void *), void *state,
   funcStates[index] = state;
   channel_->LDVAL = cycles;
   channel_->TCTRL = PIT_TCTRL_TIE | PIT_TCTRL_TEN;
+  if (startFunc != nullptr) {
+    startFunc(startState);
+  }
 #if defined(KINETISK)
   switch (index) {
     case 0:

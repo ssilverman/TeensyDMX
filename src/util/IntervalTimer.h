@@ -39,11 +39,19 @@ class IntervalTimer final {
   // false if the period is zero or out of range.
   //
   // This sets up the function and enables the interrupt.
-  bool begin(void (*func)(void *), void *state, uint32_t micros);
+  //
+  // The `startFunc` and `startState` arguments are optional and can be
+  // specified if a function needs to be called just before the timer interrupt
+  // is enabled. This helps to make timing more accurate by moving statements
+  // that need to be executed at the start of the interval to just before the
+  // interval actually begins.
+  bool begin(void (*func)(void *), void *state, uint32_t micros,
+             void (*startFunc)(void *) = nullptr, void *startState = nullptr);
 
   // See the `uint32_t` version of `begin`. This also returns false if the
   // period is negative.
-  bool begin(void (*func)(void *), void *state, float micros);
+  bool begin(void (*func)(void *), void *state, float micros,
+             void (*startFunc)(void *) = nullptr, void *startState = nullptr);
 
   // Restarts the timer with the specified period in microseconds. The timer is
   // first stopped and then restarted with the new period.
@@ -98,7 +106,8 @@ class IntervalTimer final {
 #endif  // Processor check
 	/*volatile*/ uint8_t priority_;
 
-	bool beginCycles(void (*func)(void *), void *state, uint32_t cycles);
+	bool beginCycles(void (*func)(void *), void *state, uint32_t cycles,
+                   void (*startFunc)(void *), void *startState);
   bool updateCycles(uint32_t cycles);
   bool restartCycles(uint32_t cycles);
 };
