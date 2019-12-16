@@ -95,7 +95,7 @@
       (status & STAT_PREFIX##_TDRE) != 0) {                           \
     switch (instance->state_) {                                       \
       case Sender::XmitStates::kBreak:                                \
-        if (instance->intervalTimer_.begin(                           \
+        if (!instance->intervalTimer_.begin(                          \
                 [](void *state) {                                     \
                   Sender *s = static_cast<Sender*>(state);            \
                   if (s->state_ == Sender::XmitStates::kBreak) {      \
@@ -108,10 +108,13 @@
                     CTRL = CTRL_PREFIX##_TX_ACTIVE;                   \
                   }                                                   \
                 }, instance,                                          \
-                instance->breakTime_)) {                              \
-          CTRLINV |= CTRLINV_PREFIX##_TXINV;                          \
-          CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
-        } else {                                                      \
+                instance->breakTime_,                                 \
+                [](void *state) {                                     \
+                  CTRL = CTRL_PREFIX##_TX_INACTIVE;                   \
+                  /* Invert the line as close as possible to the      \
+                   * interrupt start. */                              \
+                  CTRLINV |= CTRLINV_PREFIX##_TXINV;                  \
+                }, nullptr)) {                                        \
           /* Starting the timer failed, revert to the original way */ \
           UART_TX_SET_BREAK_BAUD_##REG                                \
           DATA = 0;                                                   \
