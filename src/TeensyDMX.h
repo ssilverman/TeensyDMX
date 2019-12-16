@@ -25,6 +25,7 @@
 
 // Project includes
 #include "Responder.h"
+#include "util/IntervalTimer.h"
 
 namespace qindesign {
 namespace teensydmx {
@@ -1011,6 +1012,7 @@ class Sender final : public TeensyDMX {
    // State that tracks what to transmit and when.
   enum class XmitStates {
     kBreak,  // Need to transmit a BREAK
+    kMAB,    // Need to transmit a MAB
     kData,   // Need to transmit data
     kIdle,   // The end of data for one packet has been reached
   };
@@ -1080,7 +1082,7 @@ class Sender final : public TeensyDMX {
 
   // The packet refresh rate, in Hz.
   float refreshRate_;
-  IntervalTimer intervalTimer_;  // General purpose timer
+  util::IntervalTimer intervalTimer_;  // General purpose timer
 
   // The BREAK-to-BREAK timing, matching the refresh rate.
   // This is specified in microseconds.

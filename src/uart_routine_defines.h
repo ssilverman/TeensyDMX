@@ -106,38 +106,26 @@
       (status & STAT_PREFIX##_TDRE) != 0) {                           \
     switch (instance->state_) {                                       \
       case Sender::XmitStates::kBreak:                                \
-        if (instance->intervalTimer_.begin(                           \
-                []() {                                                \
-                  Sender *s = txInstances[INSTANCE];                  \
-                  if (s == nullptr) {                                 \
-                    return;                                           \
-                  }                                                   \
-                  CTRLINV &= ~CTRLINV_PREFIX##_TXINV;                 \
-                  /* Calling update() here doesn't seem to restart    \
-                   * things in time, so do begin() */                 \
-                  if (!s->intervalTimer_.begin(                       \
-                          []() {                                      \
-                            Sender *s = txInstances[INSTANCE];        \
-                            if (s == nullptr) {                       \
-                              return;                                 \
-                            }                                         \
-                            s->intervalTimer_.end();                  \
-                            s->state_ = Sender::XmitStates::kData;    \
-                            CTRL = CTRL_PREFIX##_TX_ACTIVE;           \
-                          },                                          \
-                          s->adjustedMABTime_)) {                     \
-                    /* Fallback if the MAB timer couldn't start */    \
+        if (!instance->intervalTimer_.begin(                          \
+                [](void *state) {                                     \
+                  Sender *s = static_cast<Sender*>(state);            \
+                  if (s->state_ == Sender::XmitStates::kBreak) {      \
+                    CTRLINV &= ~CTRLINV_PREFIX##_TXINV;               \
+                    s->state_ = Sender::XmitStates::kMAB;             \
+                    s->intervalTimer_.restart(s->adjustedMABTime_);   \
+                  } else {                                            \
                     s->intervalTimer_.end();                          \
-                    delayMicroseconds(s->adjustedMABTime_ +           \
-                                      kMABDelayAdjustedAdjust);       \
                     s->state_ = Sender::XmitStates::kData;            \
                     CTRL = CTRL_PREFIX##_TX_ACTIVE;                   \
                   }                                                   \
-                },                                                    \
-                instance->breakTime_)) {                              \
-          CTRL = CTRL_PREFIX##_TX_INACTIVE;                           \
-          CTRLINV |= CTRLINV_PREFIX##_TXINV;                          \
-        } else {                                                      \
+                }, instance,                                          \
+                instance->breakTime_,                                 \
+                [](void *state) {                                     \
+                  CTRL = CTRL_PREFIX##_TX_INACTIVE;                   \
+                  /* Invert the line as close as possible to the      \
+                   * interrupt start. */                              \
+                  CTRLINV |= CTRLINV_PREFIX##_TXINV;                  \
+                }, nullptr)) {                                        \
           /* Starting the timer failed, revert to the original way */ \
           UART_TX_SET_BREAK_BAUD_##REG                                \
           DATA = 0;                                                   \
@@ -172,13 +160,11 @@
           if (instance->breakToBreakTime_ != UINT32_MAX) {            \
             /* Non-infinite BREAK time */                             \
             if (!instance->intervalTimer_.begin(                      \
-                    []() {                                            \
-                      Sender *s = txInstances[INSTANCE];              \
-                      if (s != nullptr) {                             \
-                        s->intervalTimer_.end();                      \
-                        CTRL = CTRL_PREFIX##_TX_ACTIVE;               \
-                      }                                               \
-                    },                                                \
+                    [](void *state) {                                 \
+                      Sender *s = static_cast<Sender*>(state);        \
+                      s->intervalTimer_.end();                        \
+                      CTRL = CTRL_PREFIX##_TX_ACTIVE;                 \
+                    }, instance,                                      \
                     instance->breakToBreakTime_ - timeSinceBreak)) {  \
               /* If starting the timer failed */                      \
               CTRL = CTRL_PREFIX##_TX_ACTIVE;                         \

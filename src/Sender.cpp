@@ -115,11 +115,11 @@ Sender::~Sender() {
 #define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
 #define ACTIVATE_UART_TX_SERIAL(N)                               \
-  attachInterruptVector(IRQ_UART##N##_STATUS, uart##N##_tx_isr); \
+  attachInterruptVector(IRQ_UART##N##_STATUS, &uart##N##_tx_isr); \
   UART##N##_C2 = UART_C2_TX_ACTIVE;
 
 #define ACTIVATE_LPUART_TX_SERIAL(N)                        \
-  attachInterruptVector(IRQ_LPUART##N, lpuart##N##_tx_isr); \
+  attachInterruptVector(IRQ_LPUART##N, &lpuart##N##_tx_isr); \
   LPUART##N##_CTRL = LPUART_CTRL_TX_ACTIVE;
 
 // Gleans the LPUART parameters. The BREAK baud rate and format is expected to
@@ -166,7 +166,7 @@ void Sender::begin() {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
     case 0:
       ACTIVATE_UART_TX_SERIAL(0)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
       break;
 #elif defined(IMXRT_LPUART6)
     case 0:
@@ -179,7 +179,7 @@ void Sender::begin() {
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       ACTIVATE_UART_TX_SERIAL(1)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
       break;
 #elif defined(IMXRT_LPUART4)
     case 1:
@@ -192,7 +192,7 @@ void Sender::begin() {
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       ACTIVATE_UART_TX_SERIAL(2)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
       break;
 #elif defined(IMXRT_LPUART2)
     case 2:
@@ -205,7 +205,7 @@ void Sender::begin() {
 #if defined(HAS_KINETISK_UART3)
     case 3:
       ACTIVATE_UART_TX_SERIAL(3)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
       break;
 #elif defined(IMXRT_LPUART3)
     case 3:
@@ -218,7 +218,7 @@ void Sender::begin() {
 #if defined(HAS_KINETISK_UART4)
     case 4:
       ACTIVATE_UART_TX_SERIAL(4)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
       break;
 #elif defined(IMXRT_LPUART8)
     case 4:
@@ -231,13 +231,13 @@ void Sender::begin() {
 #if defined(HAS_KINETISK_UART5)
     case 5:
       ACTIVATE_UART_TX_SERIAL(5)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
       GLEAN_LPUART_PARAMS(0)
       ACTIVATE_LPUART_TX_SERIAL(0)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART0));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART0));
       break;
 #elif defined(IMXRT_LPUART1)
     case 5:
