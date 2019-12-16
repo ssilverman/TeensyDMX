@@ -418,18 +418,18 @@
 
 // Needs to have UART_TX_FLUSH_FIFO_N defined.
 // N is the register number.
-#define UART_TX_BREAK(N)                       \
-  UART_TX_FLUSH_FIFO_##N                       \
-                                               \
-  while ((UART##N##_S1 & UART_S1_TDRE) == 0) { \
-    /* Wait until we can transmit */           \
-  }                                            \
-                                               \
-  if (breakTime > 0) {                         \
-    UART##N##_C3 |= UART_C3_TXINV;             \
-    delayMicroseconds(breakTime);              \
-    UART##N##_C3 &= ~UART_C3_TXINV;            \
-  }                                            \
+#define UART_TX_BREAK(N)                     \
+  UART_TX_FLUSH_FIFO_##N                     \
+                                             \
+  while ((UART##N##_S1 & UART_S1_TC) == 0) { \
+    /* Wait until we can transmit */         \
+  }                                          \
+                                             \
+  if (breakTime > 0) {                       \
+    UART##N##_C3 |= UART_C3_TXINV;           \
+    delayMicroseconds(breakTime);            \
+    UART##N##_C3 &= ~UART_C3_TXINV;          \
+  }                                          \
   delayMicroseconds(mabTime);
 
 // N is the register number.
@@ -440,18 +440,18 @@
 
 // Needs to have LPUART_TX_FLUSH_FIFO_N defined.
 // N is the register number.
-#define LPUART_TX_BREAK(N)                             \
-  LPUART_TX_FLUSH_FIFO_##N                             \
-                                                       \
-  while ((LPUART##N##_STAT & LPUART_STAT_TDRE) == 0) { \
-    /* Wait until we can transmit */                   \
-  }                                                    \
-                                                       \
-  if (breakTime > 0) {                                 \
-    LPUART##N##_CTRL |= LPUART_CTRL_TXINV;             \
-    delayMicroseconds(breakTime);                      \
-    LPUART##N##_CTRL &= ~LPUART_CTRL_TXINV;            \
-  }                                                    \
+#define LPUART_TX_BREAK(N)                           \
+  LPUART_TX_FLUSH_FIFO_##N                           \
+                                                     \
+  while ((LPUART##N##_STAT & LPUART_STAT_TC) == 0) { \
+    /* Wait until we can transmit */                 \
+  }                                                  \
+                                                     \
+  if (breakTime > 0) {                               \
+    LPUART##N##_CTRL |= LPUART_CTRL_TXINV;           \
+    delayMicroseconds(breakTime);                    \
+    LPUART##N##_CTRL &= ~LPUART_CTRL_TXINV;          \
+  }                                                  \
   delayMicroseconds(mabTime);
 
 #endif  // UART_ROUTINE_DEFINES_H_
