@@ -25,6 +25,7 @@
 
 // Project includes
 #include "Responder.h"
+#include "util/IntervalTimer.h"
 
 namespace qindesign {
 namespace teensydmx {
@@ -1002,7 +1003,7 @@ class Sender final : public TeensyDMX {
 
   // The packet refresh rate, in Hz.
   float refreshRate_;
-  IntervalTimer intervalTimer_;  // General purpose timer
+  util::IntervalTimer intervalTimer_;  // General purpose timer
 
   // The BREAK-to-BREAK timing, matching the refresh rate.
   // This is specified in microseconds.

@@ -162,48 +162,48 @@ void Sender::begin() {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
     case 0:
       ACTIVATE_UART_TX_SERIAL(0)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
       break;
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       ACTIVATE_UART_TX_SERIAL(1)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
       break;
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       ACTIVATE_UART_TX_SERIAL(2)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
 #if defined(HAS_KINETISK_UART3)
     case 3:
       ACTIVATE_UART_TX_SERIAL(3)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
       break;
 #endif  // HAS_KINETISK_UART3
 
 #if defined(HAS_KINETISK_UART4)
     case 4:
       ACTIVATE_UART_TX_SERIAL(4)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
       break;
 #endif  // HAS_KINETISK_UART4
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
       ACTIVATE_UART_TX_SERIAL(5)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
       GLEAN_LPUART_PARAMS(0)
       ACTIVATE_LPUART_TX_SERIAL(0)
-      intervalTimer_.priority(NVIC_GET_PRIORITY(IRQ_LPUART0));
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART0));
       break;
 #endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5
   }
