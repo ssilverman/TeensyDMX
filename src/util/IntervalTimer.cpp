@@ -144,7 +144,7 @@ bool IntervalTimer::beginCycles(void (*func)(void *), void *state,
 #if defined(KINETISK) || defined(KINETISL)
 		SIM_SCGC6 |= SIM_SCGC6_PIT;
 		__asm__ volatile("nop");  // Solves timing problem on Teensy 3.5
-		PIT_MCR = PIT_MCR_FRZ;
+		PIT_MCR = PIT_MCR_FRZ;  // Allow freeze in debug mode
 		KINETISK_PIT_CHANNEL_t *ch = KINETISK_PIT_CHANNELS;
 		while (true) {
 			if (ch->TCTRL == 0) {
@@ -157,7 +157,7 @@ bool IntervalTimer::beginCycles(void (*func)(void *), void *state,
     channel_ = ch;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
 		CCM_CCGR1 |= CCM_CCGR1_PIT(CCM_CCGR_ON);
-		PIT_MCR = PIT_MCR_FRZ;
+		PIT_MCR = PIT_MCR_FRZ;  // Allow freeze in debug mode
 		IMXRT_PIT_CHANNEL_t *ch = IMXRT_PIT_CHANNELS;
 		while (true) {
 			if (ch->TCTRL == 0) {
