@@ -162,7 +162,7 @@ Receiver::Receiver(HardwareSerial &uart)
       connectChangeFunc_{nullptr},
       errorStats_{},
       responderCount_(0),
-      responderOutBufLen_{0},
+      responderOutBufLen_(0),
       setTXNotRXFunc_(nullptr),
       rxWatchPin_(-1),
       rxChangeState_(0),

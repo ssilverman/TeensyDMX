@@ -16,6 +16,10 @@ This document details the changes between each release.
 ### Fixed
 * `Receiver::setRXWatchPin` didn't allow negative arguments because the
   parameter was of type `uint8_t`; it's now an `int`.
+* When sending a responder-initiated BREAK from the receiver, the routine now
+  properly waits for transmission of any previous characters to complete; it
+  was checking the register containing FIFO capacity instead of the register
+  that indicates idle.
 
 ## [4.0.0-alpha.5]
 
