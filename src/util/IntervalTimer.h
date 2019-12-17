@@ -100,13 +100,13 @@ class IntervalTimer final {
   // };
 
 #if defined(KINETISK) || defined(KINETISL)
-	KINETISK_PIT_CHANNEL_t */*volatile*/ channel_;
+  KINETISK_PIT_CHANNEL_t */*volatile*/ channel_;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
-	IMXRT_PIT_CHANNEL_t */*volatile*/ channel_;
+  IMXRT_PIT_CHANNEL_t */*volatile*/ channel_;
 #endif  // Processor check
-	/*volatile*/ uint8_t priority_;
+  /*volatile*/ uint8_t priority_;
 
-	bool beginCycles(void (*func)(void *), void *state, uint32_t cycles,
+  bool beginCycles(void (*func)(void *), void *state, uint32_t cycles,
                    void (*startFunc)(void *), void *startState);
   bool updateCycles(uint32_t cycles);
   bool restartCycles(uint32_t cycles);

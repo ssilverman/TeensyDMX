@@ -143,45 +143,45 @@ bool IntervalTimer::beginCycles(void (*func)(void *), void *state,
   if (channel_ != nullptr) {
     channel_->TCTRL = 0;            // Disable the timer so it can be restarted
     channel_->TFLG = PIT_TFLG_TIF;  // Clear the interrupt
-	} else {
+  } else {
 #if defined(KINETISK) || defined(KINETISL)
-		SIM_SCGC6 |= SIM_SCGC6_PIT;
-		__asm__ volatile("nop");  // Solves timing problem on Teensy 3.5
-		PIT_MCR = PIT_MCR_FRZ;  // Allow freeze in debug mode
-		KINETISK_PIT_CHANNEL_t *ch = KINETISK_PIT_CHANNELS;
-		while (true) {
-			if (ch->TCTRL == 0) {
+    SIM_SCGC6 |= SIM_SCGC6_PIT;
+    __asm__ volatile("nop");  // Solves timing problem on Teensy 3.5
+    PIT_MCR = PIT_MCR_FRZ;  // Allow freeze in debug mode
+    KINETISK_PIT_CHANNEL_t *ch = KINETISK_PIT_CHANNELS;
+    while (true) {
+      if (ch->TCTRL == 0) {
         break;
       }
-			if (++ch >= KINETISK_PIT_CHANNELS + kNumChannels) {
-				return false;
-			}
-		}
+      if (++ch >= KINETISK_PIT_CHANNELS + kNumChannels) {
+        return false;
+      }
+    }
     channel_ = ch;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
-		CCM_CCGR1 |= CCM_CCGR1_PIT(CCM_CCGR_ON);
-		PIT_MCR = PIT_MCR_FRZ;  // Allow freeze in debug mode
-		IMXRT_PIT_CHANNEL_t *ch = IMXRT_PIT_CHANNELS;
-		while (true) {
-			if (ch->TCTRL == 0) {
+    CCM_CCGR1 |= CCM_CCGR1_PIT(CCM_CCGR_ON);
+    PIT_MCR = PIT_MCR_FRZ;  // Allow freeze in debug mode
+    IMXRT_PIT_CHANNEL_t *ch = IMXRT_PIT_CHANNELS;
+    while (true) {
+      if (ch->TCTRL == 0) {
         break;
       }
-			if (++ch >= IMXRT_PIT_CHANNELS + kNumChannels) {
-				return false;
-			}
-		}
-		channel_ = ch;
+      if (++ch >= IMXRT_PIT_CHANNELS + kNumChannels) {
+        return false;
+      }
+    }
+    channel_ = ch;
 #endif  // Processor check
-	}
+  }
 
   // Start the timer
 #if defined(KINETISK)
-	int index = channel_ - KINETISK_PIT_CHANNELS;
+  int index = channel_ - KINETISK_PIT_CHANNELS;
 #elif defined(KINETISL)
-	int index = channel_ - KINETISK_PIT_CHANNELS;
+  int index = channel_ - KINETISK_PIT_CHANNELS;
   runningFlags |= (uint32_t{1} << index);
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
-	int index = channel_ - IMXRT_PIT_CHANNELS;
+  int index = channel_ - IMXRT_PIT_CHANNELS;
   runningFlags |= (uint32_t{1} << index);
 #endif  // Processor check
   funcs[index] = func;
@@ -209,19 +209,19 @@ bool IntervalTimer::beginCycles(void (*func)(void *), void *state,
   NVIC_SET_PRIORITY(IRQ_PIT_CH0 + index, priority_);
   NVIC_ENABLE_IRQ(IRQ_PIT_CH0 + index);
 #elif defined(KINETISL)
-	priorities[index] = priority_;
+  priorities[index] = priority_;
   attachInterruptVector(IRQ_PIT, &pit_isr);
   NVIC_SET_PRIORITY(IRQ_PIT,
                     *std::min_element(&priorities[0],
                                       &priorities[kNumChannels]));
-	NVIC_ENABLE_IRQ(IRQ_PIT);
+  NVIC_ENABLE_IRQ(IRQ_PIT);
 #elif defined(__IMXRT1062__) || (__IMXRT1052__)
-	priorities[index] = priority_;
+  priorities[index] = priority_;
   attachInterruptVector(IRQ_PIT, &pit_isr);
   NVIC_SET_PRIORITY(IRQ_PIT,
                     *std::min_element(&priorities[0],
                                       &priorities[kNumChannels]));
-	NVIC_ENABLE_IRQ(IRQ_PIT);
+  NVIC_ENABLE_IRQ(IRQ_PIT);
 #endif  // Processor check
   return true;
 }
@@ -298,9 +298,9 @@ void IntervalTimer::setPriority(uint8_t n) {
 
 #if defined(KINETISK)
 void pit0_isr() {
-	PIT_TFLG0 = 1;
+  PIT_TFLG0 = 1;
   if (funcs[0] != nullptr) {
-  	funcs[0](funcStates[0]);
+    funcs[0](funcStates[0]);
   }
 }
 
@@ -331,13 +331,13 @@ void pit_isr() {
     if (funcs[0] != nullptr) {
       funcs[0](funcStates[0]);
     }
-	}
-	if (PIT_TFLG1 != 0) {
-		PIT_TFLG1 = 1;
+  }
+  if (PIT_TFLG1 != 0) {
+    PIT_TFLG1 = 1;
     if (funcs[1] != nullptr) {
       funcs[1](funcStates[1]);
     }
-	}
+  }
 }
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
 void pit_isr() {
