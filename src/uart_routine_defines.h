@@ -11,6 +11,8 @@
 //  UART TX routines, for Sender
 // ---------------------------------------------------------------------------
 
+// Sends data to a UART with a FIFO. Used inside UART_TX
+// as UART_TX_DATA_STATE_REG.
 // N is the register number.
 #define UART_TX_DATA_STATE_WITH_FIFO(N)                              \
   do {                                                               \
@@ -22,6 +24,8 @@
     UART##N##_D = instance->outputBuf_[instance->outputBufIndex_++]; \
   } while (UART##N##_TCFIFO < 8);
 
+// Sends data to a UART with no FIFO. Used inside UART_TX
+// as UART_TX_DATA_STATE_REG.
 // N is the register number.
 #define UART_TX_DATA_STATE_NO_FIFO(N)                                \
   if (instance->outputBufIndex_ >= instance->packetSize_) {          \
@@ -33,6 +37,8 @@
     }                                                                \
   }
 
+// Sends data to an LPUART with no FIFO. Used inside UART_TX
+// as UART_TX_DATA_STATE_REG.
 // N is the register number.
 #define LPUART_TX_DATA_STATE_NO_FIFO(N)                                   \
   if (instance->outputBufIndex_ >= instance->packetSize_) {               \
@@ -44,6 +50,9 @@
     }                                                                     \
   }
 
+// Sets the baud rate for a UART inside a KINETISK chip. Used inside UART_TX as
+// UART_TX_SET_BREAK_BAUD_REG and inside UART_TX_COMPLETE
+// as UART_TX_SET_SLOTS_BAUD_REG.
 // N is the register number.
 #define KINETISK_SET_BAUD(N, DIV, FORMAT_FUNC) \
   { /* New block because defining */           \
@@ -58,6 +67,9 @@
     FORMAT_FUNC;                               \
   }
 
+// Sets the baud rate for a UART inside a KINETISL chip. Used inside UART_TX as
+// UART_TX_SET_BREAK_BAUD_REG and inside UART_TX_COMPLETE
+// as UART_TX_SET_SLOTS_BAUD_REG.
 // TWO_STOP_BITS is a bool.
 // N is the register number.
 #define KINETISL_SET_BAUD(N, DIV, TWO_STOP_BITS) \
@@ -74,12 +86,16 @@
     UART##N##_BDL = div & 0xff;                  \
   }
 
+// Sets the baud rate for an LPUART. Used inside UART_TX as
+// UART_TX_SET_BREAK_BAUD_REG and inside UART_TX_COMPLETE
+// as UART_TX_SET_SLOTS_BAUD_REG.
 // N is the register number.
 #define LPUART_SET_BAUD(N, PARAMS_MEMBER)          \
   LPUART##N##_BAUD = instance->PARAMS_MEMBER.baud; \
   LPUART##N##_STAT = instance->PARAMS_MEMBER.stat; \
   LPUART##N##_CTRL = instance->PARAMS_MEMBER.ctrl;
 
+// Transmit routine for a UART and LPUART.
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Needs to have UART_TX_DATA_STATE_REG defined.
 // Needs to have UART_TX_SET_BREAK_BAUD_REG defined.
@@ -171,6 +187,7 @@
     }                                                                 \
   }
 
+// Routine for when transmission is complete, for a UART or LPUART.
 // Assumes status = UARTx_S1 and control = UARTx_C2 (or equivalent).
 // Assumes instance is defined.
 // Needs to have UART_TX_SET_SLOTS_BAUD_REG defined.
@@ -201,6 +218,7 @@
 //  UART RX routines, for Receiver
 // ---------------------------------------------------------------------------
 
+// Receives data from a UART with a FIFO. Used inside UART_RX as UART_RX_REG.
 // Assumes status = UARTx_S1.
 // Needs to have UART_RX_TEST_FIRST_STOP_BIT_N defined.
 // N is the register number.
@@ -247,6 +265,8 @@
     }                                                                      \
   }
 
+// Receives data from a UART or LPUART with no FIFO. Used inside UART_RX
+// as UART_RX_REG.
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
 // Needs to have UART_RX_TEST_FIRST_STOP_BIT_N defined.
 // Needs to have UART_RX_CLEAR_IDLE_N defined.
@@ -264,6 +284,7 @@
     UART_RX_CLEAR_IDLE_##N                                           \
   }
 
+// UART and LPUART RX routine.
 // Assumes status = UARTx_S1 or LPUARTy_STAT.
 // Needs to have UART_RX_CLEAR_ERRORS_REG defined.
 // Needs to have UART_RX_ERROR_FLUSH_FIFO_REG defined.
@@ -297,6 +318,7 @@
                                                                            \
   UART_RX_##REG
 
+// Flushes a UART's FIFO when a framing error was detected. Used inside UART_RX.
 // N is the register number.
 #define UART_RX_ERROR_FLUSH_FIFO(N)                               \
   /* Flush anything in the buffer */                              \
@@ -315,6 +337,7 @@
 //  Synchronous TX routines, for Receiver
 // ---------------------------------------------------------------------------
 
+// Synchronous TX routine for UARTs with a FIFO. Used inside UART_SYNC_TX.
 // N is the register number.
 #define UART_SYNC_TX_SEND_FIFO(N)           \
   while (len > 0 && UART##N##_TCFIFO < 8) { \
@@ -345,12 +368,14 @@
     /* Wait until transmission complete */       \
   }
 
+// Flushes a UART's FIFO. Used inside UART_TX_BREAK.
 // N is the register number.
 #define UART_TX_FLUSH_FIFO(N)        \
   while (UART##N##_TCFIFO > 0) {     \
     /* Wait for the FIFO to drain */ \
   }
 
+// Transmits a break from a UART.
 // Needs to have UART_TX_FLUSH_FIFO_N defined.
 // N is the register number.
 #define UART_TX_BREAK(N)                     \
@@ -367,6 +392,7 @@
   }                                          \
   delayMicroseconds(mabTime);
 
+// Transmits a break from an LPUART.
 // N is the register number.
 #define LPUART_TX_BREAK(N)                           \
   while ((LPUART##N##_STAT & LPUART_STAT_TC) == 0) { \
