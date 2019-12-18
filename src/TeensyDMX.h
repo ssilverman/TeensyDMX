@@ -30,41 +30,6 @@
 namespace qindesign {
 namespace teensydmx {
 
-#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
-void uart0_rx_isr();
-void uart0_tx_isr();
-#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
-
-#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
-void uart1_rx_isr();
-void uart1_tx_isr();
-#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
-
-#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
-void uart2_rx_isr();
-void uart2_tx_isr();
-#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
-
-#if defined(HAS_KINETISK_UART3)
-void uart3_rx_isr();
-void uart3_tx_isr();
-#endif  // HAS_KINETISK_UART3
-
-#if defined(HAS_KINETISK_UART4)
-void uart4_rx_isr();
-void uart4_tx_isr();
-#endif  // HAS_KINETISK_UART4
-
-#if defined(HAS_KINETISK_UART5)
-void uart5_rx_isr();
-void uart5_tx_isr();
-#endif  // HAS_KINETISK_UART5
-
-#if defined(HAS_KINETISK_LPUART0)
-void lpuart0_rx_isr();
-void lpuart0_tx_isr();
-#endif  // HAS_KINETISK_LPUART0
-
 // The maximum size of a DMX packet, including the start code.
 constexpr int kMaxDMXPacketSize = 513;
 

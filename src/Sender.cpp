@@ -70,6 +70,35 @@ constexpr uint32_t kMABTimerAdjust = 0;
 constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #endif
 
+// TX ISR routines
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+void uart0_tx_isr();
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
+void uart1_tx_isr();
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
+void uart2_tx_isr();
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+
+#if defined(HAS_KINETISK_UART3)
+void uart3_tx_isr();
+#endif  // HAS_KINETISK_UART3
+
+#if defined(HAS_KINETISK_UART4)
+void uart4_tx_isr();
+#endif  // HAS_KINETISK_UART4
+
+#if defined(HAS_KINETISK_UART5)
+void uart5_tx_isr();
+#endif  // HAS_KINETISK_UART5
+
+#if defined(HAS_KINETISK_LPUART0)
+void lpuart0_tx_isr();
+#endif  // HAS_KINETISK_LPUART0
+
 // Used by the TX ISRs
 Sender *volatile txInstances[6]{nullptr};
 
