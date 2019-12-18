@@ -21,79 +21,96 @@ constexpr uint32_t kCharTime     = 11 * kBitTime;         // In microseconds
 constexpr uint32_t kMinBreakTime = 88;                    // In microseconds
 constexpr uint32_t kMinMABTime   = 8;                     // In microseconds
 
-// Routines that do raw transmit
-// These don't affect the transmitter
+// Routines:
+// 1. RX ISR routines, and
+// 2. Routines that do raw transmit.
+//    These don't affect the transmitter.
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+void uart0_rx_isr();
 void uart0_tx(const uint8_t *b, int len);
 void uart0_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
+void uart1_rx_isr();
 void uart1_tx(const uint8_t *b, int len);
 void uart1_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
+void uart2_rx_isr();
 void uart2_tx(const uint8_t *b, int len);
 void uart2_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
 
 #if defined(HAS_KINETISK_UART3)
+void uart3_rx_isr();
 void uart3_tx(const uint8_t *b, int len);
 void uart3_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART3
 
 #if defined(HAS_KINETISK_UART4)
+void uart4_rx_isr();
 void uart4_tx(const uint8_t *b, int len);
 void uart4_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART4
 
 #if defined(HAS_KINETISK_UART5)
+void uart5_rx_isr();
 void uart5_tx(const uint8_t *b, int len);
 void uart5_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_UART5
 
 #if defined(HAS_KINETISK_LPUART0)
+void lpuart0_rx_isr();
 void lpuart0_tx(const uint8_t *b, int len);
 void lpuart0_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // HAS_KINETISK_LPUART0
 
 #if defined(IMXRT_LPUART6)
+void lpuart6_rx_isr();
 void lpuart6_tx(const uint8_t *b, int len);
 void lpuart6_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // IMXRT_LPUART6
 
 #if defined(IMXRT_LPUART4)
+void lpuart4_rx_isr();
 void lpuart4_tx(const uint8_t *b, int len);
 void lpuart4_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // IMXRT_LPUART4
 
 #if defined(IMXRT_LPUART2)
+void lpuart2_rx_isr();
 void lpuart2_tx(const uint8_t *b, int len);
 void lpuart2_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // IMXRT_LPUART2
 
 #if defined(IMXRT_LPUART3)
+void lpuart3_rx_isr();
 void lpuart3_tx(const uint8_t *b, int len);
 void lpuart3_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // IMXRT_LPUART3
 
 #if defined(IMXRT_LPUART8)
+void lpuart8_rx_isr();
 void lpuart8_tx(const uint8_t *b, int len);
 void lpuart8_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // IMXRT_LPUART8
 
 #if defined(IMXRT_LPUART1)
+void lpuart1_rx_isr();
 void lpuart1_tx(const uint8_t *b, int len);
 void lpuart1_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // IMXRT_LPUART1
 
 #if defined(IMXRT_LPUART7)
+void lpuart7_rx_isr();
 void lpuart7_tx(const uint8_t *b, int len);
 void lpuart7_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // IMXRT_LPUART7
 
 #if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+void lpuart5_rx_isr();
 void lpuart5_tx(const uint8_t *b, int len);
 void lpuart5_tx_break(uint32_t breakTime, uint32_t mabTime);
 #endif  // IMXRT_LPUART5 && __IMXRT1052__

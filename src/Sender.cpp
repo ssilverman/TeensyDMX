@@ -70,6 +70,67 @@ constexpr uint32_t kMABTimerAdjust = 0;
 constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #endif
 
+// TX ISR routines
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+void uart0_tx_isr();
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
+void uart1_tx_isr();
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
+void uart2_tx_isr();
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+
+#if defined(HAS_KINETISK_UART3)
+void uart3_tx_isr();
+#endif  // HAS_KINETISK_UART3
+
+#if defined(HAS_KINETISK_UART4)
+void uart4_tx_isr();
+#endif  // HAS_KINETISK_UART4
+
+#if defined(HAS_KINETISK_UART5)
+void uart5_tx_isr();
+#endif  // HAS_KINETISK_UART5
+
+#if defined(HAS_KINETISK_LPUART0)
+void lpuart0_tx_isr();
+#endif  // HAS_KINETISK_LPUART0
+
+#ifdef IMXRT_LPUART6
+void lpuart6_tx_isr();
+#endif  // IMXRT_LPUART6
+
+#ifdef IMXRT_LPUART4
+void lpuart4_tx_isr();
+#endif  // IMXRT_LPUART4
+
+#ifdef IMXRT_LPUART2
+void lpuart2_tx_isr();
+#endif  // IMXRT_LPUART2
+
+#ifdef IMXRT_LPUART3
+void lpuart3_tx_isr();
+#endif  // IMXRT_LPUART3
+
+#ifdef IMXRT_LPUART8
+void lpuart8_tx_isr();
+#endif  // IMXRT_LPUART8
+
+#ifdef IMXRT_LPUART1
+void lpuart1_tx_isr();
+#endif  // IMXRT_LPUART1
+
+#ifdef IMXRT_LPUART7
+void lpuart7_tx_isr();
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+void lpuart5_tx_isr();
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
+
 // Used by the TX ISRs
 #if defined(__IMXRT1052__)
 Sender *volatile txInstances[8]{nullptr};
