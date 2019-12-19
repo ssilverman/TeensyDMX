@@ -117,12 +117,16 @@
                   if (s->state_ == Sender::XmitStates::kBreak) {      \
                     CTRLINV &= ~CTRLINV_PREFIX##_TXINV;               \
                     s->state_ = Sender::XmitStates::kMAB;             \
-                    s->intervalTimer_.restart(s->adjustedMABTime_);   \
-                  } else {                                            \
-                    s->intervalTimer_.end();                          \
-                    s->state_ = Sender::XmitStates::kData;            \
-                    CTRL = CTRL_PREFIX##_TX_ACTIVE;                   \
+                    if (s->intervalTimer_.restart(                    \
+                            s->adjustedMABTime_)) {                   \
+                      return;                                         \
+                    }                                                 \
+                    /* We shouldn't delay as an alternative because   \
+                     * that might mean we delay too long */           \
                   }                                                   \
+                  s->intervalTimer_.end();                            \
+                  s->state_ = Sender::XmitStates::kData;              \
+                  CTRL = CTRL_PREFIX##_TX_ACTIVE;                     \
                 }, instance,                                          \
                 instance->breakTime_,                                 \
                 [](void *state) {                                     \
