@@ -179,20 +179,20 @@ Receiver::~Receiver() {
   LPUART_CTRL_RE | LPUART_CTRL_RIE | LPUART_CTRL_ILIE
 
 // Must define ACTIVATE_UART_RX_SERIAL_ERROR_N
-#define ACTIVATE_UART_RX_SERIAL(N)                               \
-  /* Enable receive */                                           \
-  if (txEnabled_) {                                              \
-    UART##N##_C2 = UART_C2_RX_ENABLE | UART_C2_TE;               \
-  } else {                                                       \
-    UART##N##_C2 = UART_C2_RX_ENABLE;                            \
-  }                                                              \
+#define ACTIVATE_UART_RX_SERIAL(N)                                \
+  /* Enable receive */                                            \
+  if (txEnabled_) {                                               \
+    UART##N##_C2 = UART_C2_RX_ENABLE | UART_C2_TE;                \
+  } else {                                                        \
+    UART##N##_C2 = UART_C2_RX_ENABLE;                             \
+  }                                                               \
   attachInterruptVector(IRQ_UART##N##_STATUS, &uart##N##_rx_isr); \
-  /* Enable interrupt on frame error */                          \
-  UART##N##_C3 |= UART_C3_FEIE;                                  \
+  /* Enable interrupt on frame error */                           \
+  UART##N##_C3 |= UART_C3_FEIE;                                   \
   ACTIVATE_UART_RX_SERIAL_ERROR_##N
 
 #define ACTIVATE_UART_RX_SERIAL_ERROR(N)                           \
-  attachInterruptVector(IRQ_UART##N##_ERROR, &uart##N##_rx_isr);    \
+  attachInterruptVector(IRQ_UART##N##_ERROR, &uart##N##_rx_isr);   \
   /* We fill bytes from the buffer in the framing error ISR, so we \
    * can set to the same priority. */                              \
   NVIC_SET_PRIORITY(IRQ_UART##N##_ERROR,                           \
