@@ -175,11 +175,11 @@ Sender::~Sender() {
 #define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
 #define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
-#define ACTIVATE_UART_TX_SERIAL(N)                               \
+#define ACTIVATE_UART_TX_SERIAL(N)                                \
   attachInterruptVector(IRQ_UART##N##_STATUS, &uart##N##_tx_isr); \
   UART##N##_C2 = UART_C2_TX_ACTIVE;
 
-#define ACTIVATE_LPUART_TX_SERIAL(N)                        \
+#define ACTIVATE_LPUART_TX_SERIAL(N)                         \
   attachInterruptVector(IRQ_LPUART##N, &lpuart##N##_tx_isr); \
   LPUART##N##_CTRL = LPUART_CTRL_TX_ACTIVE;
 
