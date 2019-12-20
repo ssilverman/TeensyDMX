@@ -39,35 +39,20 @@ constexpr uint32_t kSlotsFormat = SERIAL_8N2;  // 9:2
 constexpr uint32_t kSerialBreakTime = 1000000/kBreakBaud * 9;  // In us
 constexpr uint32_t kSerialMABTime   = 1000000/kBreakBaud * 1;  // In us
 
-// Empirically observed MAB generation adjustment constants, for 20us
-// The timer adjust values are subtracted from the requested MAB to get the
-// actual MAB. The "delay adjusted adjust" is a value that's added to the
-// adjusted delay when requesting delayMicroseconds if the second timer call to
-// create the MAB fails.
+// Empirically observed MAB generation adjustment constants, for 20us. The timer
+// adjust values are subtracted from the requested MAB to get the actual MAB.
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
-// constexpr uint32_t kMABBaudAdjust = 9;
-constexpr uint32_t kMABTimerAdjust = 4;  // 5.5, 5-8 works
-constexpr uint32_t kMABDelayAdjustedAdjust = 0;
+constexpr uint32_t kMABTimerAdjust = 4;
 #elif defined(__MKL26Z64__)
-// constexpr uint32_t kMABBaudAdjust = 6;
-constexpr uint32_t kMABTimerAdjust = 10;  // Ranges from 9-12, (5)8(9 best)-10
-constexpr uint32_t kMABDelayAdjustedAdjust = 2;
+constexpr uint32_t kMABTimerAdjust = 10;
 #elif defined(__MK64FX512__)
-// constexpr uint32_t kMABBaudAdjust = 5;
-constexpr uint32_t kMABTimerAdjust = 3;  // Ranges from 7.25-7.5, 2-4 works
-constexpr uint32_t kMABDelayAdjustedAdjust = 1;
+constexpr uint32_t kMABTimerAdjust = 3;
 #elif defined(__MK66FX1M0__)
-// constexpr uint32_t kMABBaudAdjust = 5;
-constexpr uint32_t kMABTimerAdjust = 3;  // 5.75, 2-5 works
-constexpr uint32_t kMABDelayAdjustedAdjust = 1;
+constexpr uint32_t kMABTimerAdjust = 3;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
-// constexpr uint32_t kMABBaudAdjust = 4;   // 4.5
-constexpr uint32_t kMABTimerAdjust = 0;  // 2.25, 0-3 works
-constexpr uint32_t kMABDelayAdjustedAdjust = 0;
-#else
-// constexpr uint32_t kMABBaudAdjust = 0;
 constexpr uint32_t kMABTimerAdjust = 0;
-constexpr uint32_t kMABDelayAdjustedAdjust = 0;
+#else
+constexpr uint32_t kMABTimerAdjust = 0;
 #endif
 
 // TX ISR routines
