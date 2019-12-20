@@ -4,6 +4,9 @@ This document details the changes between each release.
 
 ## [4.0.0-alpha.7]
 
+### Added
+* Teensy 4 support.
+
 ### Fixed
 * Fixed a case in the transmitter where if the MAB was zero, then it would be
   sent with the same duration as the BREAK.
