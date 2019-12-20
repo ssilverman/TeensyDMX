@@ -934,7 +934,7 @@ class Sender final : public TeensyDMX {
   }
 
  private:
-   // State that tracks what to transmit and when.
+  // State that tracks what to transmit and when.
   enum class XmitStates {
     kBreak,  // Need to transmit a BREAK
     kMAB,    // Need to transmit a MAB
