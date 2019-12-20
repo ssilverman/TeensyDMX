@@ -50,6 +50,19 @@
     }                                                                     \
   }
 
+// Sends data to an LPUART with a FIFO. Used inside UART_TX
+// as UART_TX_DATA_STATE_REG.
+// N is the register number.
+#define LPUART_TX_DATA_STATE_WITH_FIFO(N)                                 \
+  do {                                                                    \
+    if (instance->outputBufIndex_ >= instance->packetSize_) {             \
+      LPUART##N##_CTRL = LPUART_CTRL_TX_COMPLETING;                       \
+      break;                                                              \
+    }                                                                     \
+    status = LPUART##N##_STAT;                                            \
+    LPUART##N##_DATA = instance->outputBuf_[instance->outputBufIndex_++]; \
+  } while (((LPUART##N##_WATER >> 8) & 0x07) < 4);
+
 // Sets the baud rate for a UART inside a KINETISK chip. Used inside UART_TX as
 // UART_TX_SET_BREAK_BAUD_REG and inside UART_TX_COMPLETE
 // as UART_TX_SET_SLOTS_BAUD_REG.
@@ -269,23 +282,59 @@
     }                                                                      \
   }
 
-// Receives data from a UART or LPUART with no FIFO. Used inside UART_RX
-// as UART_RX_REG.
-// Assumes status = UARTx_S1 or LPUARTy_STAT.
+// Receives data from an LPUART with a FIFO. Used inside UART_RX as UART_RX_REG.
+// Assumes status = LPUARTx_STAT.
+// N is the register number.
+#define LPUART_RX_WITH_FIFO(N)                                           \
+  /* If the receive buffer is full or there's an idle condition */       \
+  if ((status & (LPUART_STAT_RDRF | LPUART_STAT_IDLE)) != 0) {           \
+    uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;                    \
+    if (avail == 0) {                                                    \
+      instance->receiveIdle();                                           \
+      if ((status & LPUART_STAT_IDLE) != 0) {                            \
+        LPUART##N##_STAT |= LPUART_STAT_IDLE;                            \
+      }                                                                  \
+      return;                                                            \
+    } else {                                                             \
+      uint32_t timestamp = micros() - kCharTime*avail;                   \
+      if (avail < ((LPUART##N##_WATER >> 16) & 0x03)) {                  \
+        timestamp -= kCharTime;                                          \
+      }                                                                  \
+      while (avail-- > 0) {                                              \
+        instance->receiveByte(LPUART##N##_DATA, timestamp += kCharTime); \
+      }                                                                  \
+    }                                                                    \
+  }
+
+// Receives data from a UART with no FIFO. Used inside UART_RX as UART_RX_REG.
+// Assumes status = UARTx_S1.
 // Needs to have UART_RX_TEST_FIRST_STOP_BIT_N defined.
 // Needs to have UART_RX_CLEAR_IDLE_N defined.
 // N is the register number.
-#define UART_RX_NO_FIFO(N, STAT_PREFIX, DATA)                        \
+#define UART_RX_NO_FIFO(N)                                           \
   /* If the receive buffer is full */                                \
-  if ((status & STAT_PREFIX##_RDRF) != 0) {                          \
+  if ((status & UART_S1_RDRF) != 0) {                                \
     /* Check that the 9th bit is high; used as the first stop bit */ \
     if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                          \
       instance->receiveBadBreak();                                   \
     }                                                                \
-    instance->receiveByte(DATA, micros());                           \
-  } else if ((status & STAT_PREFIX##_IDLE) != 0) {                   \
+    instance->receiveByte(UART##N##_D, micros());                    \
+  } else if ((status & UART_S1_IDLE) != 0) {                         \
     instance->receiveIdle();                                         \
     UART_RX_CLEAR_IDLE_##N                                           \
+  }
+
+// Receives data from an LPUART with no FIFO. Used inside UART_RX
+// as UART_RX_REG.
+// Assumes status = LPUARTy_STAT.
+// N is the register number.
+#define LPUART_RX_NO_FIFO(N)                           \
+  /* If the receive buffer is full */                  \
+  if ((status & LPUART_STAT_RDRF) != 0) {              \
+    instance->receiveByte(LPUART##N##_DATA, micros()); \
+  } else if ((status & LPUART_STAT_IDLE) != 0) {       \
+    instance->receiveIdle();                           \
+    LPUART##N##_STAT |= LPUART_STAT_IDLE;              \
   }
 
 // UART and LPUART RX routine.
@@ -322,12 +371,14 @@
                                                                            \
   UART_RX_##REG
 
-// Flushes a UART's FIFO when a framing error was detected. Used inside UART_RX.
+// Flushes a UART's FIFO when a framing error was detected. Used inside UART_RX
+// as UART_RX_ERROR_FLUSH_FIFO_REG.
 // N is the register number.
 #define UART_RX_ERROR_FLUSH_FIFO(N)                               \
   /* Flush anything in the buffer */                              \
   uint8_t avail = UART##N##_RCFIFO;                               \
   if (avail > 1) {                                                \
+    /* Read everything but the last byte */                       \
     uint32_t timestamp = micros() - kCharTime*avail;              \
     if (avail < UART##N##_RWFIFO) {                               \
       timestamp -= kCharTime;                                     \
@@ -337,17 +388,41 @@
     }                                                             \
   }
 
+// Flushes an LPUART's FIFO when a framing error was detected. Used inside
+// UART_RX as UART_RX_ERROR_FLUSH_FIFO_REG.
+// N is the register number.
+#define LPUART_RX_ERROR_FLUSH_FIFO(N)                                  \
+  /* Flush anything in the buffer */                                   \
+  uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;                    \
+  if (avail > 1) {                                                     \
+    /* Read everything but the last byte */                            \
+    uint32_t timestamp = micros() - kCharTime*avail;                   \
+    while (--avail > 0) {                                              \
+      instance->receiveByte(LPUART##N##_DATA, timestamp += kCharTime); \
+    }                                                                  \
+  }
+
 // ---------------------------------------------------------------------------
 //  Synchronous TX routines, for Receiver
 // ---------------------------------------------------------------------------
 
-// Synchronous TX routine for UARTs with a FIFO. Used inside UART_SYNC_TX.
+// Synchronous TX routine for UARTs with a FIFO. Used inside UART_SYNC_TX
+// as UART_SYNC_TX_SEND_FIFO_N.
 // N is the register number.
 #define UART_SYNC_TX_SEND_FIFO(N)           \
   while (len > 0 && UART##N##_TCFIFO < 8) { \
     UART##N##_S1;                           \
     UART##N##_D = *(b++);                   \
     len--;                                  \
+  }
+
+// Synchronous TX routine for LPUARTs with a FIFO. Used inside UART_SYNC_TX
+// as UART_SYNC_TX_SEND_FIFO_N.
+// N is the register number.
+#define LPUART_SYNC_TX_SEND_FIFO(N)                          \
+  while (len > 0 && ((LPUART##N##_WATER >> 8) & 0x07) < 4) { \
+    LPUART##N##_DATA = *(b++);                               \
+    len--;                                                   \
   }
 
 // Synchronous TX, used in Receiver.
@@ -396,9 +471,19 @@
   }                                          \
   delayMicroseconds(mabTime);
 
+// Flushes an LPUART's FIFO. Used inside LPUART_TX_BREAK.
+// N is the register number.
+#define LPUART_TX_FLUSH_FIFO(N)                   \
+  while (((LPUART##N##_WATER >> 8) & 0x07) > 0) { \
+    /* Wait for the FIFO to drain */              \
+  }
+
 // Transmits a break from an LPUART.
+// Needs to have LPUART_TX_FLUSH_FIFO_N defined.
 // N is the register number.
 #define LPUART_TX_BREAK(N)                           \
+  LPUART_TX_FLUSH_FIFO_##N                           \
+                                                     \
   while ((LPUART##N##_STAT & LPUART_STAT_TC) == 0) { \
     /* Wait until we can transmit */                 \
   }                                                  \

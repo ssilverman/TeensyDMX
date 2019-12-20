@@ -62,7 +62,7 @@ constexpr uint32_t kMABTimerAdjust = 2;  // 5.75, 2-5 works
 constexpr uint32_t kMABDelayAdjustedAdjust = 1;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
 // constexpr uint32_t kMABBaudAdjust = 4;   // 4.5
-constexpr uint32_t kMABTimerAdjust = 0;  // 2.25
+constexpr uint32_t kMABTimerAdjust = 0;  // 2.25, 0-3 works
 constexpr uint32_t kMABDelayAdjustedAdjust = 0;
 #else
 // constexpr uint32_t kMABBaudAdjust = 0;
@@ -99,8 +99,44 @@ void uart5_tx_isr();
 void lpuart0_tx_isr();
 #endif  // HAS_KINETISK_LPUART0
 
+#ifdef IMXRT_LPUART6
+void lpuart6_tx_isr();
+#endif  // IMXRT_LPUART6
+
+#ifdef IMXRT_LPUART4
+void lpuart4_tx_isr();
+#endif  // IMXRT_LPUART4
+
+#ifdef IMXRT_LPUART2
+void lpuart2_tx_isr();
+#endif  // IMXRT_LPUART2
+
+#ifdef IMXRT_LPUART3
+void lpuart3_tx_isr();
+#endif  // IMXRT_LPUART3
+
+#ifdef IMXRT_LPUART8
+void lpuart8_tx_isr();
+#endif  // IMXRT_LPUART8
+
+#ifdef IMXRT_LPUART1
+void lpuart1_tx_isr();
+#endif  // IMXRT_LPUART1
+
+#ifdef IMXRT_LPUART7
+void lpuart7_tx_isr();
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+void lpuart5_tx_isr();
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
+
 // Used by the TX ISRs
-Sender *volatile txInstances[6]{nullptr};
+#if defined(__IMXRT1052__)
+Sender *volatile txInstances[8]{nullptr};
+#else
+Sender *volatile txInstances[7]{nullptr};
+#endif
 
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
@@ -193,35 +229,65 @@ void Sender::begin() {
       ACTIVATE_UART_TX_SERIAL(0)
       intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
       break;
-#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#elif defined(IMXRT_LPUART6)
+    case 0:
+      GLEAN_LPUART_PARAMS(6)
+      ACTIVATE_LPUART_TX_SERIAL(6)
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART6));
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       ACTIVATE_UART_TX_SERIAL(1)
       intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
       break;
-#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#elif defined(IMXRT_LPUART4)
+    case 1:
+      GLEAN_LPUART_PARAMS(4)
+      ACTIVATE_LPUART_TX_SERIAL(4)
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART4));
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       ACTIVATE_UART_TX_SERIAL(2)
       intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
       break;
-#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+#elif defined(IMXRT_LPUART2)
+    case 2:
+      GLEAN_LPUART_PARAMS(2)
+      ACTIVATE_LPUART_TX_SERIAL(2)
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART2));
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUAR2
 
 #if defined(HAS_KINETISK_UART3)
     case 3:
       ACTIVATE_UART_TX_SERIAL(3)
       intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
       break;
-#endif  // HAS_KINETISK_UART3
+#elif defined(IMXRT_LPUART3)
+    case 3:
+      GLEAN_LPUART_PARAMS(3)
+      ACTIVATE_LPUART_TX_SERIAL(3)
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART3));
+      break;
+#endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
 
 #if defined(HAS_KINETISK_UART4)
     case 4:
       ACTIVATE_UART_TX_SERIAL(4)
       intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
       break;
-#endif  // HAS_KINETISK_UART4
+#elif defined(IMXRT_LPUART8)
+    case 4:
+      GLEAN_LPUART_PARAMS(8)
+      ACTIVATE_LPUART_TX_SERIAL(8)
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART8));
+      break;
+#endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
@@ -234,13 +300,31 @@ void Sender::begin() {
       ACTIVATE_LPUART_TX_SERIAL(0)
       intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART0));
       break;
-#endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5
+#elif defined(IMXRT_LPUART1)
+    case 5:
+      GLEAN_LPUART_PARAMS(1)
+      ACTIVATE_LPUART_TX_SERIAL(1)
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART1));
+      break;
+#endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5 || IMXRT_LPUART1
+
+#if defined(IMXRT_LPUART7)
+    case 6:
+      GLEAN_LPUART_PARAMS(7)
+      ACTIVATE_LPUART_TX_SERIAL(7)
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART7));
+      break;
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+    case 7:
+      GLEAN_LPUART_PARAMS(5)
+      ACTIVATE_LPUART_TX_SERIAL(5)
+      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART5));
+      break;
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
-
-// Undefine these macros
-#undef ACTIVATE_UART_TX_SERIAL
-#undef ACTIVATE_LPUART_TX_SERIAL
 
 void Sender::end() {
   if (!began_) {
@@ -386,31 +470,51 @@ bool Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
           case 0:
             UART0_C2 = UART_C2_TX_ACTIVE;
             break;
-#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#elif defined(IMXRT_LPUART6)
+          case 0:
+            LPUART6_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
           case 1:
             UART1_C2 = UART_C2_TX_ACTIVE;
             break;
-#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#elif defined(IMXRT_LPUART4)
+          case 1:
+            LPUART4_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
           case 2:
             UART2_C2 = UART_C2_TX_ACTIVE;
             break;
-#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+#elif defined(IMXRT_LPUART2)
+          case 2:
+            LPUART2_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUART2
 
 #if defined(HAS_KINETISK_UART3)
           case 3:
             UART3_C2 = UART_C2_TX_ACTIVE;
             break;
-#endif  // HAS_KINETISK_UART3
+#elif defined(IMXRT_LPUART3)
+          case 3:
+            LPUART3_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
+#endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
 
 #if defined(HAS_KINETISK_UART4)
           case 4:
             UART4_C2 = UART_C2_TX_ACTIVE;
             break;
-#endif  // HAS_KINETISK_UART4
+#elif defined(IMXRT_LPUART8)
+          case 4:
+            LPUART8_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
+#endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
 
 #if defined(HAS_KINETISK_UART5)
           case 5:
@@ -420,7 +524,23 @@ bool Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
           case 5:
             LPUART0_CTRL = LPUART_CTRL_TX_ACTIVE;
             break;
-#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+#elif defined(IMXRT_LPUART1)
+          case 5:
+            LPUART1_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0 || IMXRT_LPUART1
+
+#if defined(IMXRT_LPUART7)
+          case 6:
+            LPUART7_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+          case 7:
+            LPUART5_CTRL = LPUART_CTRL_TX_ACTIVE;
+            break;
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
         }
       }
 
@@ -465,31 +585,51 @@ void Sender::disableIRQs() const {
     case 0:
       NVIC_DISABLE_IRQ(IRQ_UART0_STATUS);
       break;
-#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#elif defined(IMXRT_LPUART6)
+    case 0:
+      NVIC_DISABLE_IRQ(IRQ_LPUART6);
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       NVIC_DISABLE_IRQ(IRQ_UART1_STATUS);
       break;
-#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#elif defined(IMXRT_LPUART4)
+    case 1:
+      NVIC_DISABLE_IRQ(IRQ_LPUART4);
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       NVIC_DISABLE_IRQ(IRQ_UART2_STATUS);
       break;
-#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+#elif defined(IMXRT_LPUART2)
+    case 2:
+      NVIC_DISABLE_IRQ(IRQ_LPUART2);
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUART2
 
 #if defined(HAS_KINETISK_UART3)
     case 3:
       NVIC_DISABLE_IRQ(IRQ_UART3_STATUS);
       break;
-#endif  // HAS_KINETISK_UART3
+#elif defined(IMXRT_LPUART3)
+    case 3:
+      NVIC_DISABLE_IRQ(IRQ_LPUART3);
+      break;
+#endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
 
 #if defined(HAS_KINETISK_UART4)
     case 4:
       NVIC_DISABLE_IRQ(IRQ_UART4_STATUS);
       break;
-#endif  // HAS_KINETISK_UART4
+#elif defined(IMXRT_LPUART8)
+    case 4:
+      NVIC_DISABLE_IRQ(IRQ_LPUART8);
+      break;
+#endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
@@ -499,7 +639,23 @@ void Sender::disableIRQs() const {
     case 5:
       NVIC_DISABLE_IRQ(IRQ_LPUART0);
       break;
-#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+#elif defined(IMXRT_LPUART1)
+    case 5:
+      NVIC_DISABLE_IRQ(IRQ_LPUART1);
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0 || IMXRT_LPUART1
+
+#if defined(IMXRT_LPUART7)
+    case 6:
+      NVIC_DISABLE_IRQ(IRQ_LPUART7);
+      break;
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+    case 7:
+      NVIC_DISABLE_IRQ(IRQ_LPUART5);
+      break;
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
 
@@ -512,31 +668,51 @@ void Sender::enableIRQs() const {
     case 0:
       NVIC_ENABLE_IRQ(IRQ_UART0_STATUS);
       break;
-#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0
+#elif defined(IMXRT_LPUART6)
+    case 0:
+      NVIC_ENABLE_IRQ(IRQ_LPUART6);
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       NVIC_ENABLE_IRQ(IRQ_UART1_STATUS);
       break;
-#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1
+#elif defined(IMXRT_LPUART4)
+    case 1:
+      NVIC_ENABLE_IRQ(IRQ_LPUART4);
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       NVIC_ENABLE_IRQ(IRQ_UART2_STATUS);
       break;
-#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2
+#elif defined(IMXRT_LPUART2)
+    case 2:
+      NVIC_ENABLE_IRQ(IRQ_LPUART2);
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUART2
 
 #if defined(HAS_KINETISK_UART3)
     case 3:
       NVIC_ENABLE_IRQ(IRQ_UART3_STATUS);
       break;
-#endif  // HAS_KINETISK_UART3
+#elif defined(IMXRT_LPUART3)
+    case 3:
+      NVIC_ENABLE_IRQ(IRQ_LPUART3);
+      break;
+#endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
 
 #if defined(HAS_KINETISK_UART4)
     case 4:
       NVIC_ENABLE_IRQ(IRQ_UART4_STATUS);
       break;
-#endif  // HAS_KINETISK_UART4
+#elif defined(IMXRT_LPUART8)
+    case 4:
+      NVIC_ENABLE_IRQ(IRQ_LPUART8);
+      break;
+#endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
@@ -546,7 +722,23 @@ void Sender::enableIRQs() const {
     case 5:
       NVIC_ENABLE_IRQ(IRQ_LPUART0);
       break;
-#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0
+#elif defined(IMXRT_LPUART1)
+    case 5:
+      NVIC_ENABLE_IRQ(IRQ_LPUART1);
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0 || IMXRT_LPUART1
+
+#if defined(IMXRT_LPUART7)
+    case 6:
+      NVIC_ENABLE_IRQ(IRQ_LPUART7);
+      break;
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+    case 7:
+      NVIC_ENABLE_IRQ(IRQ_LPUART5);
+      break;
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
 }
 
@@ -748,7 +940,7 @@ void uart5_tx_isr() {
 #endif  // HAS_KINETISK_UART5
 
 // ---------------------------------------------------------------------------
-//  LPUART0 TX ISR
+//  LPUART0 TX ISR (Serial6 on Teensy 3.6)
 // ---------------------------------------------------------------------------
 
 #if defined(HAS_KINETISK_LPUART0)
@@ -774,6 +966,214 @@ void lpuart0_tx_isr() {
 
 #endif  // HAS_KINETISK_LPUART0
 
+// ---------------------------------------------------------------------------
+//  LPUART6 TX ISR (Serial1 on Teensy 4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART6)
+
+#define UART_TX_DATA_STATE_6 LPUART_TX_DATA_STATE_WITH_FIFO(6)
+#define UART_TX_SET_BREAK_BAUD_6 LPUART_SET_BAUD(6, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_6 LPUART_SET_BAUD(6, lpuartSlotsParams_)
+
+void lpuart6_tx_isr() {
+  uint32_t status = LPUART6_STAT;
+  uint32_t control = LPUART6_CTRL;
+
+  UART_TX(0, 6, LPUART6_CTRL, LPUART6_CTRL, LPUART6_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(6, LPUART6_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_6
+#undef UART_TX_SET_BREAK_BAUD_6
+#undef UART_TX_SET_SLOTS_BAUD_6
+
+#endif  // HAS_KINETISK_LPUART6
+
+// ---------------------------------------------------------------------------
+//  LPUART4 TX ISR (Serial2 on Teensy 4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART4)
+
+#define UART_TX_DATA_STATE_4 LPUART_TX_DATA_STATE_WITH_FIFO(4)
+#define UART_TX_SET_BREAK_BAUD_4 LPUART_SET_BAUD(4, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_4 LPUART_SET_BAUD(4, lpuartSlotsParams_)
+
+void lpuart4_tx_isr() {
+  uint32_t status = LPUART4_STAT;
+  uint32_t control = LPUART4_CTRL;
+
+  UART_TX(1, 4, LPUART4_CTRL, LPUART4_CTRL, LPUART4_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(4, LPUART4_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_4
+#undef UART_TX_SET_BREAK_BAUD_4
+#undef UART_TX_SET_SLOTS_BAUD_4
+
+#endif  // HAS_KINETISK_LPUART4
+
+// ---------------------------------------------------------------------------
+//  LPUART2 TX ISR (Serial3 on Teensy 4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART2)
+
+#define UART_TX_DATA_STATE_2 LPUART_TX_DATA_STATE_WITH_FIFO(2)
+#define UART_TX_SET_BREAK_BAUD_2 LPUART_SET_BAUD(2, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_2 LPUART_SET_BAUD(2, lpuartSlotsParams_)
+
+void lpuart2_tx_isr() {
+  uint32_t status = LPUART2_STAT;
+  uint32_t control = LPUART2_CTRL;
+
+  UART_TX(2, 2, LPUART2_CTRL, LPUART2_CTRL, LPUART2_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(2, LPUART2_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_2
+#undef UART_TX_SET_BREAK_BAUD_2
+#undef UART_TX_SET_SLOTS_BAUD_2
+
+#endif  // HAS_KINETISK_LPUART2
+
+// ---------------------------------------------------------------------------
+//  LPUART3 TX ISR (Serial4 on Teensy 4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART3)
+
+#define UART_TX_DATA_STATE_3 LPUART_TX_DATA_STATE_WITH_FIFO(3)
+#define UART_TX_SET_BREAK_BAUD_3 LPUART_SET_BAUD(3, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_3 LPUART_SET_BAUD(3, lpuartSlotsParams_)
+
+void lpuart3_tx_isr() {
+  uint32_t status = LPUART3_STAT;
+  uint32_t control = LPUART3_CTRL;
+
+  UART_TX(3, 3, LPUART3_CTRL, LPUART3_CTRL, LPUART3_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(3, LPUART3_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_3
+#undef UART_TX_SET_BREAK_BAUD_3
+#undef UART_TX_SET_SLOTS_BAUD_3
+
+#endif  // HAS_KINETISK_LPUART3
+
+// ---------------------------------------------------------------------------
+//  LPUART8 TX ISR (Serial5 on Teensy 4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART8)
+
+#define UART_TX_DATA_STATE_8 LPUART_TX_DATA_STATE_WITH_FIFO(8)
+#define UART_TX_SET_BREAK_BAUD_8 LPUART_SET_BAUD(8, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_8 LPUART_SET_BAUD(8, lpuartSlotsParams_)
+
+void lpuart8_tx_isr() {
+  uint32_t status = LPUART8_STAT;
+  uint32_t control = LPUART8_CTRL;
+
+  UART_TX(4, 8, LPUART8_CTRL, LPUART8_CTRL, LPUART8_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(8, LPUART8_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_8
+#undef UART_TX_SET_BREAK_BAUD_8
+#undef UART_TX_SET_SLOTS_BAUD_8
+
+#endif  // HAS_KINETISK_LPUART8
+
+// ---------------------------------------------------------------------------
+//  LPUART1 TX ISR (Serial6 on Teensy 4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART1)
+
+#define UART_TX_DATA_STATE_1 LPUART_TX_DATA_STATE_WITH_FIFO(1)
+#define UART_TX_SET_BREAK_BAUD_1 LPUART_SET_BAUD(1, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_1 LPUART_SET_BAUD(1, lpuartSlotsParams_)
+
+void lpuart1_tx_isr() {
+  uint32_t status = LPUART1_STAT;
+  uint32_t control = LPUART1_CTRL;
+
+  UART_TX(5, 1, LPUART1_CTRL, LPUART1_CTRL, LPUART1_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(1, LPUART1_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_1
+#undef UART_TX_SET_BREAK_BAUD_1
+#undef UART_TX_SET_SLOTS_BAUD_1
+
+#endif  // HAS_KINETISK_LPUART1
+
+// ---------------------------------------------------------------------------
+//  LPUART7 TX ISR (Serial7 on Teensy 4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART7)
+
+#define UART_TX_DATA_STATE_7 LPUART_TX_DATA_STATE_WITH_FIFO(7)
+#define UART_TX_SET_BREAK_BAUD_7 LPUART_SET_BAUD(7, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_7 LPUART_SET_BAUD(7, lpuartSlotsParams_)
+
+void lpuart7_tx_isr() {
+  uint32_t status = LPUART7_STAT;
+  uint32_t control = LPUART7_CTRL;
+
+  UART_TX(6, 7, LPUART7_CTRL, LPUART7_CTRL, LPUART7_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(7, LPUART7_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_7
+#undef UART_TX_SET_BREAK_BAUD_7
+#undef UART_TX_SET_SLOTS_BAUD_7
+
+#endif  // HAS_KINETISK_LPUART7
+
+// ---------------------------------------------------------------------------
+//  LPUART5 TX ISR (Serial8 on Teensy 4)
+// ---------------------------------------------------------------------------
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+
+#define UART_TX_DATA_STATE_5 LPUART_TX_DATA_STATE_WITH_FIFO(5)
+#define UART_TX_SET_BREAK_BAUD_5 LPUART_SET_BAUD(5, lpuartBreakParams_)
+#define UART_TX_SET_SLOTS_BAUD_5 LPUART_SET_BAUD(5, lpuartSlotsParams_)
+
+void lpuart5_tx_isr() {
+  uint32_t status = LPUART5_STAT;
+  uint32_t control = LPUART5_CTRL;
+
+  UART_TX(7, 5, LPUART5_CTRL, LPUART5_CTRL, LPUART5_DATA, LPUART_CTRL,
+          LPUART_CTRL, LPUART_STAT)
+
+  UART_TX_COMPLETE(5, LPUART5_CTRL, LPUART_CTRL, LPUART_STAT)
+}
+
+#undef UART_TX_DATA_STATE_5
+#undef UART_TX_SET_BREAK_BAUD_5
+#undef UART_TX_SET_SLOTS_BAUD_5
+
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
+
 // Undefine these macros
 #undef UART_C2_TX_ENABLE
 #undef UART_C2_TX_ACTIVE
@@ -783,6 +1183,8 @@ void lpuart0_tx_isr() {
 #undef LPUART_CTRL_TX_ACTIVE
 #undef LPUART_CTRL_TX_COMPLETING
 #undef LPUART_CTRL_TX_INACTIVE
+#undef ACTIVATE_UART_TX_SERIAL
+#undef ACTIVATE_LPUART_TX_SERIAL
 
 }  // namespace teensydmx
 }  // namespace qindesign

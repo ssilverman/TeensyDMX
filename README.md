@@ -72,6 +72,7 @@ This section summarizes the changes and new features since v3.
 6. Added a way for the transmitter to specify the BREAK and MAB timings.
 7. Functions that previously did nothing or ignored the values on bad input now
    return a `bool` to indicate success or failure.
+8. Teensy 4 support.
 
 ## How to use
 

@@ -602,6 +602,12 @@ class Receiver final : public TeensyDMX {
   friend void rxPinRoseSerial4_isr();
   friend void rxPinFellSerial5_isr();
   friend void rxPinRoseSerial5_isr();
+  friend void rxPinFellSerial6_isr();
+  friend void rxPinRoseSerial6_isr();
+#if defined(__IMXRT1062__)
+  friend void rxPinFellSerial7_isr();
+  friend void rxPinRoseSerial7_isr();
+#endif
 
   // These error ISRs need to access private functions
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
@@ -631,6 +637,38 @@ class Receiver final : public TeensyDMX {
 #if defined(HAS_KINETISK_LPUART0)
   friend void lpuart0_rx_isr();
 #endif  // HAS_KINETISK_LPUART0
+
+#ifdef IMXRT_LPUART6
+  friend void lpuart6_rx_isr();
+#endif  // IMXRT_LPUART6
+
+#ifdef IMXRT_LPUART4
+  friend void lpuart4_rx_isr();
+#endif  // IMXRT_LPUART4
+
+#ifdef IMXRT_LPUART2
+  friend void lpuart2_rx_isr();
+#endif  // IMXRT_LPUART2
+
+#ifdef IMXRT_LPUART3
+  friend void lpuart3_rx_isr();
+#endif  // IMXRT_LPUART3
+
+#ifdef IMXRT_LPUART8
+  friend void lpuart8_rx_isr();
+#endif  // IMXRT_LPUART8
+
+#ifdef IMXRT_LPUART1
+  friend void lpuart1_rx_isr();
+#endif  // IMXRT_LPUART1
+
+#ifdef IMXRT_LPUART7
+  friend void lpuart7_rx_isr();
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+  friend void lpuart5_rx_isr();
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 };
 
 // ---------------------------------------------------------------------------
@@ -1015,6 +1053,38 @@ class Sender final : public TeensyDMX {
 #if defined(HAS_KINETISK_LPUART0)
   friend void lpuart0_tx_isr();
 #endif  // HAS_KINETISK_LPUART0
+
+#ifdef IMXRT_LPUART6
+  friend void lpuart6_tx_isr();
+#endif  // IMXRT_LPUART6
+
+#ifdef IMXRT_LPUART4
+  friend void lpuart4_tx_isr();
+#endif  // IMXRT_LPUART4
+
+#ifdef IMXRT_LPUART2
+  friend void lpuart2_tx_isr();
+#endif  // IMXRT_LPUART2
+
+#ifdef IMXRT_LPUART3
+  friend void lpuart3_tx_isr();
+#endif  // IMXRT_LPUART3
+
+#ifdef IMXRT_LPUART8
+  friend void lpuart8_tx_isr();
+#endif  // IMXRT_LPUART8
+
+#ifdef IMXRT_LPUART1
+  friend void lpuart1_tx_isr();
+#endif  // IMXRT_LPUART1
+
+#ifdef IMXRT_LPUART7
+  friend void lpuart7_tx_isr();
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+  friend void lpuart5_tx_isr();
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
 };
 
 }  // namespace teensydmx
