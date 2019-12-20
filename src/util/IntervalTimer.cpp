@@ -24,21 +24,19 @@ static void pit1_isr();
 static void pit2_isr();
 static void pit3_isr();
 static constexpr int kNumChannels = 4;
-static void (*funcs[kNumChannels])(void *){nullptr};
-static void *funcStates[kNumChannels]{nullptr};
+static std::function<void()> funcs[kNumChannels]{nullptr};
 #elif defined(KINETISL)
 static void pit_isr();
 static constexpr int kNumChannels = 2;
 static uint32_t runningFlags = 0;
-static void (*funcs[kNumChannels])(void *){nullptr};
-static void *funcStates[kNumChannels]{nullptr};
+static std::function<void()> funcs[kNumChannels]{nullptr};
 static uint8_t priorities[kNumChannels]{255, 255};
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
 static void pit_isr();
 static constexpr int kNumChannels = 4;
 static uint32_t runningFlags = 0;
-static void (*funcs[kNumChannels])(void *) __attribute((aligned(32))){nullptr};
-static void *funcStates[kNumChannels] __attribute((aligned(32))){nullptr};
+static std::function<void()> funcs[kNumChannels]
+    __attribute((aligned(32))){nullptr};
 static uint8_t priorities[kNumChannels]{255, 255, 255, 255};
 #endif  // Processor check
 
@@ -51,22 +49,22 @@ static constexpr uint32_t kFreq = 24000000;
 // Maximum period in microseconds.
 static constexpr uint32_t kMaxPeriod = UINT32_MAX / (kFreq / 1000000.0f);
 
-bool IntervalTimer::begin(void (*func)(void *), void *state, uint32_t micros,
-                          void (*startFunc)(void *), void *startState) {
+bool IntervalTimer::begin(std::function<void()> func, uint32_t micros,
+                          std::function<void()> startFunc) {
   if (micros == 0 || kMaxPeriod < micros) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000)*micros - 1;
-  return beginCycles(func, state, cycles, startFunc, startState);
+  return beginCycles(func, cycles, startFunc);
 }
 
-bool IntervalTimer::begin(void (*func)(void *), void *state, float micros,
-                          void (*startFunc)(void *), void *startState) {
+bool IntervalTimer::begin(std::function<void()> func, float micros,
+                          std::function<void()> startFunc) {
   if (micros <= 0 || kMaxPeriod < micros) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000.0f)*micros - 0.5f;
-  return beginCycles(func, state, cycles, startFunc, startState);
+  return beginCycles(func, cycles, startFunc);
 }
 
 bool IntervalTimer::restart(uint32_t micros) {
@@ -130,9 +128,8 @@ bool IntervalTimer::restartCycles(uint32_t cycles) {
   return true;
 }
 
-bool IntervalTimer::beginCycles(void (*func)(void *), void *state,
-                                uint32_t cycles,
-                                void (*startFunc)(void *), void *startState) {
+bool IntervalTimer::beginCycles(std::function<void()> func, uint32_t cycles,
+                                std::function<void()> startFunc) {
   if (cycles < 36) {  // TODO: Why 36?
     return false;
   }
@@ -185,11 +182,10 @@ bool IntervalTimer::beginCycles(void (*func)(void *), void *state,
   runningFlags |= (uint32_t{1} << index);
 #endif  // Processor check
   funcs[index] = func;
-  funcStates[index] = state;
   channel_->LDVAL = cycles;
   channel_->TCTRL = PIT_TCTRL_TIE | PIT_TCTRL_TEN;
   if (startFunc != nullptr) {
-    startFunc(startState);
+    startFunc();
   }
 #if defined(KINETISK)
   switch (index) {
@@ -300,28 +296,28 @@ void IntervalTimer::setPriority(uint8_t n) {
 void pit0_isr() {
   PIT_TFLG0 = 1;
   if (funcs[0] != nullptr) {
-    funcs[0](funcStates[0]);
+    funcs[0]();
   }
 }
 
 void pit1_isr() {
   PIT_TFLG1 = 1;
   if (funcs[1] != nullptr) {
-    funcs[1](funcStates[1]);
+    funcs[1]();
   }
 }
 
 void pit2_isr() {
   PIT_TFLG2 = 1;
   if (funcs[2] != nullptr) {
-    funcs[2](funcStates[2]);
+    funcs[2]();
   }
 }
 
 void pit3_isr() {
   PIT_TFLG3 = 1;
   if (funcs[3] != nullptr) {
-    funcs[3](funcStates[3]);
+    funcs[3]();
   }
 }
 #elif defined(KINETISL)
@@ -329,13 +325,13 @@ void pit_isr() {
   if (PIT_TFLG0 != 0) {
     PIT_TFLG0 = 1;
     if (funcs[0] != nullptr) {
-      funcs[0](funcStates[0]);
+      funcs[0]();
     }
   }
   if (PIT_TFLG1 != 0) {
     PIT_TFLG1 = 1;
     if (funcs[1] != nullptr) {
-      funcs[1](funcStates[1]);
+      funcs[1]();
     }
   }
 }
@@ -344,25 +340,25 @@ void pit_isr() {
   if (PIT_TFLG0 != 0) {
     PIT_TFLG0 = 1;
     if (funcs[0] != nullptr) {
-      funcs[0](funcStates[0]);
+      funcs[0]();
     }
   }
   if (PIT_TFLG1 != 0) {
     PIT_TFLG1 = 1;
     if (funcs[1] != nullptr) {
-      funcs[1](funcStates[1]);
+      funcs[1]();
     }
   }
   if (PIT_TFLG2 != 0) {
     PIT_TFLG2 = 1;
     if (funcs[2] != nullptr) {
-      funcs[2](funcStates[2]);
+      funcs[2]();
     }
   }
   if (PIT_TFLG3 != 0) {
     PIT_TFLG3 = 1;
     if (funcs[3] != nullptr) {
-      funcs[3](funcStates[3]);
+      funcs[3]();
     }
   }
 }
