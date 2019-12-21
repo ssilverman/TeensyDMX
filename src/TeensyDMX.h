@@ -504,10 +504,10 @@ class Receiver final : public TeensyDMX {
   //
   // This does nothing if there is no TX/!RX function set.
   void setTXNotRX(bool flag) const {
-    if (setTXNotRXFunc_ == nullptr) {
-      return;
+    void (*f)(bool) = setTXNotRXFunc_;
+    if (f != nullptr) {
+      f(flag);
     }
-    setTXNotRXFunc_(flag);
   }
 
   // Whether the transmitter is or should be enabled.

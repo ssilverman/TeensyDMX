@@ -552,8 +552,11 @@ void Sender::completePacket() {
   transmitting_ = false;
   state_ = XmitStates::kIdle;
 
-  if (paused_ && doneTXFunc_ != nullptr) {
-    doneTXFunc_(this);
+  if (paused_) {
+    void (*f)(Sender *) = doneTXFunc_;
+    if (f != nullptr) {
+      f(this);
+    }
   }
 }
 
