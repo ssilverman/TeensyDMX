@@ -55,6 +55,8 @@ class TeensyDMX {
   TeensyDMX(const TeensyDMX &) = delete;
   TeensyDMX &operator=(const TeensyDMX &) = delete;
 
+  virtual ~TeensyDMX() = default;
+
   // Sets up the system for receiving or transmitting DMX on the specified
   // serial port.
   virtual void begin() = 0;
@@ -263,7 +265,7 @@ class Receiver final : public TeensyDMX {
   explicit Receiver(HardwareSerial &uart);
 
   // Destructs Receiver. This calls end().
-  ~Receiver();
+  ~Receiver() override;
 
   // Sets whether to enable or disable the TX driver for the serial port. This
   // can be set anytime. If the receiver is currently in operation, enabling
@@ -682,7 +684,7 @@ class Sender final : public TeensyDMX {
   explicit Sender(HardwareSerial &uart);
 
   // Destructs Sender. This calls end().
-  ~Sender();
+  ~Sender() override;
 
   // Starts up the serial port. This resets all the stats.
   void begin() override;
