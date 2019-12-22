@@ -13,6 +13,7 @@
 #ifdef MAIN_TEST_PROGRAM
 
 // C++ includes
+#include <cmath>
 #include <cstddef>
 #include <cstdint>
 #include <memory>
@@ -68,6 +69,7 @@ class Chaser final : public Sketch {
   static constexpr int kChannel = 1;
   static constexpr unsigned long kChaseInterval = 1000;  // 1s
   static constexpr int kPacketSize = 513;
+  static constexpr float kRefreshRate = INFINITY;
 
   teensydmx::Sender dmx_;
   int channel_;
@@ -238,6 +240,7 @@ void Chaser::setup() {
     dmx_.set(i, 0);
   }
   dmx_.setPacketSize(kPacketSize);
+  dmx_.setRefreshRate(kRefreshRate);
   dmx_.begin();
 
   channel_ = 1;
