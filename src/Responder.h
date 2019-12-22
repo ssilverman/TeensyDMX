@@ -27,12 +27,12 @@ class Responder {
   // respond with any data. This returns zero by default.
   virtual int outputBufferSize() const {
     return 0;
-  };
+  }
 
   // Gets the BREAK time, in microseconds. This returns zero by default.
   virtual uint32_t breakTime() const {
     return 0;
-  };
+  }
 
   // Gets the Mark after BREAK time, in microseconds. This returns zero
   // by default.
@@ -103,7 +103,7 @@ class Responder {
   // @param outBuf buffer for output, at least getOutputBufferSize() bytes
   virtual int processByte(const uint8_t *buf, int len, uint8_t *outBuf) {
     return -1;
-  };
+  }
 
   // Receives a packet. This doesn't return a response because the end of a
   // packet is determined heuristically and there's no way to guarantee that
