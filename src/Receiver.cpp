@@ -1299,7 +1299,7 @@ void Receiver::enableIRQs() const {
 // ---------------------------------------------------------------------------
 
 void Receiver::setRXWatchPin(int pin) {
-  Lock lock{*this};
+  __disable_irq();
   //{
     if (pin < 0) {
       if (rxWatchPin_ >= 0) {
@@ -1315,6 +1315,7 @@ void Receiver::setRXWatchPin(int pin) {
       }
     }
   //}
+  __enable_irq();
 }
 
 void Receiver::rxPinRose_isr() {
