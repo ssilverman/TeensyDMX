@@ -141,18 +141,19 @@
                   CTRL = CTRL_PREFIX##_TX_ACTIVE;                       \
                 },                                                      \
                 instance->breakTime_,                                   \
-                []() {                                                  \
+                [instance]() {                                          \
                   CTRL = CTRL_PREFIX##_TX_INACTIVE;                     \
                   /* Invert the line as close as possible to the        \
                    * interrupt start. */                                \
                   CTRLINV |= CTRLINV_PREFIX##_TXINV;                    \
+                  instance->timeSinceBreak_ = 0;                        \
                 })) {                                                   \
           /* Starting the timer failed, revert to the original way */   \
           UART_TX_SET_BREAK_BAUD_##REG                                  \
           DATA = 0;                                                     \
           CTRL = CTRL_PREFIX##_TX_COMPLETING;                           \
+          instance->timeSinceBreak_ = 0;                                \
         }                                                               \
-        instance->timeSinceBreak_ = 0;                                  \
         break;                                                          \
                                                                         \
       case Sender::XmitStates::kData:                                   \
