@@ -138,7 +138,7 @@ Sender::Sender(HardwareSerial &uart)
       packetSize_(kMaxDMXPacketSize),
       refreshRate_(std::numeric_limits<float>::infinity()),
       breakToBreakTime_(0),
-      timeSinceBreak_{0},
+      breakStartTime_(0),
       paused_(false),
       resumeCounter_(0),
       transmitting_(false),

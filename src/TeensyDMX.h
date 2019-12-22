@@ -1015,8 +1015,9 @@ class Sender final : public TeensyDMX {
   // This is specified in microseconds.
   volatile uint32_t breakToBreakTime_;
 
-  // Keeps track of the time since the last BREAK.
-  elapsedMicros timeSinceBreak_;
+  // Keeps track of the last BREAK start time, in milliseconds. This is for
+  // refresh rate timing.
+  uint32_t breakStartTime_;
 
   // For pausing
   volatile bool paused_;

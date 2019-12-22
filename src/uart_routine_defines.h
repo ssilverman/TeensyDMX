@@ -146,13 +146,13 @@
                   /* Invert the line as close as possible to the        \
                    * interrupt start. */                                \
                   CTRLINV |= CTRLINV_PREFIX##_TXINV;                    \
-                  instance->timeSinceBreak_ = 0;                        \
+                  instance->breakStartTime_ = micros();                 \
                 })) {                                                   \
           /* Starting the timer failed, revert to the original way */   \
           UART_TX_SET_BREAK_BAUD_##REG                                  \
           DATA = 0;                                                     \
           CTRL = CTRL_PREFIX##_TX_COMPLETING;                           \
-          instance->timeSinceBreak_ = 0;                                \
+          instance->breakStartTime_ = micros();                         \
         }                                                               \
         break;                                                          \
                                                                         \
@@ -176,7 +176,7 @@
         instance->state_ = Sender::XmitStates::kBreak;                  \
                                                                         \
         /* Delay so that we can achieve the specified refresh rate */   \
-        uint32_t timeSinceBreak = instance->timeSinceBreak_;            \
+        uint32_t timeSinceBreak = micros() - instance->breakStartTime_; \
         if (timeSinceBreak < instance->breakToBreakTime_) {             \
           CTRL = CTRL_PREFIX##_TX_INACTIVE;                             \
           if (instance->breakToBreakTime_ != UINT32_MAX) {              \
