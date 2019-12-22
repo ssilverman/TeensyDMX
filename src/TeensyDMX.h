@@ -130,7 +130,7 @@ class Receiver final : public TeensyDMX {
   class PacketStats final {
    public:
     // Initializes everything to zero.
-    PacketStats()
+    constexpr PacketStats()
         : size(0),
           timestamp(0),
           breakPlusMABTime(0),
@@ -225,7 +225,7 @@ class Receiver final : public TeensyDMX {
   class ErrorStats final {
    public:
     // Initializes everything to zero.
-    ErrorStats()
+    constexpr ErrorStats()
         : packetTimeoutCount(0),
           framingErrorCount(0),
           shortPacketCount(0) {}
