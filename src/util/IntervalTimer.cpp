@@ -100,10 +100,6 @@ bool IntervalTimer::update(float micros) {
 }
 
 bool IntervalTimer::updateCycles(uint32_t cycles) {
-  if (cycles < 36) {  // TODO: Why 36?
-    return false;
-  }
-
   // Lock lock{};
   if (channel_ == nullptr) {
     return false;
@@ -113,10 +109,6 @@ bool IntervalTimer::updateCycles(uint32_t cycles) {
 }
 
 bool IntervalTimer::restartCycles(uint32_t cycles) {
-  if (cycles < 36) {  // TODO: Why 36?
-    return false;
-  }
-
   // Lock lock{};
   if (channel_ == nullptr) {
     return false;
@@ -130,10 +122,6 @@ bool IntervalTimer::restartCycles(uint32_t cycles) {
 
 bool IntervalTimer::beginCycles(std::function<void()> func, uint32_t cycles,
                                 std::function<void()> startFunc) {
-  if (cycles < 36) {  // TODO: Why 36?
-    return false;
-  }
-
   // Lock lock{};
 
   // Capture the timer
@@ -143,7 +131,7 @@ bool IntervalTimer::beginCycles(std::function<void()> func, uint32_t cycles,
   } else {
 #if defined(KINETISK) || defined(KINETISL)
     SIM_SCGC6 |= SIM_SCGC6_PIT;
-    __asm__ volatile("nop");  // Solves timing problem on Teensy 3.5
+    __asm__ volatile("nop");  // Solves some timing problem on Teensy 3.5, per PJRC's implementation
     PIT_MCR = PIT_MCR_FRZ;  // Allow freeze in debug mode
     KINETISK_PIT_CHANNEL_t *ch = KINETISK_PIT_CHANNELS;
     while (true) {
