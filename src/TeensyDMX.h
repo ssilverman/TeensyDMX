@@ -436,7 +436,7 @@ class Receiver final : public TeensyDMX {
   // Interrupt lock that uses RAII to disable and enable interrupts.
   class Lock final {
    public:
-    Lock(const Receiver &r) : r_(r) {
+    explicit Lock(const Receiver &r) : r_(r) {
       r_.disableIRQs();
     }
 
@@ -945,7 +945,7 @@ class Sender final : public TeensyDMX {
   // Interrupt lock that uses RAII to disable and enable interrupts.
   class Lock final {
    public:
-    Lock(const Sender &s) : s_(s) {
+    explicit Lock(const Sender &s) : s_(s) {
       s_.disableIRQs();
     }
 
