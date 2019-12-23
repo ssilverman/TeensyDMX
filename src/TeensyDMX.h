@@ -435,7 +435,7 @@ class Receiver final : public TeensyDMX {
     kIdle,   // The end of data for one packet has been reached
   };
 
-  // Interrupt lock that uses RAII to disable and enable interrupts.
+  // Interrupt lock that uses RAII to disable and enable the UART interrupts.
   class Lock final {
    public:
     explicit Lock(const Receiver &r) : r_(r) {
@@ -944,7 +944,7 @@ class Sender final : public TeensyDMX {
     kIdle,   // The end of data for one packet has been reached
   };
 
-  // Interrupt lock that uses RAII to disable and enable interrupts.
+  // Interrupt lock that uses RAII to disable and enable the UART interrupts.
   class Lock final {
    public:
     explicit Lock(const Sender &s) : s_(s) {
