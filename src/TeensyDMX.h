@@ -346,6 +346,7 @@ class Receiver final : public TeensyDMX {
   // most recent or next packet received. Use `readPacket` to retrieve
   // them atomically.
   PacketStats packetStats() const {
+    Lock lock{*this};
     return packetStats_;
   }
 
@@ -427,6 +428,7 @@ class Receiver final : public TeensyDMX {
   //
   // Please refer to the `ErrorStats` docs for more information.
   ErrorStats errorStats() const {
+    Lock lock{*this};
     return errorStats_;
   }
 
