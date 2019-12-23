@@ -573,11 +573,13 @@ void Receiver::begin() {
 }
 
 // Undefine these macros
+#undef UART_C2_RX_ENABLE
+#undef LPUART_CTRL_RX_ENABLE
 #undef ACTIVATE_UART_RX_SERIAL
 #undef ACTIVATE_UART_RX_SERIAL_ERROR
 #undef ACTIVATE_LPUART_RX_SERIAL
-#undef UART_C2_RX_ENABLE
-#undef LPUART_CTRL_RX_ENABLE
+#undef ENABLE_UART_TX
+#undef ENABLE_LPUART_TX
 
 void Receiver::end() {
   if (!began_) {
