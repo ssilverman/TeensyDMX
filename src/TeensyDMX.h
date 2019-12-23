@@ -10,7 +10,11 @@
   https://github.com/jimparis/DmxReceiver
   https://forum.pjrc.com/threads/19662-Arduinoesque-overriding-of-core-functionality?highlight=teensydmx
   https://www.holidaycoro.com/v/vspfiles/downloads/UnderstandingDMX.pdf
-  https://www.pjrc.com/teensy/K20P64M72SF1RM.pdf
+  [Teensy 3.1/3.2](https://www.pjrc.com/teensy/K20P64M72SF1RM.pdf)
+  [Teensy LC](https://www.pjrc.com/teensy/KL26P121M48SF4RM.pdf)
+  [Teensy 3.5](https://www.pjrc.com/teensy/K64P144M120SF5RM.pdf)
+  [Teensy 3.6](https://www.pjrc.com/teensy/K66P144M180SF5RMV2.pdf)
+  [Teensy 4.0](https://www.pjrc.com/teensy/IMXRT1060RM_rev1.pdf)
 */
 
 #ifndef TEENSYDMX_TEENSYDMX_H_
