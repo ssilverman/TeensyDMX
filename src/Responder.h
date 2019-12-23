@@ -4,8 +4,8 @@
 // Responder.h defines a generic interface for responding to special DMX
 // packets in a Receiver.
 
-#ifndef QINDESIGN_RESPONDER_H_
-#define QINDESIGN_RESPONDER_H_
+#ifndef TEENSYDMX_RESPONDER_H_
+#define TEENSYDMX_RESPONDER_H_
 
 // C++ includes
 #include <cstdint>
@@ -127,4 +127,4 @@ class Responder {
 }  // namespace teensydmx
 }  // namespace qindesign
 
-#endif  // QINDESIGN_RESPONDER_H_
+#endif  // TEENSYDMX_RESPONDER_H_

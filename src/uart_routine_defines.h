@@ -4,8 +4,8 @@
 // Putting #defines inside a header file is against the Google C++ Style Guide,
 // however, there's so much duplicated UART code otherwise.
 
-#ifndef UART_ROUTINE_DEFINES_H_
-#define UART_ROUTINE_DEFINES_H_
+#ifndef TEENSYDMX_UART_ROUTINE_DEFINES_H_
+#define TEENSYDMX_UART_ROUTINE_DEFINES_H_
 
 // ---------------------------------------------------------------------------
 //  UART TX routines, for Sender
@@ -494,4 +494,4 @@
   }                                                  \
   delayMicroseconds(mabTime);
 
-#endif  // UART_ROUTINE_DEFINES_H_
+#endif  // TEENSYDMX_UART_ROUTINE_DEFINES_H_

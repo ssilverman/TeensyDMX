@@ -13,8 +13,8 @@
   https://www.pjrc.com/teensy/K20P64M72SF1RM.pdf
 */
 
-#ifndef QINDESIGN_TEENSYDMX_H_
-#define QINDESIGN_TEENSYDMX_H_
+#ifndef TEENSYDMX_TEENSYDMX_H_
+#define TEENSYDMX_TEENSYDMX_H_
 
 // C++ includes
 #include <cstdint>
@@ -1093,4 +1093,4 @@ class Sender final : public TeensyDMX {
 }  // namespace teensydmx
 }  // namespace qindesign
 
-#endif  // QINDESIGN_TEENSYDMX_H_
+#endif  // TEENSYDMX_TEENSYDMX_H_
