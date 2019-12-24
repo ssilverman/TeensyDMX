@@ -1,4 +1,4 @@
-// PeriodicTimer.cpp implements the enhanced IntervalTimer.
+// PeriodicTimer.cpp implements PeriodicTimer.
 // This file is part of the TeensyDMX library.
 // (c) 2019 Shawn Silverman
 
