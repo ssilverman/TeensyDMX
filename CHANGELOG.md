@@ -2,6 +2,23 @@
 
 This document details the changes between each release.
 
+## [4.0.0-alpha.8]
+
+### Added
+* Improved IDLE timeout detection by using a timer.
+* Added a check for when the MAB time of a packet is too long.
+
+### Changed
+* Changed `util::IntervalTimer` to accept `std::function`s for the
+  trigger function.
+* Renamed `util::IntervalTimer` to `util::PeriodicTimer`.
+
+### Fixed
+* Fixed `Receiver::packetStats()` and `Receiver::errorStats()` to access the
+  values atomically.
+* Changed `Receiver::setRXWatchPin(int)` to disable all interrupts instead of
+  just the UART ones because the pin interrupt may have a different priority.
+
 ## [4.0.0-alpha.7]
 
 ### Added
