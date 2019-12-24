@@ -590,6 +590,9 @@ class Receiver final : public TeensyDMX {
                                 // a BREAK
   uint32_t rxRiseTime_;
 
+  // Timer for tracking IDLE timeouts.
+  util::IntervalTimer idleTimeoutTimer_;
+
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
 

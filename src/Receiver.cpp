@@ -856,12 +856,14 @@ void Receiver::receiveIdle() {
         rxChangeState_ = 0;
         if ((rxRiseTime_ - breakStartTime_) < kMinBreakTime) {
           receiveBadBreak();
+          return;
         }
       } else {
         rxChangeState_ = 0;
         // This catches the case where a short BREAK is followed by a longer MAB
         if ((t - breakStartTime_) < kMinBreakTime + kCharTime) {
           receiveBadBreak();
+          return;
         }
       }
       break;
@@ -869,18 +871,31 @@ void Receiver::receiveIdle() {
     case RecvStates::kData:
       if ((t - breakStartTime_) > kMaxDMXPacketTime ||
           (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
-        errorStats_.packetTimeoutCount++;
+        // We'll consider this as a packet end and not as a timeout
+        // errorStats_.packetTimeoutCount++;
         completePacket();
         setConnected(false);
+        return;
       }
       break;
 
     default:
       break;
   }
+
+  // Start a timer watching for disconnection/packet end
+  idleTimeoutTimer_.begin(
+      [&]() {
+        idleTimeoutTimer_.end();
+        completePacket();
+        setConnected(false);
+      },
+      kMaxDMXIdleTime - kCharTime);
 }
 
 void Receiver::receivePotentialBreak() {
+  idleTimeoutTimer_.end();
+
   // A potential BREAK is detected when a stop bit is expected but not
   // received, and this happens after the start bit, nine bits, and the
   // missing stop bit, about 44us.
@@ -917,6 +932,8 @@ void Receiver::receiveBadBreak() {
 }
 
 void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
+  idleTimeoutTimer_.end();
+
   // Bad BREAKs are detected when BREAK + MAB + character time is too short
   // BREAK: 88us
   // MAB: 8us
@@ -938,6 +955,13 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
         }
         breakTime = rxRiseTime_ - breakStartTime_;
         mabTime = eopTime - kCharTime - rxRiseTime_;
+        if (mabTime >= kMaxDMXIdleTime) {
+          if (connected_) {
+            completePacket();
+            setConnected(false);
+          }
+          return;
+        }
       } else {
         rxChangeState_ = 0;
         // This is only a rudimentary check for short BREAKs. It does not
