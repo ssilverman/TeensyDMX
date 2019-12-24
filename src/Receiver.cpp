@@ -850,26 +850,33 @@ void Receiver::completePacket() {
 void Receiver::receiveIdle() {
   uint32_t t = micros();
 
-  if (state_ == RecvStates::kBreak) {
-    if (rxChangeState_ == 1) {
-      rxChangeState_ = 0;
-      if ((rxRiseTime_ - breakStartTime_) < kMinBreakTime) {
-        receiveBadBreak();
+  switch (state_) {
+    case RecvStates::kBreak:
+      if (rxChangeState_ == 1) {
+        rxChangeState_ = 0;
+        if ((rxRiseTime_ - breakStartTime_) < kMinBreakTime) {
+          receiveBadBreak();
+        }
+      } else {
+        rxChangeState_ = 0;
+        // This catches the case where a short BREAK is followed by a longer MAB
+        if ((t - breakStartTime_) < kMinBreakTime + kCharTime) {
+          receiveBadBreak();
+        }
       }
-    } else {
-      rxChangeState_ = 0;
-      // This catches the case where a short BREAK is followed by a longer MAB
-      if ((t - breakStartTime_) < kMinBreakTime + kCharTime) {
-        receiveBadBreak();
+      break;
+
+    case RecvStates::kData:
+      if ((t - breakStartTime_) > kMaxDMXPacketTime ||
+          (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
+        errorStats_.packetTimeoutCount++;
+        completePacket();
+        setConnected(false);
       }
-    }
-  } else if (state_ == RecvStates::kData) {
-    if ((t - breakStartTime_) > kMaxDMXPacketTime ||
-        (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
-      errorStats_.packetTimeoutCount++;
-      completePacket();
-      setConnected(false);
-    }
+      break;
+
+    default:
+      break;
   }
 }
 
