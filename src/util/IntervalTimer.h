@@ -4,8 +4,8 @@
 // This file is part of the TeensyDMX library.
 // (c) 2019 Shawn Silverman
 
-#ifndef TEENSYDMX_UTIL_INTERVALTIMER_H_
-#define TEENSYDMX_UTIL_INTERVALTIMER_H_
+#ifndef TEENSYDMX_UTIL_PERIODICTIMER_H_
+#define TEENSYDMX_UTIL_PERIODICTIMER_H_
 
 // C++ includes
 #include <cstdint>
@@ -26,13 +26,13 @@ namespace util {
 // so they are first come first served.
 //
 // This class is not safe in the presence of concurrency.
-class IntervalTimer final {
+class PeriodicTimer final {
  public:
-  constexpr IntervalTimer()
+  constexpr PeriodicTimer()
       : channel_(nullptr),
         priority_(128) {}
 
-  ~IntervalTimer() {
+  ~PeriodicTimer() {
     end();
   }
 
@@ -88,7 +88,7 @@ class IntervalTimer final {
  private:
   // // Use RAII to disable and re-enable interrupts.
   // //
-  // // This is used because it's possible to mess around with IntervalTimers from
+  // // This is used because it's possible to mess around with PeriodicTimers from
   // // inside interrupts.
   // class Lock final {
   //  public:
@@ -116,4 +116,4 @@ class IntervalTimer final {
 }  // namespace util
 }  // namespace qindesign
 
-#endif  // TEENSYDMX_UTIL_INTERVALTIMER_H_
+#endif  // TEENSYDMX_UTIL_PERIODICTIMER_H_

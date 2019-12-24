@@ -49,7 +49,7 @@ static constexpr uint32_t kFreq = 24000000;
 // Maximum period in microseconds.
 static constexpr uint32_t kMaxPeriod = UINT32_MAX / (kFreq / 1000000.0f);
 
-bool IntervalTimer::begin(std::function<void()> func, uint32_t micros,
+bool PeriodicTimer::begin(std::function<void()> func, uint32_t micros,
                           std::function<void()> startFunc) {
   if (micros == 0 || kMaxPeriod < micros) {
     return false;
@@ -58,7 +58,7 @@ bool IntervalTimer::begin(std::function<void()> func, uint32_t micros,
   return beginCycles(func, cycles, startFunc);
 }
 
-bool IntervalTimer::begin(std::function<void()> func, float micros,
+bool PeriodicTimer::begin(std::function<void()> func, float micros,
                           std::function<void()> startFunc) {
   if (micros <= 0 || kMaxPeriod < micros) {
     return false;
@@ -67,7 +67,7 @@ bool IntervalTimer::begin(std::function<void()> func, float micros,
   return beginCycles(func, cycles, startFunc);
 }
 
-bool IntervalTimer::restart(uint32_t micros) {
+bool PeriodicTimer::restart(uint32_t micros) {
   if (micros == 0 || kMaxPeriod < micros) {
     return false;
   }
@@ -75,7 +75,7 @@ bool IntervalTimer::restart(uint32_t micros) {
   return restartCycles(cycles);
 }
 
-bool IntervalTimer::restart(float micros) {
+bool PeriodicTimer::restart(float micros) {
   if (micros <= 0 || kMaxPeriod < micros) {
     return false;
   }
@@ -83,7 +83,7 @@ bool IntervalTimer::restart(float micros) {
   return restartCycles(cycles);
 }
 
-bool IntervalTimer::update(uint32_t micros) {
+bool PeriodicTimer::update(uint32_t micros) {
   if (micros == 0 || kMaxPeriod < micros) {
     return false;
   }
@@ -91,7 +91,7 @@ bool IntervalTimer::update(uint32_t micros) {
   return updateCycles(cycles);
 }
 
-bool IntervalTimer::update(float micros) {
+bool PeriodicTimer::update(float micros) {
   if (micros <= 0 || kMaxPeriod < micros) {
     return false;
   }
@@ -99,7 +99,7 @@ bool IntervalTimer::update(float micros) {
   return updateCycles(cycles);
 }
 
-bool IntervalTimer::updateCycles(uint32_t cycles) {
+bool PeriodicTimer::updateCycles(uint32_t cycles) {
   // Lock lock{};
   if (channel_ == nullptr) {
     return false;
@@ -108,7 +108,7 @@ bool IntervalTimer::updateCycles(uint32_t cycles) {
   return true;
 }
 
-bool IntervalTimer::restartCycles(uint32_t cycles) {
+bool PeriodicTimer::restartCycles(uint32_t cycles) {
   // Lock lock{};
   if (channel_ == nullptr) {
     return false;
@@ -120,7 +120,7 @@ bool IntervalTimer::restartCycles(uint32_t cycles) {
   return true;
 }
 
-bool IntervalTimer::beginCycles(std::function<void()> func, uint32_t cycles,
+bool PeriodicTimer::beginCycles(std::function<void()> func, uint32_t cycles,
                                 std::function<void()> startFunc) {
   // Lock lock{};
 
@@ -210,7 +210,7 @@ bool IntervalTimer::beginCycles(std::function<void()> func, uint32_t cycles,
   return true;
 }
 
-void IntervalTimer::end() {
+void PeriodicTimer::end() {
   // Lock lock{};
 
   if (channel_ == nullptr) {
@@ -250,7 +250,7 @@ void IntervalTimer::end() {
   channel_ = nullptr;
 }
 
-void IntervalTimer::setPriority(uint8_t n) {
+void PeriodicTimer::setPriority(uint8_t n) {
   // Lock lock{};
 
   priority_ = n;

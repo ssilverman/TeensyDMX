@@ -591,7 +591,7 @@ class Receiver final : public TeensyDMX {
   uint32_t rxRiseTime_;
 
   // Timer for tracking IDLE timeouts.
-  util::IntervalTimer idleTimeoutTimer_;
+  util::PeriodicTimer idleTimeoutTimer_;
 
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
@@ -841,7 +841,8 @@ class Sender final : public TeensyDMX {
   // If the new rate is non-zero and the former rate is zero then this will call
   // end() and then begin().
   //
-  // For rates slower than the maximum, this uses an IntervalTimer internally.
+  // For rates slower than the maximum, this uses one of the periodic
+  // timers internally.
   //
   // Note that the specification states that the BREAK-to-BREAK time must be at
   // most 1s. This means that the minimum refresh rate is 1Hz. The minimum
@@ -1018,7 +1019,7 @@ class Sender final : public TeensyDMX {
 
   // The packet refresh rate, in Hz.
   float refreshRate_;
-  util::IntervalTimer intervalTimer_;  // General purpose timer
+  util::PeriodicTimer periodicTimer_;  // General purpose timer
 
   // The BREAK-to-BREAK timing, matching the refresh rate.
   // This is specified in microseconds.

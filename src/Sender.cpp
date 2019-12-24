@@ -206,90 +206,90 @@ void Sender::begin() {
   state_ = XmitStates::kIdle;
   uart_.begin(kSlotsBaud, kSlotsFormat);
 
-  // Also set the interval timer priority to match the UART priority
+  // Also set the periodic timer priority to match the UART priority
 
   switch (serialIndex_) {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
     case 0:
       ACTIVATE_UART_TX_SERIAL(0)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART0_STATUS));
       break;
 #elif defined(IMXRT_LPUART6)
     case 0:
       GLEAN_LPUART_PARAMS(6)
       ACTIVATE_LPUART_TX_SERIAL(6)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART6));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART6));
       break;
 #endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
 
 #if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
     case 1:
       ACTIVATE_UART_TX_SERIAL(1)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART1_STATUS));
       break;
 #elif defined(IMXRT_LPUART4)
     case 1:
       GLEAN_LPUART_PARAMS(4)
       ACTIVATE_LPUART_TX_SERIAL(4)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART4));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART4));
       break;
 #endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
 
 #if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
     case 2:
       ACTIVATE_UART_TX_SERIAL(2)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART2_STATUS));
       break;
 #elif defined(IMXRT_LPUART2)
     case 2:
       GLEAN_LPUART_PARAMS(2)
       ACTIVATE_LPUART_TX_SERIAL(2)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART2));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART2));
       break;
 #endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUAR2
 
 #if defined(HAS_KINETISK_UART3)
     case 3:
       ACTIVATE_UART_TX_SERIAL(3)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART3_STATUS));
       break;
 #elif defined(IMXRT_LPUART3)
     case 3:
       GLEAN_LPUART_PARAMS(3)
       ACTIVATE_LPUART_TX_SERIAL(3)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART3));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART3));
       break;
 #endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
 
 #if defined(HAS_KINETISK_UART4)
     case 4:
       ACTIVATE_UART_TX_SERIAL(4)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART4_STATUS));
       break;
 #elif defined(IMXRT_LPUART8)
     case 4:
       GLEAN_LPUART_PARAMS(8)
       ACTIVATE_LPUART_TX_SERIAL(8)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART8));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART8));
       break;
 #endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
 
 #if defined(HAS_KINETISK_UART5)
     case 5:
       ACTIVATE_UART_TX_SERIAL(5)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_UART5_STATUS));
       break;
 #elif defined(HAS_KINETISK_LPUART0)
     case 5:
       GLEAN_LPUART_PARAMS(0)
       ACTIVATE_LPUART_TX_SERIAL(0)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART0));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART0));
       break;
 #elif defined(IMXRT_LPUART1)
     case 5:
       GLEAN_LPUART_PARAMS(1)
       ACTIVATE_LPUART_TX_SERIAL(1)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART1));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART1));
       break;
 #endif  // HAS_KINETISK_LPUART0 || HAS_KINETISK_UART5 || IMXRT_LPUART1
 
@@ -297,7 +297,7 @@ void Sender::begin() {
     case 6:
       GLEAN_LPUART_PARAMS(7)
       ACTIVATE_LPUART_TX_SERIAL(7)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART7));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART7));
       break;
 #endif  // IMXRT_LPUART7
 
@@ -305,7 +305,7 @@ void Sender::begin() {
     case 7:
       GLEAN_LPUART_PARAMS(5)
       ACTIVATE_LPUART_TX_SERIAL(5)
-      intervalTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART5));
+      periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART5));
       break;
 #endif  // IMXRT_LPUART5 && __IMXRT1052__
   }
@@ -325,7 +325,7 @@ void Sender::end() {
   // so disable the IRQs first
 
   uart_.end();
-  intervalTimer_.end();
+  periodicTimer_.end();
 
   // Remove the reference from the instances,
   // but only if we're the ones who added it

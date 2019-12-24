@@ -475,7 +475,7 @@ The BREAK and MAB times can be specified using the `setBreakTime` and
 to the specified value, but the actual MAB time may be slightly larger
 than requested.
 
-This feature uses one of the _PIT_ timers via `IntervalTimer`, but if none are
+This feature uses one of the _PIT_ timers via `PeriodicTimer`, but if none are
 available, then the transmitter will fall back on using the baud rate generator
 to achieve a 180us BREAK and something a little larger than a 20us MAB.
 

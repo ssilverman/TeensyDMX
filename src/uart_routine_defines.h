@@ -124,19 +124,19 @@
       (status & STAT_PREFIX##_TDRE) != 0) {                             \
     switch (instance->state_) {                                         \
       case Sender::XmitStates::kBreak:                                  \
-        if (!instance->intervalTimer_.begin(                            \
+        if (!instance->periodicTimer_.begin(                            \
                 [instance]() {                                          \
                   if (instance->state_ == Sender::XmitStates::kBreak) { \
                     CTRLINV &= ~CTRLINV_PREFIX##_TXINV;                 \
                     instance->state_ = Sender::XmitStates::kMAB;        \
-                    if (instance->intervalTimer_.restart(               \
+                    if (instance->periodicTimer_.restart(               \
                             instance->adjustedMABTime_)) {              \
                       return;                                           \
                     }                                                   \
                     /* We shouldn't delay as an alternative because     \
                      * that might mean we delay too long */             \
                   }                                                     \
-                  instance->intervalTimer_.end();                       \
+                  instance->periodicTimer_.end();                       \
                   instance->state_ = Sender::XmitStates::kData;         \
                   CTRL = CTRL_PREFIX##_TX_ACTIVE;                       \
                 },                                                      \
@@ -181,9 +181,9 @@
           CTRL = CTRL_PREFIX##_TX_INACTIVE;                             \
           if (instance->breakToBreakTime_ != UINT32_MAX) {              \
             /* Non-infinite BREAK time */                               \
-            if (!instance->intervalTimer_.begin(                        \
+            if (!instance->periodicTimer_.begin(                        \
                     [instance]() {                                      \
-                      instance->intervalTimer_.end();                   \
+                      instance->periodicTimer_.end();                   \
                       CTRL = CTRL_PREFIX##_TX_ACTIVE;                   \
                     },                                                  \
                     instance->breakToBreakTime_ - timeSinceBreak)) {    \
