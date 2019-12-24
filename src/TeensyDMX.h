@@ -29,7 +29,7 @@
 
 // Project includes
 #include "Responder.h"
-#include "util/IntervalTimer.h"
+#include "util/PeriodicTimer.h"
 
 namespace qindesign {
 namespace teensydmx {

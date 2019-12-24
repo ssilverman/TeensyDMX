@@ -1,4 +1,4 @@
-// IntervalTimer.h defines an interface to the Periodic Interrupt Timers. It has
+// PeriodicTimer.h defines an interface to the Periodic Interrupt Timers. It has
 // a flexible API and the ability to use lambdas for the trigger function. It is
 // similar to PJRC's Teensyduino IntervalTimer.
 // This file is part of the TeensyDMX library.

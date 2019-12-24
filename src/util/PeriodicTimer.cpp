@@ -1,8 +1,8 @@
-// IntervalTimer.cpp implements the enhanced IntervalTimer.
+// PeriodicTimer.cpp implements the enhanced IntervalTimer.
 // This file is part of the TeensyDMX library.
 // (c) 2019 Shawn Silverman
 
-#include "IntervalTimer.h"
+#include "PeriodicTimer.h"
 
 // C++ includes
 #include <algorithm>
