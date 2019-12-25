@@ -980,6 +980,9 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
         // Complete any un-flushed bytes
         uint32_t dt = breakStartTime_ - lastBreakStartTime_;
         packetStats_.breakToBreakTime = dt;
+
+        // In the following checks, the packet time limits are the same as the
+        // BREAK-to-BREAK time limits
         if (dt < kMinDMXPacketTime) {
           errorStats_.shortPacketCount++;
           // Discard the data
