@@ -887,6 +887,14 @@ void Receiver::receiveIdle() {
   idleTimeoutTimer_.begin(
       [&]() {
         idleTimeoutTimer_.end();
+        if (!connected_) {
+          return;
+        }
+        if (lastSlotEndTime_ - breakStartTime_ < kMinDMXPacketTime) {
+          errorStats_.shortPacketCount++;
+          // Discard the data
+          activeBufIndex_ = 0;
+        }
         completePacket();
         setConnected(false);
       },
