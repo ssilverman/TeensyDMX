@@ -116,6 +116,10 @@ class Receiver final : public TeensyDMX {
   // Notes on the variables:
   // * Size: The latest packet size.
   // * Timestamp: The timestamp of the last received packet, in milliseconds.
+  //   This value is the time at which the packet is recognized as a packet and
+  //   not at the end of the last stop bit. For example, sometimes a packet is
+  //   recognized after a certain timeout, and that time is used as the
+  //   timestamp, not the time at the end of the last slot.
   //   This may not be what you expect. Please refer to the
   //   `Receiver::lastPacketTimestamp()` docs for more information.
   // * BREAK-plus-MAB time: This is the sum of the BREAK and MAB times, in
@@ -353,10 +357,12 @@ class Receiver final : public TeensyDMX {
   }
 
   // Returns the timestamp of the last received packet. Under the covers,
-  // millis() is called when a packet is received. Note that this may not
-  // indicate freshness of the channels you're interested in because they may
-  // not have been a part of the last packet received. i.e. the last packet
-  // received may have been smaller than required.
+  // millis() is noted when a packet is recognized as a packet and not at the
+  // end of the last stop bit.
+  //
+  // Note that this may not indicate freshness of the channels you're interested
+  // in because they may not have been a part of the last packet received. i.e.
+  // the last packet received may have been smaller than required.
   //
   // Use of this function is discouraged in favor of making a note of the time
   // inside the code that checks for the value returned from readPacket() being
