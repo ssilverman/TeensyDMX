@@ -7,6 +7,9 @@ This document details the changes between each release.
 ### Added
 * Improved IDLE timeout detection by using a timer.
 * Added a check for when the MAB time of a packet is too long.
+* Added an optional `rangeError` parameter to `Receiver::get` to match the same
+  parameter in `Receiver::get16Bit`. Because the function returns a value,
+  it provides a way to know whether a zero return value was because of an error.
 
 ### Changed
 * Changed `util::IntervalTimer` to accept `std::function`s for the
