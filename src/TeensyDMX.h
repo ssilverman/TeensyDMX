@@ -126,9 +126,10 @@ class Receiver final : public TeensyDMX {
   //   microseconds. It's not possible to determine where the BREAK ends and the
   //   MAB starts without using another pin to watch the RX line. See
   //   `setRXWatchPin` for setting up a connected pin.
-  // * BREAK-to-BREAK time: This may not be set at the same time as the other
-  //   variables; it just represents the last known duration. This is
-  //   in microseconds.
+  // * BREAK-to-BREAK time: The time between the BREAKs of the last packet and
+  //   one previous to it. This may not be set at the same time as the other
+  //   variables; it just represents the last known duration. It may be zero if
+  //   there is no previous packet. This is in microseconds.
   // * Packet time: The duration of the last packet, from the BREAK start to the
   //   last slot end, in microseconds.
   // * BREAK time: The packet's BREAK time. This will be zero if the RX line is
