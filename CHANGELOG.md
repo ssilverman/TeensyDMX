@@ -10,6 +10,11 @@ This document details the changes between each release.
 * Added an optional `rangeError` parameter to `Receiver::get` to match the same
   parameter in `Receiver::get16Bit`. Because the function returns a value,
   it provides a way to know whether a zero return value was because of an error.
+* New "Keep Short Packets" feature and associated `PacketStats::isShort`
+  variable that allow callers to know when received packet data is part of a
+  short packet, if kept. Also added new `Receiver::setKeepShortPackets(bool)`
+  and `Receiver::isKeepShortPackets()` functions for setting and getting the
+  feature state.
 
 ### Changed
 * Changed `util::IntervalTimer` to accept `std::function`s for the
