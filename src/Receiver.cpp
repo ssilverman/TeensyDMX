@@ -746,11 +746,11 @@ std::shared_ptr<Responder> Receiver::setResponder(
     uint8_t startCode, std::shared_ptr<Responder> r) {
   // For a null responder, delete any current one for this start code
   if (r == nullptr) {
+    Lock lock{*this};
+
     if (responders_ == nullptr) {
       return nullptr;
     }
-
-    Lock lock{*this};
 
     // Replace any previous responder
     std::shared_ptr<Responder> old{responders_[startCode]};
@@ -788,6 +788,7 @@ std::shared_ptr<Responder> Receiver::setResponder(
     if (responderOutBuf_ == nullptr) {
       responderOutBufLen_ = 0;
       responders_ = nullptr;
+      responderCount_ = 0;
       return nullptr;
     }
     responderOutBufLen_ = outBufSize;
