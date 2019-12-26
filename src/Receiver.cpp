@@ -302,6 +302,8 @@ Receiver::~Receiver() {
   } else {                                                        \
     UART##N##_C2 = UART_C2_RX_ENABLE;                             \
   }                                                               \
+  /* Start counting IDLE after the stop bits */                   \
+  UART##N##_C1 |= UART_C1_ILT;                                    \
   attachInterruptVector(IRQ_UART##N##_STATUS, &uart##N##_rx_isr); \
   /* Enable interrupt on frame error */                           \
   UART##N##_C3 |= UART_C3_FEIE;                                   \
@@ -323,6 +325,8 @@ Receiver::~Receiver() {
   } else {                                                         \
     LPUART##N##_CTRL = LPUART_CTRL_RX_ENABLE | LPUART_CTRL_FEIE;   \
   }                                                                \
+  /* Start counting IDLE after the stop bits */                    \
+  LPUART##N##_CTRL |= LPUART_CTRL_ILT;                             \
   attachInterruptVector(IRQ_LPUART##N, &lpuart##N##_rx_isr);
 
 #define ENABLE_UART_TX(N)        \
