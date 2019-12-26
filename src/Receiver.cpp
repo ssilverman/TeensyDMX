@@ -164,6 +164,7 @@ Receiver::Receiver(HardwareSerial &uart)
       txEnabled_(true),
       began_(false),
       state_{RecvStates::kIdle},
+      keepShortPackets_(false),
       feStartTime_(0),
       buf1_{0},
       buf2_{0},
@@ -818,6 +819,23 @@ void Receiver::completePacket() {
     return;
   }
 
+  // Check for a short packet. If found, discard the data if the
+  // "keep short packets" feature is disabled; otherwise, don't discard the data
+  // but mark it as "short".
+  // Do this check after first checking activeBufIndex_ because a positive value
+  // means that the following start and end time variables are valid
+  if (lastSlotEndTime_ - breakStartTime_ < kMinDMXPacketTime) {
+    errorStats_.shortPacketCount++;
+    if (keepShortPackets_) {
+      packetStats_.isShort = true;
+    } else {
+      packetStats_.isShort = false;
+      activeBufIndex_ = 0;
+    }
+  } else {
+    packetStats_.isShort = false;
+  }
+
   // Swap the buffers
   if (activeBuf_ == buf1_) {
     activeBuf_ = buf2_;
@@ -829,6 +847,7 @@ void Receiver::completePacket() {
 
   incPacketCount();
 
+  // Packet stats
   packetStats_.size = packetSize_ = activeBufIndex_;
   packetStats_.timestamp = t;
   if (lastSlotEndTime_ >= breakStartTime_) {
@@ -896,11 +915,6 @@ void Receiver::receiveIdle() {
         idleTimeoutTimer_.end();
         if (!connected_) {
           return;
-        }
-        if (lastSlotEndTime_ - breakStartTime_ < kMinDMXPacketTime) {
-          errorStats_.shortPacketCount++;
-          // Discard the data
-          activeBufIndex_ = 0;
         }
         completePacket();
         setConnected(false);

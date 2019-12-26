@@ -115,6 +115,8 @@ class Receiver final : public TeensyDMX {
   //
   // Notes on the variables:
   // * Size: The latest packet size.
+  // * Is short: Indicates whether the packet duration is shorter than the
+  //   minimum allowed, 1196us.
   // * Timestamp: The timestamp of the last received packet, in milliseconds.
   //   This value is the time at which the packet is recognized as a packet and
   //   not at the end of the last stop bit. For example, sometimes a packet is
@@ -141,6 +143,7 @@ class Receiver final : public TeensyDMX {
     // Initializes everything to zero.
     constexpr PacketStats()
         : size(0),
+          isShort(false),
           timestamp(0),
           breakPlusMABTime(0),
           breakToBreakTime(0),
@@ -160,6 +163,8 @@ class Receiver final : public TeensyDMX {
     PacketStats &operator=(PacketStats &&) = default;
 
     int size;                   // Packet size
+    bool isShort;               // Indicates whether the packet is shorter than
+                                // kMinDMXPacketTime
     uint32_t timestamp;         // Timestamp, in milliseconds
     uint32_t breakPlusMABTime;  // Sum of BREAK and MAB times, in microseconds
     uint32_t breakToBreakTime;  // Time between BREAKs, in microseconds
@@ -174,6 +179,7 @@ class Receiver final : public TeensyDMX {
     // Volatile copy constructor.
     PacketStats(const volatile PacketStats &other)
         : size(other.size),
+          isShort(other.isShort),
           timestamp(other.timestamp),
           breakPlusMABTime(other.breakPlusMABTime),
           breakToBreakTime(other.breakToBreakTime),
@@ -189,6 +195,7 @@ class Receiver final : public TeensyDMX {
     // See: https://stackoverflow.com/questions/13869318/gcc-warning-about-implicit-dereference
     void operator=(const PacketStats &other) volatile {
       size = other.size;
+      isShort = other.isShort;
       timestamp = other.timestamp;
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
@@ -203,6 +210,7 @@ class Receiver final : public TeensyDMX {
     // Other-way volatile assignment operator.
     PacketStats &operator=(const volatile PacketStats &other) {
       size = other.size;
+      isShort = other.isShort;
       timestamp = other.timestamp;
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
@@ -294,6 +302,20 @@ class Receiver final : public TeensyDMX {
 
   void end() override;
 
+  // Sets the feature that keeps short packets. These are packets that are
+  // shorter than the minimum duration, 1196us. See `readPacket` and
+  // `packetStats()` for more information.
+  //
+  // This feature is disabled by default.
+  void setKeepShortPackets(bool flag) {
+    keepShortPackets_ = flag;
+  }
+
+  // Returns whether short packets are kept.
+  bool isKeepShortPackets() const {
+    return keepShortPackets_;
+  }
+
   // Reads all or part of the latest packet into buf. This returns zero if len
   // is negative or zero, or if startChannel is negative or beyond
   // kMaxDMXPacketSize. This only reads up to the end of the packet if
@@ -316,6 +338,12 @@ class Receiver final : public TeensyDMX {
   // packet statistics are stored in that object, regardless of this function's
   // return value. The values are read atomically with the latest packet data.
   // This is an advantage over 'packetStats()`.
+  //
+  // Short packets, packets that don't meet a minimum duration, are normally
+  // discarded, but they can be kept by enabling the feature with the
+  // `setKeepShortPackets` function. If they are kept, then the
+  // `PacketStats::isShort` variable will be set to `true` for these packets and
+  // `false` otherwise.
   int readPacket(uint8_t *buf, int startChannel, int len,
                  PacketStats *stats = nullptr);
 
@@ -535,6 +563,9 @@ class Receiver final : public TeensyDMX {
 
   // Keeps track of what we're receiving.
   volatile RecvStates state_;
+
+  // Features
+  volatile bool keepShortPackets_;
 
   // The framing-error start time, in microseconds. This needs to be accessed
   // from the same interrupt that triggered the framing error so that there's
