@@ -318,11 +318,13 @@ class Receiver final : public TeensyDMX {
   // at channel zero.
   //
   // If the channel is out of range for the last packet or there is no data then
-  // this will return zero.
+  // this will return zero. The optional `rangeError` parameter can be set to
+  // something non-NULL to indicate whether a zero return value meant that there
+  // was a range error.
   //
   // Note that this returns the latest value received, even if the receiver has
   // been stopped.
-  uint8_t get(int channel) const;
+  uint8_t get(int channel, bool *rangeError = nullptr) const;
 
   // Gets the latest 16-bit value received at the given channel. This reads the
   // value in big-endian order.
