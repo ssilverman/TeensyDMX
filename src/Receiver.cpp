@@ -302,8 +302,8 @@ Receiver::~Receiver() {
   } else {                                                        \
     UART##N##_C2 = UART_C2_RX_ENABLE;                             \
   }                                                               \
-  /* Start counting IDLE after the stop bits */                   \
-  UART##N##_C1 |= UART_C1_ILT;                                    \
+  /* Start counting IDLE after the start bit */                   \
+  UART##N##_C1 &= ~UART_C1_ILT;                                   \
   attachInterruptVector(IRQ_UART##N##_STATUS, &uart##N##_rx_isr); \
   /* Enable interrupt on frame error */                           \
   UART##N##_C3 |= UART_C3_FEIE;                                   \
@@ -325,8 +325,8 @@ Receiver::~Receiver() {
   } else {                                                         \
     LPUART##N##_CTRL = LPUART_CTRL_RX_ENABLE | LPUART_CTRL_FEIE;   \
   }                                                                \
-  /* Start counting IDLE after the stop bits */                    \
-  LPUART##N##_CTRL |= LPUART_CTRL_ILT;                             \
+  /* Start counting IDLE after the start bit */                    \
+  LPUART##N##_CTRL &= ~LPUART_CTRL_ILT;                            \
   attachInterruptVector(IRQ_LPUART##N, &lpuart##N##_rx_isr);
 
 #define ENABLE_UART_TX(N)        \
@@ -818,6 +818,8 @@ void Receiver::completePacket() {
   uint32_t t = millis();
   state_ = RecvStates::kIdle;
 
+  clearILT();  // Set the IDLE detection to "after start bit"
+
   // An empty packet isn't valid, there must be at least a start code
   if (activeBufIndex_ <= 0) {
     return;
@@ -876,6 +878,178 @@ void Receiver::completePacket() {
 
   activeBufIndex_ = 0;
 }
+
+#define UART_CLEAR_ILT(N) UART##N##_C1 &= ~UART_C1_ILT;
+#define LPUART_CLEAR_ILT(N) LPUART##N##_CTRL &= ~LPUART_CTRL_ILT;
+#define UART_SET_ILT(N) UART##N##_C1 |= UART_C1_ILT;
+#define LPUART_SET_ILT(N) LPUART##N##_CTRL |= LPUART_CTRL_ILT;
+
+void Receiver::clearILT() {
+  // Change the Idle Line Type Select to "Idle starts after start bit"
+  switch (serialIndex_) {
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+    case 0:
+      UART_CLEAR_ILT(0)
+      break;
+#elif defined(IMXRT_LPUART6)
+    case 0:
+      LPUART_CLEAR_ILT(6)
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
+
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
+    case 1:
+      UART_CLEAR_ILT(1)
+      break;
+#elif defined(IMXRT_LPUART4)
+    case 1:
+      LPUART_CLEAR_ILT(4)
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
+
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
+    case 2:
+      UART_CLEAR_ILT(2)
+      break;
+#elif defined(IMXRT_LPUART2)
+    case 2:
+      LPUART_CLEAR_ILT(2)
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUART2
+
+#if defined(HAS_KINETISK_UART3)
+    case 3:
+      UART_CLEAR_ILT(3)
+      break;
+#elif defined(IMXRT_LPUART3)
+    case 3:
+      LPUART_CLEAR_ILT(3)
+      break;
+#endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
+
+#if defined(HAS_KINETISK_UART4)
+    case 4:
+      UART_CLEAR_ILT(4)
+      break;
+#elif defined(IMXRT_LPUART8)
+    case 4:
+      LPUART_CLEAR_ILT(8)
+      break;
+#endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
+
+#if defined(HAS_KINETISK_UART5)
+    case 5:
+      UART_CLEAR_ILT(5)
+      break;
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      LPUART_CLEAR_ILT(0)
+      break;
+#elif defined(IMXRT_LPUART1)
+    case 5:
+      LPUART_CLEAR_ILT(1)
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0 || IMXRT_LPUART1
+
+#if defined(IMXRT_LPUART7)
+    case 6:
+      LPUART_CLEAR_ILT(7)
+      break;
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+    case 7:
+      LPUART_CLEAR_ILT(5)
+      break;
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
+  }
+}
+
+void Receiver::setILT() {
+  // Change the Idle Line Type Select to "Idle starts after start bit"
+  switch (serialIndex_) {
+#if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
+    case 0:
+      UART_SET_ILT(0)
+      break;
+#elif defined(IMXRT_LPUART6)
+    case 0:
+      LPUART_SET_ILT(6)
+      break;
+#endif  // HAS_KINETISK_UART0 || HAS_KINETISL_UART0 || IMXRT_LPUART6
+
+#if defined(HAS_KINETISK_UART1) || defined(HAS_KINETISL_UART1)
+    case 1:
+      UART_SET_ILT(1)
+      break;
+#elif defined(IMXRT_LPUART4)
+    case 1:
+      LPUART_SET_ILT(4)
+      break;
+#endif  // HAS_KINETISK_UART1 || HAS_KINETISL_UART1 || IMXRT_LPUART4
+
+#if defined(HAS_KINETISK_UART2) || defined(HAS_KINETISL_UART2)
+    case 2:
+      UART_SET_ILT(2)
+      break;
+#elif defined(IMXRT_LPUART2)
+    case 2:
+      LPUART_SET_ILT(2)
+      break;
+#endif  // HAS_KINETISK_UART2 || HAS_KINETISL_UART2 || IMXRT_LPUART2
+
+#if defined(HAS_KINETISK_UART3)
+    case 3:
+      UART_SET_ILT(3)
+      break;
+#elif defined(IMXRT_LPUART3)
+    case 3:
+      LPUART_SET_ILT(3)
+      break;
+#endif  // HAS_KINETISK_UART3 || IMXRT_LPUART3
+
+#if defined(HAS_KINETISK_UART4)
+    case 4:
+      UART_SET_ILT(4)
+      break;
+#elif defined(IMXRT_LPUART8)
+    case 4:
+      LPUART_SET_ILT(8)
+      break;
+#endif  // HAS_KINETISK_UART4 || IMXRT_LPUART8
+
+#if defined(HAS_KINETISK_UART5)
+    case 5:
+      UART_SET_ILT(5)
+      break;
+#elif defined(HAS_KINETISK_LPUART0)
+    case 5:
+      LPUART_SET_ILT(0)
+      break;
+#elif defined(IMXRT_LPUART1)
+    case 5:
+      LPUART_SET_ILT(1)
+      break;
+#endif  // HAS_KINETISK_UART5 || HAS_KINETISK_LPUART0 || IMXRT_LPUART1
+
+#if defined(IMXRT_LPUART7)
+    case 6:
+      LPUART_SET_ILT(7)
+      break;
+#endif  // IMXRT_LPUART7
+
+#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+    case 7:
+      LPUART_SET_ILT(5)
+      break;
+#endif  // IMXRT_LPUART5 && __IMXRT1052__
+  }
+}
+
+#undef UART_CLEAR_ILT
+#undef LPUART_CLEAR_ILT
+#undef UART_SET_ILT
+#undef LPUART_SET_ILT
 
 void Receiver::receiveIdle() {
   uint32_t t = micros();
@@ -1006,6 +1180,9 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
           receiveBadBreak();
           return;
         }
+        setILT();  // Set IDLE detection to "after stop bit"
+        // Since we've already received a byte, the idle detection can't start
+        // again until the end of the next byte not already in the buffer
       }
 
       if (connected_) {  // This condition indicates we haven't seen
@@ -1395,6 +1572,7 @@ void Receiver::rxPinRose_isr() {
   } else {
     rxChangeState_ = 0;
   }
+  setILT();  // Set IDLE detection to "after stop bit"
 }
 
 void rxPinRoseSerial0_isr() {

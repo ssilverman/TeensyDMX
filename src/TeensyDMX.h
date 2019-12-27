@@ -520,6 +520,12 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void completePacket();
 
+  // Sets the "Idle Line Type Select" to "Idle starts after start bit".
+  void clearILT();
+
+  // Sets the "Idle Line Type Select" to "Idle starts after stop bit".
+  void setILT();
+
   // Look for potential packet timeouts when an IDLE condition was detected.
   // This is called from an ISR.
   void receiveIdle();
