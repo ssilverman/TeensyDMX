@@ -516,7 +516,11 @@ class Receiver final : public TeensyDMX {
   // Called when the connection state changes.
   void setConnected(bool flag);
 
-  // Makes a new packet available and resets state.
+  // Does these things
+  // 1. If there's data:
+  //    1. Makes a new packet available and sets the packet stats, and
+  //    2. Calls any associated responder.
+  // 2. Sets the state to kIdle.
   // This is called from an ISR.
   void completePacket();
 

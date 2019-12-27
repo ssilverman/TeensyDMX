@@ -825,9 +825,9 @@ void Receiver::completePacket() {
     return;
   }
 
-  // Check for a short packet. If found, discard the data if the
-  // "keep short packets" feature is disabled; otherwise, don't discard the data
-  // but mark it as "short".
+  // Check for a short packet. If found, discard the data if the "keep short
+  // packets" feature is disabled; otherwise, don't discard the data but mark it
+  // as "short".
   // Do this check after first checking activeBufIndex_ because a positive value
   // means that the following start and end time variables are valid
   if (lastSlotEndTime_ - breakStartTime_ < kMinDMXPacketTime) {
@@ -856,11 +856,7 @@ void Receiver::completePacket() {
   // Packet stats
   packetStats_.size = packetSize_ = activeBufIndex_;
   packetStats_.timestamp = t;
-  if (lastSlotEndTime_ >= breakStartTime_) {
-    packetStats_.packetTime = lastSlotEndTime_ - breakStartTime_;
-  } else {
-    packetStats_.packetTime = 0;
-  }
+  packetStats_.packetTime = lastSlotEndTime_ - breakStartTime_;
   packetStats_.breakPlusMABTime = packetStats_.nextBreakPlusMABTime;
   packetStats_.breakTime = packetStats_.nextBreakTime;
   packetStats_.mabTime = packetStats_.nextMABTime;
