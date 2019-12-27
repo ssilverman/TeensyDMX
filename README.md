@@ -73,6 +73,11 @@ This section summarizes the changes and new features since v3.
 7. Functions that previously did nothing or ignored the values on bad input now
    return a `bool` to indicate success or failure.
 8. Teensy 4 support.
+9. Added a new "Keep Short Packets" feature that provides access to any packets
+   that are too short in duration, less than 1196us. Accompanying this are: a
+   way to enable and disable the feature and a way to tell whether a packet is
+   too short.
+10. Improved IDLE and timeout handling logic in the receiver.
 
 ## How to use
 
@@ -183,11 +188,12 @@ dmxRx.onConnectChange([](Receiver *r) {
 
 #### The truth about connection detection
 
-In actual fact, the connection detection only works for _some_ of the cases
-where timeouts occur or when bad BREAKs happen. The one thing it can't do is
-detect when BREAK or IDLE conditions occur "permanently". Unless more data comes
-in, no further UART interrupts will be generated, so it is up to the user's code
-to detect this case.
+In actual fact, the connection detection only works for most of the cases where
+timeouts occur or when bad BREAKs happen. The one thing it can't do is detect
+when a BREAK condition occurs permanently, and, if none of the periodic
+interrupt timers (PIT) are available, when an IDLE condition occurs permanently.
+Unless more data comes in, no further UART interrupts will be generated, so it
+is up to the user's code to detect this case.
 
 The `Flasher` example contains an example of how to do this. In essence, the
 `readPacket` function will return a positive value if the desired data is
@@ -242,25 +248,49 @@ In summary, the _connected_ concept here has more to do with line noise and bad
 timing than it does with a physical connection. Perhaps a future release will
 rename this API concept or address it with the timer...
 
+#### Keeping short packets
+
+_Short packets_ are nothing more than valid-looking packets that span a duration
+less than 1196us. The default is to discard them because they may indicate
+line noise.
+
+It is possible to keep the data from these packets by enabling the "Keep Short
+Packets" feature using the `setKeepShortPackets` function. If these are kept
+then the `PacketStats::isShort` variable will indicate whether the associated
+packet is a _short packet_.
+
+Recall that the `readPacket` function can atomically retrieve packet statistics
+associated with the packet data. If `packetStats()` is used instead, then
+there's no guarantee that the values will be associated with the most recent or
+next packet data retrieval calls.
+
+Note that there is also an `isKeepShortPackets` function that can be polled for
+the current state of this feature.
+
 ### Packet statistics
 
 Packet statistics are tracked and the latest can be retrieved from a
 `PacketStats` object returned by `packetStats()`. Included are these variables:
 
 1. `size`: The latest received packet size.
-2. `timestamp`: The timestamp of the last packet received.
-3. `breakPlusMABTime`: The sum of the BREAK and MAB times. It's not possible to
+2. `isShort`: Whether the last packet was a _short packet_, a packet having a
+   duration less than 1196us. Keeping these packets can be enabled with the
+   `setKeepShortPackets` function.
+3. `timestamp`: The timestamp of the last packet received. This is set to the
+   time the packet was recognized as a packet and not the end of the last
+   stop bit.
+4. `breakPlusMABTime`: The sum of the BREAK and MAB times. It's not possible to
    determine where the BREAK ends and the MAB starts without using another pin
    to watch the RX line. To set up a connected pin, see `setRXWatchPin` and the
    section above on _RX line monitoring_.
-4. `breakToBreakTime`: The latest measured BREAK-to-BREAK time. Note that this
+5. `breakToBreakTime`: The latest measured BREAK-to-BREAK time. Note that this
    is not collected at the same time as the other variables and only represents
    the last known duration. This will be out of sync with the rest of the values
    in the presence of packet errors.
-5. `packetTime`: The duration of the last packet, measured from BREAK start to
+6. `packetTime`: The duration of the last packet, measured from BREAK start to
    the end of the last slot.
-6. `breakTime`: The packet's BREAK time.
-7. `mabTime`: The packet's MAB time.
+7. `breakTime`: The packet's BREAK time.
+8. `mabTime`: The packet's MAB time.
 
 If the RX line is not being monitored, then the BREAK and MAB times will be set
 to zero.
