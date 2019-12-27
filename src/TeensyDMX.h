@@ -411,7 +411,7 @@ class Receiver final : public TeensyDMX {
 
   // Sets the responder for the supplied start code. This holds on to the
   // pointer, so callers should take care to not free the object before this
-  // Receiver is freed or the responder for the start code is set to nullptr.
+  // Receiver is freed or the responder for the start code is set to `nullptr`.
   //
   // This will replace any responder having the same start code and returns
   // the replaced pointer. Note that this will return `nullptr` if no responder
