@@ -5,8 +5,6 @@ This document details the changes between each release.
 ## [4.0.0-alpha.8]
 
 ### Added
-* Improved IDLE timeout detection by using a timer.
-* Added a check for when the MAB time of a packet is too long.
 * Added an optional `rangeError` parameter to `Receiver::get` to match the same
   parameter in `Receiver::get16Bit`. Because the function returns a value,
   it provides a way to know whether a zero return value was because of an error.
@@ -20,6 +18,8 @@ This document details the changes between each release.
 * Changed `util::IntervalTimer` to accept `std::function`s for the
   trigger function.
 * Renamed `util::IntervalTimer` to `util::PeriodicTimer`.
+* Improved IDLE and timeout handling logic. It is the goal to be as accurate
+  as possible.
 
 ### Fixed
 * Fixed `Receiver::packetStats()` and `Receiver::errorStats()` to access the
