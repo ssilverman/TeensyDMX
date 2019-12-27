@@ -586,6 +586,7 @@ class Receiver final : public TeensyDMX {
   // some time.
   uint32_t feStartTime_;
 
+  // Receive buffers
   uint8_t buf1_[kMaxDMXPacketSize];
   uint8_t buf2_[kMaxDMXPacketSize];
   uint8_t *activeBuf_;
@@ -595,7 +596,7 @@ class Receiver final : public TeensyDMX {
   int activeBufIndex_;
 
   // The size of the last received packet. This will be set to zero when
-  // readPacket() reads data. lastPacketSize_ does not get set to zero when
+  // readPacket() reads data. The last packet size does not get set to zero when
   // packet data is read.
   volatile int packetSize_;
 
