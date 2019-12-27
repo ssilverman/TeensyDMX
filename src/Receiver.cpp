@@ -1057,18 +1057,23 @@ void Receiver::receiveIdle() {
   switch (state_) {
     case RecvStates::kBreak:
       if (rxChangeState_ == 1) {
-        rxChangeState_ = 0;
         if ((rxRiseTime_ - breakStartTime_) < kMinBreakTime) {
+          rxChangeState_ = 0;
           receiveBadBreak();
           return;
         }
       } else {
-        rxChangeState_ = 0;
         // This catches the case where a short BREAK is followed by a longer MAB
         if ((t - breakStartTime_) < kMinBreakTime + kCharTime) {
+          rxChangeState_ = 0;
           receiveBadBreak();
           return;
         }
+
+        // We can infer what the rise time is here
+        rxChangeState_ = 1;
+        rxRiseTime_ = t - kCharTime;
+        setILT();  // Set IDLE detection to "after stop bit"
       }
       break;
 
@@ -1091,9 +1096,6 @@ void Receiver::receiveIdle() {
   idleTimeoutTimer_.begin(
       [&]() {
         idleTimeoutTimer_.end();
-        if (!connected_) {
-          return;
-        }
         completePacket();
         setConnected(false);
       },
@@ -1163,10 +1165,8 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
         breakTime = rxRiseTime_ - breakStartTime_;
         mabTime = eopTime - kCharTime - rxRiseTime_;
         if (mabTime >= kMaxDMXIdleTime) {
-          if (connected_) {
-            completePacket();
-            setConnected(false);
-          }
+          completePacket();
+          setConnected(false);
           return;
         }
       } else {
@@ -1185,8 +1185,8 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
         // again until the end of the next byte not already in the buffer
       }
 
-      if (connected_) {  // This condition indicates we haven't seen
-                         // some timeout
+      if (connected_) {  // This condition indicates we haven't seen some
+                         // timeout and that lastBreakStartTime_ is valid
         // Complete any un-flushed bytes
         uint32_t dt = breakStartTime_ - lastBreakStartTime_;
         packetStats_.breakToBreakTime = dt;
@@ -1201,9 +1201,12 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
           // NOTE: Zero-length packets will also trigger a timeout
           errorStats_.packetTimeoutCount++;
           // Keep the data
+          // Don't disconnect because the timeout was relative to the
+          // previous packet
         }
         completePacket();
       } else {
+        packetStats_.breakToBreakTime = 0;
         activeBufIndex_ = 0;
       }
 
@@ -1248,6 +1251,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
   if ((eopTime - breakStartTime_) > kMaxDMXPacketTime) {
     errorStats_.packetTimeoutCount++;
     completePacket();
+    setConnected(false);
     return;
   }
 

@@ -493,12 +493,12 @@ class Receiver final : public TeensyDMX {
     const Receiver &r_;
   };
 
-  // The maximum allowed packet time for receivers, either BREAK plus data,
-  // or BREAK to BREAK, in microseconds.
+  // The maximum allowed packet time for receivers, both BREAK plus data and
+  // BREAK to BREAK, in microseconds.
   static constexpr uint32_t kMaxDMXPacketTime = 1250000;
 
-  // The minimum allowed packet time for receivers, BREAK to BREAK,
-  // in microseconds.
+  // The minimum allowed packet time for receivers, both BREAK plus data and
+  // BREAK to BREAK, in microseconds.
   static constexpr uint32_t kMinDMXPacketTime = 1196;
 
   // The maximum allowed IDLE and Mark Before BREAK (MBB) time,
@@ -610,6 +610,8 @@ class Receiver final : public TeensyDMX {
 
   // Indicates whether we are connected to a DMX transmitter. Disconnection is
   // considered to have occurred when a timeout or framing error is detected.
+  // Connection is considered to have occurred when a valid BREAK and at least
+  // one byte of data with valid timings have been received.
   volatile bool connected_;
 
   // This is called when the connection state changes.
@@ -631,10 +633,12 @@ class Receiver final : public TeensyDMX {
   // pin is not set.
   volatile int rxWatchPin_;
 
-  // Things measured by the RX watch pin interrupt
+  // Things measured by the RX watch pin interrupt. Sometimes these values can
+  // be inferred even without monitoring the RX pin.
   volatile int rxChangeState_;  // Tracks the RX state transitions for measuring
-                                // a BREAK
-  uint32_t rxRiseTime_;
+                                // a BREAK. 0 for nothing and 1 if we've seen
+                                // a rise.
+  uint32_t rxRiseTime_;         // When we've seen the pin rise
 
   // Timer for tracking IDLE timeouts.
   util::PeriodicTimer idleTimeoutTimer_;
