@@ -183,8 +183,8 @@ Receiver::Receiver(HardwareSerial &uart)
       responderOutBufLen_(0),
       setTXNotRXFunc_(nullptr),
       rxWatchPin_(-1),
-      rxChangeState_(0),
-      rxRiseTime_(0),
+      seenMABStart_(false),
+      mabStartTime_(0),
       txFunc_(nullptr),
       txBreakFunc_(nullptr) {
   switch(serialIndex_) {
@@ -1052,23 +1052,23 @@ void Receiver::receiveIdle() {
 
   switch (state_) {
     case RecvStates::kBreak:
-      if (rxChangeState_ == 1) {
-        if ((rxRiseTime_ - breakStartTime_) < kMinBreakTime) {
-          rxChangeState_ = 0;
+      if (seenMABStart_) {
+        if ((mabStartTime_ - breakStartTime_) < kMinBreakTime) {
+          seenMABStart_ = false;
           receiveBadBreak();
           return;
         }
       } else {
         // This catches the case where a short BREAK is followed by a longer MAB
         if ((t - breakStartTime_) < kMinBreakTime + kCharTime) {
-          rxChangeState_ = 0;
+          seenMABStart_ = false;
           receiveBadBreak();
           return;
         }
 
         // We can infer what the rise time is here
-        rxChangeState_ = 1;
-        rxRiseTime_ = t - kCharTime;
+        seenMABStart_ = true;
+        mabStartTime_ = t - kCharTime;
         setILT();  // Set IDLE detection to "after stop bit"
       }
       break;
@@ -1116,7 +1116,7 @@ void Receiver::receivePotentialBreak() {
   // this BREAK.
 
   if (rxWatchPin_ >= 0) {
-    rxChangeState_ = 0;
+    seenMABStart_ = false;
     attachInterrupt(rxWatchPin_, rxPinRoseISRs[serialIndex_], RISING);
   }
 }
@@ -1151,22 +1151,22 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       // potential completePacket()
       uint32_t breakTime = 0;
       uint32_t mabTime = 0;
-      if (rxChangeState_ == 1) {
-        rxChangeState_ = 0;
-        if ((rxRiseTime_ - breakStartTime_ < kMinBreakTime) ||
-            (eopTime - rxRiseTime_ < kMinMABTime + kCharTime)) {
+      if (seenMABStart_) {
+        seenMABStart_ = false;
+        if ((mabStartTime_ - breakStartTime_ < kMinBreakTime) ||
+            (eopTime - mabStartTime_ < kMinMABTime + kCharTime)) {
           receiveBadBreak();
           return;
         }
-        breakTime = rxRiseTime_ - breakStartTime_;
-        mabTime = eopTime - kCharTime - rxRiseTime_;
+        breakTime = mabStartTime_ - breakStartTime_;
+        mabTime = eopTime - kCharTime - mabStartTime_;
         if (mabTime >= kMaxDMXIdleTime) {
           completePacket();
           setConnected(false);
           return;
         }
       } else {
-        rxChangeState_ = 0;
+        seenMABStart_ = false;
         // This is only a rudimentary check for short BREAKs. It does not
         // detect short BREAKs followed by long MABs. It only detects
         // whether BREAK + MAB time is at least 88us + 8us.
@@ -1552,12 +1552,12 @@ void Receiver::setRXWatchPin(int pin) {
         detachInterrupt(rxWatchPin_);
       }
       rxWatchPin_ = -1;
-      rxChangeState_ = 0;
+      seenMABStart_ = false;
     } else {
       if (rxWatchPin_ != pin) {
         detachInterrupt(rxWatchPin_);
         rxWatchPin_ = pin;
-        rxChangeState_ = 0;
+        seenMABStart_ = false;
       }
     }
   //}
@@ -1565,12 +1565,12 @@ void Receiver::setRXWatchPin(int pin) {
 }
 
 void Receiver::rxPinRose_isr() {
-  rxRiseTime_ = micros();
-  if (rxChangeState_ == 0) {
-    rxChangeState_ = 1;
+  mabStartTime_ = micros();
+  if (!seenMABStart_) {
+    seenMABStart_ = true;
     detachInterrupt(rxWatchPin_);
   } else {
-    rxChangeState_ = 0;
+    seenMABStart_ = false;
   }
   setILT();  // Set IDLE detection to "after stop bit"
 }

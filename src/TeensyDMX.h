@@ -640,10 +640,9 @@ class Receiver final : public TeensyDMX {
 
   // Things measured by the RX watch pin interrupt. Sometimes these values can
   // be inferred even without monitoring the RX pin.
-  volatile int rxChangeState_;  // Tracks the RX state transitions for measuring
-                                // a BREAK. 0 for nothing and 1 if we've seen
-                                // a rise.
-  uint32_t rxRiseTime_;         // When we've seen the pin rise
+  volatile bool seenMABStart_;  // Tracks the RX state transitions for measuring
+                                // a BREAK
+  uint32_t mabStartTime_;       // When we've seen the pin rise
 
   // Timer for tracking IDLE timeouts.
   util::PeriodicTimer idleTimeoutTimer_;
