@@ -41,7 +41,7 @@ class Responder {
   }
 
   // Returns whether we should send a BREAK for the last valid response packet.
-  // An output packet is considered valid if processByte() returned a positive
+  // An output packet is considered valid if `processByte` returned a positive
   // value. The default implementation returns true.
   virtual bool isSendBreakForLastPacket() const {
     return true;
@@ -49,7 +49,7 @@ class Responder {
 
   // Returns the delay, in microseconds, to wait before enabling the transmit
   // driver and sending a BREAK. A delay only happens if
-  // isSendBreakForLastPacket() returns true. The default implementation
+  // `isSendBreakForLastPacket()` returns `true`. The default implementation
   // returns zero.
   virtual uint32_t preBreakDelay() const {
     return 0;
@@ -57,22 +57,22 @@ class Responder {
 
   // Returns the delay, in microseconds, to wait before enabling the transmit
   // driver (and not sending a BREAK). This delay only happens if
-  // isSendBreakForLastPacket() returns false. The default implementation
+  // `isSendBreakForLastPacket()` returns `false`. The default implementation
   // returns zero.
   virtual uint32_t preNoBreakDelay() const {
     return 0;
   }
 
   // Returns the delay, in microseconds, to wait before sending either a BREAK
-  // or data. This occurs after either the preBreakDelay() or preNoBreakDelay().
-  // The default implementation returns zero.
+  // or data. This occurs after either the `preBreakDelay()` or
+  // `preNoBreakDelay()`. The default implementation returns zero.
   virtual uint32_t preDataDelay() const {
     return 0;
   }
 
   // Indicates whether this responder eats the packet and disallows
-  // Receiver::readPacket() from accessing the data, or does not eat it and
-  // makes the data available to callers. The default is true.
+  // `Receiver::readPacket` from accessing the data, or does not eat it and
+  // makes the data available to callers. The default is `true`.
   virtual bool eatPacket() const {
     return true;
   }
@@ -80,7 +80,7 @@ class Responder {
  protected:
   // Processes single bytes as they are received. This returns a positive value
   // indicating the output buffer size if a response should be sent. It may be
-  // assumed that 'len' will start at zero and increment monotonically by one
+  // assumed that `len` will start at zero and increment monotonically by one
   // for each call.
   //
   // A return value of -1 means that the packet is invalid, not understood, or
@@ -89,18 +89,18 @@ class Responder {
   // received a packet sent to a broadcast address.
   //
   // In some cases, a BREAK should not be sent before a response packet. The
-  // isSendBreakForLastPacket() function will indicate whether the last valid
+  // `isSendBreakForLastPacket()` function will indicate whether the last valid
   // output packet should have a BREAK sent before sending its data.
   //
-  // Note that it can be assumed that outBuf has a size of at least the value
-  // returned by getOutputBufferSize().
+  // Note that it can be assumed that `outBuf` has a size of at least the value
+  // returned by `outputBufferSize()`.
   //
   // This may be called from inside an interrupt routine, so it's important to
   // execute as quickly as possible.
   //
   // @param buf a buffer containing the latest received byte
   // @param len the current accumulated length of the packet
-  // @param outBuf buffer for output, at least getOutputBufferSize() bytes
+  // @param outBuf buffer for output, at least `outputBufferSize()` bytes
   virtual int processByte(const uint8_t *buf, int len, uint8_t *outBuf) {
     return -1;
   }
