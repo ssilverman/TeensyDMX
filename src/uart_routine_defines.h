@@ -59,7 +59,6 @@
       LPUART##N##_CTRL = LPUART_CTRL_TX_COMPLETING;                       \
       break;                                                              \
     }                                                                     \
-    status = LPUART##N##_STAT;                                            \
     LPUART##N##_DATA = instance->outputBuf_[instance->outputBufIndex_++]; \
   } while (((LPUART##N##_WATER >> 8) & 0x07) < 4);
 
