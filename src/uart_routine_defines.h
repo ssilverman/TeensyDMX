@@ -452,7 +452,7 @@
     /* Wait for the FIFO to drain */ \
   }
 
-// Transmits a break from a UART.
+// Transmits a BREAK from a UART.
 // Needs to have UART_TX_FLUSH_FIFO_N defined.
 // N is the register number.
 #define UART_TX_BREAK(N)                     \
@@ -476,7 +476,7 @@
     /* Wait for the FIFO to drain */              \
   }
 
-// Transmits a break from an LPUART.
+// Transmits a BREAK from an LPUART.
 // Needs to have LPUART_TX_FLUSH_FIFO_N defined.
 // N is the register number.
 #define LPUART_TX_BREAK(N)                           \
