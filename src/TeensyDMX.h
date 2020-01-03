@@ -645,8 +645,8 @@ class Receiver final : public TeensyDMX {
                                 // a BREAK
   uint32_t mabStartTime_;       // When we've seen the pin rise
 
-  // Timer for tracking IDLE timeouts.
-  util::PeriodicTimer idleTimeoutTimer_;
+  // Timer for tracking IDLE timeouts and for timing sending a responder BREAK.
+  util::PeriodicTimer periodicTimer_;
 
   // Transmit function for the current UART.
   void (*txFunc_)(const uint8_t *b, int len);
