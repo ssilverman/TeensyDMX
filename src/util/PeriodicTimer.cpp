@@ -6,6 +6,7 @@
 
 // C++ includes
 #include <algorithm>
+#include <functional>
 
 #include <Arduino.h>
 
@@ -19,14 +20,14 @@ namespace qindesign {
 namespace util {
 
 #if defined(KINETISK)
-static void pit0_isr();
-static void pit1_isr();
-static void pit2_isr();
-static void pit3_isr();
+void pit0_isr();
+void pit1_isr();
+void pit2_isr();
+void pit3_isr();
 static constexpr int kNumChannels = 4;
 static std::function<void()> funcs[kNumChannels]{nullptr};
 #elif defined(KINETISL)
-static void pit_isr();
+void pit_isr();
 static constexpr int kNumChannels = 2;
 static uint32_t runningFlags = 0;
 static std::function<void()> funcs[kNumChannels]{nullptr};
