@@ -143,7 +143,7 @@
                 [instance]() {                                          \
                   CTRL = CTRL_PREFIX##_TX_INACTIVE;                     \
                   /* Invert the line as close as possible to the        \
-                   * interrupt start. */                                \
+                   * interrupt start */                                \
                   CTRLINV |= CTRLINV_PREFIX##_TXINV;                    \
                   instance->breakStartTime_ = micros();                 \
                 })) {                                                   \
