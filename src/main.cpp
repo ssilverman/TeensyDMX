@@ -99,7 +99,6 @@ class Flasher final : public Sketch {
   static constexpr int32_t kPeriodMin = 30;
 
   teensydmx::Receiver dmx_;
-  uint8_t buf_[1];
   uint8_t lastValue_;
   elapsedMillis lastFrameTimer_;
 
@@ -296,11 +295,12 @@ void Flasher::tearDown() {
 }
 
 void Flasher::loop() {
-  int read = dmx_.readPacket(buf_, kChannel, 1);
+  uint8_t value;
+  int read = dmx_.readPacket(&value, kChannel, 1);
   int64_t t = millis();
   if (read > 0) {
     // We've read everything we want to
-    lastValue_ = buf_[0];
+    lastValue_ = value;
     lastFrameTimer_ = 0;
 
     // Use a wave equation to make the speed-ups and slow-downs smoother using
