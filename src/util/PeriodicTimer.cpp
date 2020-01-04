@@ -17,6 +17,9 @@
 // * Priorities
 
 #if defined(KINETISL)
+// This is defined so that calling a std::function<void()> can compile. For some
+// reason, compilation fails claiming this function is missing only for
+// Teensy LC.
 namespace std {
   void __throw_bad_function_call() {
     Serial.println("EXCEPTION: Bad function call!");
