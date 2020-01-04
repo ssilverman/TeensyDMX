@@ -117,9 +117,9 @@ void lpuart5_tx_break(uint32_t breakTime, uint32_t mabTime);
 
 // Used by the RX ISRs.
 #if defined(__IMXRT1052__)
-Receiver *volatile rxInstances[8]{nullptr};
+static Receiver *volatile rxInstances[8]{nullptr};
 #else
-Receiver *volatile rxInstances[7]{nullptr};
+static Receiver *volatile rxInstances[7]{nullptr};
 #endif
 
 // Forward declarations of RX watch pin ISRs.
@@ -136,7 +136,7 @@ void rxPinRoseSerial7_isr();
 
 #if defined(__IMXRT1052__)
 // RX watch pin rose ISRs.
-void (*rxPinRoseISRs[8])() {
+static void (*rxPinRoseISRs[8])() {
     rxPinRoseSerial0_isr,
     rxPinRoseSerial1_isr,
     rxPinRoseSerial2_isr,
@@ -148,7 +148,7 @@ void (*rxPinRoseISRs[8])() {
 };
 #else
 // RX watch pin rose ISRs.
-void (*rxPinRoseISRs[7])() {
+static void (*rxPinRoseISRs[7])() {
     rxPinRoseSerial0_isr,
     rxPinRoseSerial1_isr,
     rxPinRoseSerial2_isr,

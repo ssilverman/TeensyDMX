@@ -118,9 +118,9 @@ void lpuart5_tx_isr();
 
 // Used by the TX ISRs
 #if defined(__IMXRT1052__)
-Sender *volatile txInstances[8]{nullptr};
+static Sender *volatile txInstances[8]{nullptr};
 #else
-Sender *volatile txInstances[7]{nullptr};
+static Sender *volatile txInstances[7]{nullptr};
 #endif
 
 Sender::Sender(HardwareSerial &uart)
