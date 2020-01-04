@@ -21,6 +21,7 @@
 // for example.
 namespace std {
 #if !defined(__throw_bad_function_call)
+  __attribute__((weak))
   void __throw_bad_function_call() {
     Serial.println("EXCEPTION: Bad function call!");
     while (true) {
