@@ -16,19 +16,19 @@
 // * Function states
 // * Priorities
 
-#if defined(KINETISL)
-// This is defined so that calling a std::function<void()> can compile. For some
-// reason, compilation fails claiming this function is missing only for
-// Teensy LC.
+// This is defined so that calling a std::function<void()> can compile when
+// size optimization is enabled. Teensy LC has "Smallest Code" set by default,
+// for example.
 namespace std {
+#if !defined(__throw_bad_function_call)
   void __throw_bad_function_call() {
     Serial.println("EXCEPTION: Bad function call!");
     while (true) {
       // Don't return
     }
   }
-}
-#endif  // KINETISL
+#endif  // !__throw_bad_function_call
+}  // namespace std
 
 namespace qindesign {
 namespace util {
