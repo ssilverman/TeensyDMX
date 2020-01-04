@@ -20,7 +20,6 @@
 // size optimization is enabled. Teensy LC has "Smallest Code" set by default,
 // for example.
 namespace std {
-#if !defined(__throw_bad_function_call)
   __attribute__((weak))
   void __throw_bad_function_call() {
     Serial.println("EXCEPTION: Bad function call!");
@@ -28,7 +27,6 @@ namespace std {
       // Don't return
     }
   }
-#endif  // !__throw_bad_function_call
 }  // namespace std
 
 namespace qindesign {
