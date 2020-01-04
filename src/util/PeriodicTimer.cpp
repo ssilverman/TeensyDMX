@@ -16,6 +16,17 @@
 // * Function states
 // * Priorities
 
+#if defined(KINETISL)
+namespace std {
+  void __throw_bad_function_call() {
+    Serial.println("EXCEPTION: Bad function call!");
+    while (true) {
+      // Don't return
+    }
+  }
+}
+#endif  // KINETISL
+
 namespace qindesign {
 namespace util {
 
