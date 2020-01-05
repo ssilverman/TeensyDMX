@@ -2,7 +2,7 @@
  * Library for doing DMX on a Teensy. Note that transmit and receive can't
  * be done on the same serial port.
  *
- * (c) 2017-2019 Shawn Silverman
+ * (c) 2017-2020 Shawn Silverman
  */
 
 /*

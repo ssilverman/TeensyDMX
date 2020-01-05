@@ -1,5 +1,5 @@
 // This file is part of the TeensyDMX library.
-// (c) 2018-2019 Shawn Silverman
+// (c) 2018-2020 Shawn Silverman
 
 // Putting #defines inside a header file is against the Google C++ Style Guide,
 // however, there's so much duplicated UART code otherwise.

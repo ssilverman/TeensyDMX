@@ -7,7 +7,7 @@
 // 2. Flasher: Receives input and flashes an LED with a period proportional to
 //    the input.
 //
-// (c) 2018-2019 Shawn Silverman
+// (c) 2018-2020 Shawn Silverman
 
 // Define MAIN_TEST_PROGRAM to use this test program.
 #ifdef MAIN_TEST_PROGRAM
