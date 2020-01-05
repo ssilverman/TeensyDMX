@@ -880,7 +880,7 @@ void Receiver::completePacket() {
 #define UART_SET_ILT(N) UART##N##_C1 |= UART_C1_ILT;
 #define LPUART_SET_ILT(N) LPUART##N##_CTRL |= LPUART_CTRL_ILT;
 
-void Receiver::clearILT() {
+void Receiver::clearILT() const {
   // Change the Idle Line Type Select to "Idle starts after start bit"
   switch (serialIndex_) {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
@@ -961,7 +961,7 @@ void Receiver::clearILT() {
   }
 }
 
-void Receiver::setILT() {
+void Receiver::setILT() const {
   // Change the Idle Line Type Select to "Idle starts after start bit"
   switch (serialIndex_) {
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)

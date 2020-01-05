@@ -526,10 +526,10 @@ class Receiver final : public TeensyDMX {
   void completePacket();
 
   // Sets the "Idle Line Type Select" to "Idle starts after start bit".
-  void clearILT();
+  void clearILT() const;
 
   // Sets the "Idle Line Type Select" to "Idle starts after stop bit".
-  void setILT();
+  void setILT() const;
 
   // Look for potential packet timeouts when an IDLE condition was detected.
   // This is called from an ISR.
