@@ -143,7 +143,7 @@
                 [instance]() {                                          \
                   CTRL = CTRL_PREFIX##_TX_INACTIVE;                     \
                   /* Invert the line as close as possible to the        \
-                   * interrupt start */                                \
+                   * interrupt start */                                 \
                   CTRLINV |= CTRLINV_PREFIX##_TXINV;                    \
                   instance->breakStartTime_ = micros();                 \
                 })) {                                                   \
@@ -153,6 +153,11 @@
           CTRL = CTRL_PREFIX##_TX_COMPLETING;                           \
           instance->breakStartTime_ = micros();                         \
         }                                                               \
+        break;                                                          \
+                                                                        \
+      case Sender::XmitStates::kMAB:  /* Shouldn't be needed */         \
+        instance->state_ = Sender::XmitStates::kData;                   \
+        CTRL = CTRL_PREFIX##_TX_ACTIVE;                                 \
         break;                                                          \
                                                                         \
       case Sender::XmitStates::kData:                                   \
@@ -212,6 +217,11 @@
       (status & STAT_PREFIX##_TC) != 0) {                     \
     switch (instance->state_) {                               \
       case Sender::XmitStates::kBreak:                        \
+        instance->state_ = Sender::XmitStates::kData;         \
+        UART_TX_SET_SLOTS_BAUD_##REG                          \
+        break;                                                \
+                                                              \
+      case Sender::XmitStates::kMAB:  /* Shouldn't need */    \
         instance->state_ = Sender::XmitStates::kData;         \
         UART_TX_SET_SLOTS_BAUD_##REG                          \
         break;                                                \
