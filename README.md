@@ -2,7 +2,7 @@
 
 This is a library for receiving and transmitting DMX on Teensy 3 and Teensy LC.
 It follows the
-[ANSI E1.11 DMX512-A specification](http://tsp.esta.org/tsp/documents/docs/ANSI-ESTA_E1-11_2008R2018.pdf).
+[ANSI E1.11 DMX512-A specification](https://tsp.esta.org/tsp/documents/published_docs.php).
 
 ## Features
 

@@ -1,7 +1,7 @@
 # BREAK Timing in DMX512-A
 
 This document discusses BREAK and Mark after BREAK (MAB) timing in
-[DMX512-A](http://tsp.esta.org/tsp/documents/docs/ANSI-ESTA_E1-11_2008R2018.pdf)
+[ANSI E1.11 DMX512-A](https://tsp.esta.org/tsp/documents/published_docs.php)
 using [serial port](https://en.wikipedia.org/wiki/Serial_port) terms.
 
 A BREAK can be represented by sending a zero (SPACE bits, in serial port terms)
@@ -53,7 +53,7 @@ specified instead. See the section below that discusses Cortex-M divisors.
 ## Valid timings
 
 The
-[DMX specification](http://tsp.esta.org/tsp/documents/docs/ANSI-ESTA_E1-11_2008R2018.pdf)
+[ANSI E1.11 DMX512-A specification](https://tsp.esta.org/tsp/documents/published_docs.php)
 describes a range of valid BREAK and MAB timings. For transmitters, the minimum
 BREAK time is 92µs and the typical duration is 176µs; there is no maximum. The
 minimum MAB time is 12µs and the maximum is less than 1s.
