@@ -262,7 +262,6 @@
       UART##N##_CFIFO = UART_CFIFO_RXFLUSH;                                \
       __enable_irq();                                                      \
       instance->receiveIdle();                                             \
-      return;                                                              \
     } else {                                                               \
       __enable_irq();                                                      \
       uint32_t timestamp = micros() - kCharTime*avail;                     \
@@ -302,7 +301,6 @@
       if ((status & LPUART_STAT_IDLE) != 0) {                            \
         LPUART##N##_STAT |= LPUART_STAT_IDLE;                            \
       }                                                                  \
-      return;                                                            \
     } else {                                                             \
       uint32_t timestamp = micros() - kCharTime*avail;                   \
       if (avail < ((LPUART##N##_WATER >> 16) & 0x03)) {                  \
