@@ -264,6 +264,7 @@
       instance->receiveIdle(eventTime);                                    \
     } else {                                                               \
       __enable_irq();                                                      \
+      bool idle = ((status & UART_S1_IDLE) != 0);                          \
       uint32_t timestamp = eventTime - kCharTime*avail;                    \
       if (avail < UART##N##_RWFIFO) {                                      \
         timestamp -= kCharTime;                                            \
@@ -286,6 +287,10 @@
         instance->receiveBadBreak();                                       \
       }                                                                    \
       instance->receiveByte(UART##N##_D, timestamp + kCharTime);           \
+      if (idle) {  /* Also capture any IDLE event */                       \
+        instance->receiveIdle(eventTime);                                  \
+        /* The flag has been cleared by reading the data register */       \
+      }                                                                    \
     }                                                                      \
   }
 
@@ -302,12 +307,17 @@
         LPUART##N##_STAT |= LPUART_STAT_IDLE;                            \
       }                                                                  \
     } else {                                                             \
+      bool idle = ((status & LPUART_STAT_IDLE) != 0);                    \
       uint32_t timestamp = eventTime - kCharTime*avail;                  \
       if (avail < ((LPUART##N##_WATER >> 16) & 0x03)) {                  \
         timestamp -= kCharTime;                                          \
       }                                                                  \
       while (avail-- > 0) {                                              \
         instance->receiveByte(LPUART##N##_DATA, timestamp += kCharTime); \
+      }                                                                  \
+      if (idle) {  /* Also capture any IDLE event */                     \
+        instance->receiveIdle(eventTime);                                \
+        LPUART##N##_STAT |= LPUART_STAT_IDLE;  /* Clear the flag */      \
       }                                                                  \
     }                                                                    \
   }
