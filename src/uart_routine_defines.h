@@ -261,10 +261,10 @@
       UART##N##_D;                                                         \
       UART##N##_CFIFO = UART_CFIFO_RXFLUSH;                                \
       __enable_irq();                                                      \
-      instance->receiveIdle();                                             \
+      instance->receiveIdle(eventTime);                                    \
     } else {                                                               \
       __enable_irq();                                                      \
-      uint32_t timestamp = micros() - kCharTime*avail;                     \
+      uint32_t timestamp = eventTime - kCharTime*avail;                    \
       if (avail < UART##N##_RWFIFO) {                                      \
         timestamp -= kCharTime;                                            \
       }                                                                    \
@@ -297,12 +297,12 @@
   if ((status & (LPUART_STAT_RDRF | LPUART_STAT_IDLE)) != 0) {           \
     uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;                    \
     if (avail == 0) {                                                    \
-      instance->receiveIdle();                                           \
+      instance->receiveIdle(eventTime);                                  \
       if ((status & LPUART_STAT_IDLE) != 0) {                            \
         LPUART##N##_STAT |= LPUART_STAT_IDLE;                            \
       }                                                                  \
     } else {                                                             \
-      uint32_t timestamp = micros() - kCharTime*avail;                   \
+      uint32_t timestamp = eventTime - kCharTime*avail;                  \
       if (avail < ((LPUART##N##_WATER >> 16) & 0x03)) {                  \
         timestamp -= kCharTime;                                          \
       }                                                                  \
@@ -324,9 +324,9 @@
     if (!UART_RX_TEST_FIRST_STOP_BIT_##N) {                          \
       instance->receiveBadBreak();                                   \
     }                                                                \
-    instance->receiveByte(UART##N##_D, micros());                    \
+    instance->receiveByte(UART##N##_D, eventTime);                   \
   } else if ((status & UART_S1_IDLE) != 0) {                         \
-    instance->receiveIdle();                                         \
+    instance->receiveIdle(eventTime);                                \
     UART_RX_CLEAR_IDLE_##N                                           \
   }
 
@@ -334,13 +334,13 @@
 // as UART_RX_REG.
 // Assumes status = LPUARTy_STAT.
 // N is the register number.
-#define LPUART_RX_NO_FIFO(N)                           \
-  /* If the receive buffer is full */                  \
-  if ((status & LPUART_STAT_RDRF) != 0) {              \
-    instance->receiveByte(LPUART##N##_DATA, micros()); \
-  } else if ((status & LPUART_STAT_IDLE) != 0) {       \
-    instance->receiveIdle();                           \
-    LPUART##N##_STAT |= LPUART_STAT_IDLE;              \
+#define LPUART_RX_NO_FIFO(N)                            \
+  /* If the receive buffer is full */                   \
+  if ((status & LPUART_STAT_RDRF) != 0) {               \
+    instance->receiveByte(LPUART##N##_DATA, eventTime); \
+  } else if ((status & LPUART_STAT_IDLE) != 0) {        \
+    instance->receiveIdle(eventTime);                   \
+    LPUART##N##_STAT |= LPUART_STAT_IDLE;               \
   }
 
 // UART and LPUART RX routine.
@@ -355,20 +355,20 @@
     return;                                                                \
   }                                                                        \
                                                                            \
+  uint32_t eventTime = micros();                                           \
+                                                                           \
   /* A framing error likely indicates a BREAK */                           \
   if ((status & STAT_PREFIX##_FE) != 0) {                                  \
     /* Only allow a packet whose framing error actually indicates a BREAK. \
      * A value of zero indicates a true BREAK and not some other           \
      * framing error. */                                                   \
                                                                            \
-    instance->feStartTime_ = micros();                                     \
-                                                                           \
     UART_RX_CLEAR_ERRORS_##REG                                             \
     UART_RX_ERROR_FLUSH_FIFO_##REG                                         \
                                                                            \
     /* DATA may be a 32-bit register with extra bits */                    \
     if ((DATA & 0xff) == 0) {                                              \
-      instance->receivePotentialBreak();                                   \
+      instance->receivePotentialBreak(eventTime);                          \
     } else {                                                               \
       instance->receiveBadBreak();                                         \
     }                                                                      \
@@ -385,7 +385,7 @@
   uint8_t avail = UART##N##_RCFIFO;                               \
   if (avail > 1) {                                                \
     /* Read everything but the last byte */                       \
-    uint32_t timestamp = micros() - kCharTime*avail;              \
+    uint32_t timestamp = eventTime - kCharTime*avail;             \
     if (avail < UART##N##_RWFIFO) {                               \
       timestamp -= kCharTime;                                     \
     }                                                             \
@@ -402,7 +402,7 @@
   uint8_t avail = (LPUART##N##_WATER >> 24) & 0x07;                    \
   if (avail > 1) {                                                     \
     /* Read everything but the last byte */                            \
-    uint32_t timestamp = micros() - kCharTime*avail;                   \
+    uint32_t timestamp = eventTime - kCharTime*avail;                  \
     while (--avail > 0) {                                              \
       instance->receiveByte(LPUART##N##_DATA, timestamp += kCharTime); \
     }                                                                  \

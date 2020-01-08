@@ -533,11 +533,11 @@ class Receiver final : public TeensyDMX {
 
   // Look for potential packet timeouts when an IDLE condition was detected.
   // This is called from an ISR.
-  void receiveIdle();
+  void receiveIdle(uint32_t eventTime);
 
   // A potential BREAK has just been received.
   // This is called from an ISR.
-  void receivePotentialBreak();
+  void receivePotentialBreak(uint32_t eventTime);
 
   // An invalid start-of-BREAK was received. There were non-zero bytes in the
   // framing error.
@@ -577,15 +577,6 @@ class Receiver final : public TeensyDMX {
 
   // Features
   volatile bool keepShortPackets_;
-
-  // The framing-error start time, in microseconds. This needs to be accessed
-  // from the same interrupt that triggered the framing error so that there's
-  // a guarantee that it doesn't get changed.
-  //
-  // This is separate from `breakStartTime_` because the measurement is done
-  // right when the framing error is detected, and before any logic that might
-  // consume some time.
-  uint32_t feStartTime_;
 
   // Receive buffers
   uint8_t buf1_[kMaxDMXPacketSize];

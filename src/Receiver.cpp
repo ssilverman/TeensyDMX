@@ -165,7 +165,6 @@ Receiver::Receiver(HardwareSerial &uart)
       began_(false),
       state_{RecvStates::kIdle},
       keepShortPackets_(false),
-      feStartTime_(0),
       buf1_{0},
       buf2_{0},
       activeBuf_(buf1_),
@@ -1047,9 +1046,7 @@ void Receiver::setILT() const {
 #undef UART_SET_ILT
 #undef LPUART_SET_ILT
 
-void Receiver::receiveIdle() {
-  uint32_t t = micros();
-
+void Receiver::receiveIdle(uint32_t eventTime) {
   switch (state_) {
     case RecvStates::kBreak:
       if (seenMABStart_) {
@@ -1060,7 +1057,7 @@ void Receiver::receiveIdle() {
         }
       } else {
         // This catches the case where a short BREAK is followed by a longer MAB
-        if ((t - breakStartTime_) < kMinBreakTime + kCharTime) {
+        if ((eventTime - breakStartTime_) < kMinBreakTime + kCharTime) {
           seenMABStart_ = false;
           receiveBadBreak();
           return;
@@ -1068,14 +1065,14 @@ void Receiver::receiveIdle() {
 
         // We can infer what the rise time is here
         seenMABStart_ = true;
-        mabStartTime_ = t - kCharTime;
+        mabStartTime_ = eventTime - kCharTime;
         setILT();  // Set IDLE detection to "after stop bit"
       }
       break;
 
     case RecvStates::kData:
-      if ((t - breakStartTime_) > kMaxDMXPacketTime ||
-          (t - lastSlotEndTime_) >= kMaxDMXIdleTime) {
+      if ((eventTime - breakStartTime_) > kMaxDMXPacketTime ||
+          (eventTime - lastSlotEndTime_) >= kMaxDMXIdleTime) {
         // We'll consider this as a packet end and not as a timeout
         // errorStats_.packetTimeoutCount++;
         completePacket();
@@ -1098,7 +1095,7 @@ void Receiver::receiveIdle() {
       kMaxDMXIdleTime - kCharTime);
 }
 
-void Receiver::receivePotentialBreak() {
+void Receiver::receivePotentialBreak(uint32_t eventTime) {
   periodicTimer_.end();
 
   // A potential BREAK is detected when a stop bit is expected but not
@@ -1106,7 +1103,7 @@ void Receiver::receivePotentialBreak() {
   // missing stop bit, about 44us.
   // Note that breakStartTime_ only represents a potential BREAK start
   // time until we receive the first character.
-  breakStartTime_ = feStartTime_ - kCharTime;
+  breakStartTime_ = eventTime - kCharTime;
 
   state_ = RecvStates::kBreak;
 
