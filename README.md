@@ -1,4 +1,4 @@
-# Readme for TeensyDMX v4.0.0-alpha.8
+# Readme for TeensyDMX v4.0.0-beta
 
 This is a library for receiving and transmitting DMX on Teensy 3 and Teensy LC.
 It follows the
@@ -644,4 +644,4 @@ Inspirations for this library:
 
 ---
 
-Copyright (c) 2017-2019 Shawn Silverman
+Copyright (c) 2017-2020 Shawn Silverman
