@@ -2,6 +2,12 @@
 
 This document details the changes between each release.
 
+## [4.0.0-beta]
+
+### Fixed
+* Fixed IDLE detection for the case where a few characters are in the FIFO and
+  an IDLE condition occurs. The IDLE in this case is now captured.
+
 ## [4.0.0-alpha.8]
 
 ### Added
@@ -434,4 +440,4 @@ Initial public release.
 
 ---
 
-Copyright (c) 2017-2019 Shawn Silverman
+Copyright (c) 2017-2020 Shawn Silverman
