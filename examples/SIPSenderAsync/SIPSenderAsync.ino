@@ -6,6 +6,7 @@
  * This uses the asynchronous notification approach to determine when to
  * send the next packet.
  *
+ * This example is part of the TeensyDMX library.
  * (c) 2018-2019 Shawn Silverman
  */
 

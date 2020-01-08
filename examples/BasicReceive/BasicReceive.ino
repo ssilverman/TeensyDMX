@@ -1,6 +1,7 @@
 /*
  * A basic toy receive example, demonstrating single- and multi-byte reads.
  *
+ * This example is part of the TeensyDMX library.
  * (c) 2019 Shawn Silverman
  */
 

@@ -2,6 +2,7 @@
  * Demonstrates outputting DMX test packets (start code 0x55).
  * See section D3 of the DMX specification.
  *
+ * This example is part of the TeensyDMX library.
  * (c) 2019 Shawn Silverman
  */
 

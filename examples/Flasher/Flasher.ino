@@ -2,6 +2,7 @@
  * Demonstrates changing the flashing speed of the board LED via
  * the value of a DMX channel.
  *
+ * This example is part of the TeensyDMX library.
  * (c) 2017-2019 Shawn Silverman
  */
 

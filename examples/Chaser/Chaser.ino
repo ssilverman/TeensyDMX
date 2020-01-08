@@ -1,6 +1,7 @@
 /*
  * Demonstrates outputting DMX by chasing values across all the channels.
  *
+ * This example is part of the TeensyDMX library.
  * (c) 2017-2019 Shawn Silverman
  */
 

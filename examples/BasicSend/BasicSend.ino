@@ -1,6 +1,7 @@
 /*
  * A basic toy send example.
  *
+ * This example is part of the TeensyDMX library.
  * (c) 2019 Shawn Silverman
  */
 
