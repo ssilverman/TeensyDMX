@@ -79,6 +79,14 @@ This section summarizes the changes and new features since v3.
    too short.
 10. Improved IDLE and timeout handling logic in the receiver.
 
+## The TODO list
+
+These are in the works for subsequent versions:
+
+1. Code instead of `#define`s for all the specialized UART access.
+2. Asynchronous responder data. Currently, the data is sent synchronously inside
+   the UART ISR where responders process the packet.
+
 ## How to use
 
 The classes you'll need are in the `qindesign::teensydmx` namespace: `Receiver`

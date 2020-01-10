@@ -4,6 +4,10 @@ This document details the changes between each release.
 
 ## [4.0.0-beta]
 
+### Added
+* A TODO list to the README that describes features being considered for
+  subsequent versions.
+
 ### Fixed
 * Fixed IDLE detection for the case where a few characters are in the FIFO and
   an IDLE condition occurs. The IDLE in this case is now captured.
