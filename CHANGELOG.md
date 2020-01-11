@@ -7,6 +7,7 @@ This document details the changes between each release.
 ### Added
 * A TODO list to the README that describes features being considered for
   subsequent versions.
+* New `SendADC` example.
 
 ### Fixed
 * Fixed IDLE detection for the case where a few characters are in the FIFO and
