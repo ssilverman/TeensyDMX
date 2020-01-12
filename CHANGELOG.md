@@ -4,6 +4,10 @@ This document details the changes between each release.
 
 ## [4.0.0]
 
+### Added
+* New section in the README: "A note on MAB timing" inside "Choosing BREAK and
+  MAB times" in the "DMX transmit" section.
+
 ### Changed
 * Updated the library description with some additional features.
 

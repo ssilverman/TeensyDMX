@@ -521,6 +521,37 @@ If the UART is used to generate the BREAK and MAB timings then they are
 otherwise restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, or 10:1.
 These correspond to the UART formats, 8N2, 8E2, 8N1, and 8E1.
 
+#### A note on MAB timing
+
+The BREAK timing is pretty accurate. However, the MAB time may be slightly
+longer than requested. The reason is that it's not possible to immediately start
+sending a character using the UART on the Teensy chips. It seems that the best
+resolution one can get is "somewhere within one or two bit times".
+
+To illustrate:
+BREAK ->(immediate) MAB ->(not immediate) First packet character
+
+For example, if a timer aims for a 23us MAB, and then a character is sent to the
+UART after the timer expires, then that character might start after 25us. If the
+timer is adjusted so that it expires 2us earlier, then the character might still
+appear too late, still after 25us, for example. A further adjustment of 2us, for
+a timer duration of 19us, might result in the character appearing after 21us,
+earlier than requested.
+
+When a character starts, it appears that the UART performs its functions
+asynchronously, and so it is not possible to achieve exact timing. The code
+adjusts the MAB time under the covers to achieve times that are as close to the
+requested time as possible without going under, but it is often not possible to
+be more precise than "within one or two bit times", depending on the processor.
+
+There is a second, less flexibile, way for the BREAK and MAB timings to be
+specified, and that is to change the baud rate and serial format just for the
+BREAK and MAB, and then change back to 250kbaud (8N2), however the act of
+changing the baud rate can introduce a delay as well, somewhere up to one full
+character. This is used as a fallback if the system doesn't have the timers
+available, and is fixed to a 180us BREAK and a 20us MAB (possibly appearing as
+a longer MAB, by up to at least several bit times).
+
 ### Error handling in the API
 
 Several `Sender` functions that return a `bool` indicate whether an operation
