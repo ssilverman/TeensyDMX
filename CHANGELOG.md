@@ -2,6 +2,11 @@
 
 This document details the changes between each release.
 
+## [4.0.0]
+
+### Changed
+* Updated the library description with some additional features.
+
 ## [4.0.0-beta]
 
 ### Added
