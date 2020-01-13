@@ -81,11 +81,14 @@ This section summarizes the changes and new features since v3.
 
 ## The TODO list
 
-These are in the works for subsequent versions:
+These are either in the works or ideas for subsequent versions:
 
-1. Code instead of `#define`s for all the specialized UART access.
+1. Code instead of `#define`s for all the specialized UART access. A branch with
+   a working version exists.
 2. Asynchronous responder data. Currently, the data is sent synchronously inside
-   the UART ISR where responders process the packet.
+   the UART ISR where responders process the packet. This will be easier to add
+   once all the `#define` code is replaced.
+3. Better MAB timing, perhaps by somehow synchronizing with the baud rate clock.
 
 ## How to use
 
