@@ -8,6 +8,8 @@ This document details the changes between each release.
 * New section in the README: "A note on MAB timing" inside "Choosing BREAK and
   MAB times" in the "DMX transmit" section. This describes why the MAB times
   may longer than specified.
+* New `'?'` command in the main example that prints all available sketches and
+  stars the active one.
 
 ### Changed
 * Updated the library description with some additional features.

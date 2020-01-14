@@ -149,12 +149,48 @@ void setup() {
   Serial.println("Hello, DMX World!");
 }
 
+// Prints a sketch and prepends a star if it's the current active one.
+// This indents by four spaces.
+void printSketch(int sketchType, const char *s) {
+  if (currSketchType == sketchType) {
+    Serial.print("   *");
+  } else {
+    Serial.print("    ");
+  }
+  Serial.println(s);
+}
+
 // Main program loop.
 void loop() {
   // Potentially choose a new sketch
   int avail = Serial.available();
   if (avail > 0) {
-    changeSketch(Serial.read());
+    int b = Serial.read();
+
+    // First, transform aliases
+    // and perform any commands
+    switch (b) {
+      case 'C':
+        b = 'c';
+        break;
+      case 'F':
+        b = 'f';
+        break;
+      case 'N':
+        b = 'n';
+        break;
+      case '?':
+        b = -1;
+        Serial.println("Sketches:");
+        printSketch('c', "(C)haser");
+        printSketch('f', "(F)lasher");
+        printSketch('n', "(N)ull");
+        break;
+    }
+
+    if (b >= 0) {
+      changeSketch(b);
+    }
   }
 
   currSketch->loop();
