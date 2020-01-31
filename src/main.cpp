@@ -13,8 +13,8 @@
 #ifdef MAIN_TEST_PROGRAM
 
 // C++ includes
-#include <cmath>
 #include <cstdint>
+#include <limits>
 
 #include <Arduino.h>
 #include "TeensyDMX.h"
@@ -75,7 +75,7 @@ class Chaser final : public Sketch {
   static constexpr int kChannel = 1;
   static constexpr unsigned long kChaseInterval = 1000;  // 1s
   static constexpr int kPacketSize = 513;
-  static constexpr float kRefreshRate = INFINITY;
+  static constexpr float kRefreshRate = std::numeric_limits<float>::infinity();
 
   teensydmx::Sender dmx_;
   int channel_;
