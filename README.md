@@ -73,11 +73,14 @@ This section summarizes the changes and new features since v3.
 7. Functions that previously did nothing or ignored the values on bad input now
    return a `bool` to indicate success or failure.
 8. Teensy 4 support.
-9. Added a new "Keep Short Packets" feature that provides access to any packets
-   that are too short in duration, less than 1196us. Accompanying this are: a
-   way to enable and disable the feature and a way to tell whether a packet is
-   too short.
-10. Improved IDLE and timeout handling logic in the receiver.
+9. Added a way to know when the zero returned by `Receiver::get` and
+   `Receiver::get16Bit` was because the channel was out of range of the
+   last packet.
+10. Added a new "Keep Short Packets" feature that provides access to any packets
+    that are too short in duration, less than 1196us. Accompanying this are: a
+    way to enable and disable the feature and a way to tell whether a packet is
+    too short.
+11. Improved IDLE and timeout handling logic in the receiver.
 
 ## The TODO list
 
