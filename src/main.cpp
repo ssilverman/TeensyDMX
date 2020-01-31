@@ -14,19 +14,14 @@
 
 // C++ includes
 #include <cmath>
-#include <cstddef>
 #include <cstdint>
-#include <memory>
 
-// Other includes
 #include <Arduino.h>
-
-// Project includes
 #include "TeensyDMX.h"
 
 namespace teensydmx = ::qindesign::teensydmx;
 
-// Basic sub-sketch.
+// Basic sub-sketch. The constructor and destructor don't do setup or teardown.
 class Sketch {
  public:
   Sketch() = default;
@@ -35,7 +30,10 @@ class Sketch {
   virtual void setup() {}
   virtual void tearDown() {}
   virtual void loop() {}
+
+  // Sketch info
   virtual String name() = 0;
+  virtual int type() = 0;
 };
 
 // NullSketch supports the Null Pattern.
@@ -49,6 +47,10 @@ class NullSketch final : public Sketch {
   }
 
   void setup() override;
+
+  int type() override {
+    return 'n';
+  }
 };
 
 // Chaser cycles an output of 255 on each channel.
@@ -64,6 +66,10 @@ class Chaser final : public Sketch {
   void setup() override;
   void tearDown() override;
   void loop() override;
+
+  int type() override {
+    return 'c';
+  }
 
  private:
   static constexpr int kChannel = 1;
@@ -89,6 +95,10 @@ class Flasher final : public Sketch {
   void setup() override;
   void tearDown() override;
   void loop() override;
+
+  int type() override {
+    return 'f';
+  }
 
  private:
   static constexpr int kChannel = 1;
@@ -117,8 +127,10 @@ constexpr uint8_t kTXPin = 17;
 HardwareSerial &uart = Serial3;
 
 // The current sketch
-std::unique_ptr<Sketch> currSketch{std::make_unique<NullSketch>()};
-int currSketchType = -1;
+NullSketch nullSketch{};
+Chaser chaser{};
+Flasher flasher{};
+Sketch *currSketch = &nullSketch;
 
 // ---------------------------------------------------------------------------
 //  Main program
@@ -144,7 +156,8 @@ void setup() {
   digitalWriteFast(kTXPin, LOW);
 
   // Initialize with the Null sketch
-  changeSketch('n');
+  currSketch = &nullSketch;
+  currSketch->setup();
 
   Serial.println("Hello, DMX World!");
 }
@@ -152,7 +165,7 @@ void setup() {
 // Prints a sketch and prepends a star if it's the current active one.
 // This indents by four spaces.
 void printSketch(int sketchType, const char *s) {
-  if (currSketchType == sketchType) {
+  if (currSketch->type() == sketchType) {
     Serial.print("   *");
   } else {
     Serial.print("    ");
@@ -217,38 +230,30 @@ int freeRAM() {
 }
 
 void changeSketch(int sketchType) {
-  if (sketchType == currSketchType) {
+  if (sketchType == currSketch->type()) {
     return;
   }
 
-  // Check for a valid sketch type
+  // Hold onto the old sketch so we can destroy it
+  Sketch *oldSketch = currSketch;
+
+  // Create a new sketch
   switch (sketchType) {
     case 'c':
+      currSketch = &chaser;
+      break;
     case 'f':
+      currSketch = &flasher;
+      break;
     case 'n':
+      currSketch = &nullSketch;
       break;
     default:
       return;
   }
 
-  // Destroy any current sketch
-  currSketch->tearDown();
-
-  // Create a new sketch
-  switch (sketchType) {
-    case 'c':
-      currSketch.reset(new Chaser{});
-      break;
-    case 'f':
-      currSketch.reset(new Flasher{});
-      break;
-    case 'n':
-      currSketch.reset(new NullSketch{});
-      break;
-  }
-  currSketchType = sketchType;
-
   Serial.printf("Changing sketch to: %s\n", currSketch->name().c_str());
+  oldSketch->tearDown();
   currSketch->setup();
   Serial.printf("Free RAM: %d\n", freeRAM());
 }
