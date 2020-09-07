@@ -112,16 +112,17 @@ void lpuart1_tx_isr();
 void lpuart7_tx_isr();
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
 void lpuart5_tx_isr();
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
 
 // Used by the TX ISRs
-#if defined(__IMXRT1052__)
+#if defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41)
 static Sender *volatile txInstances[8]{nullptr};
 #else
 static Sender *volatile txInstances[7]{nullptr};
-#endif
+#endif  // __IMXRT1052__ || ARDUINO_TEENSY41
 
 Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
@@ -301,13 +302,14 @@ void Sender::begin() {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
     case 7:
       GLEAN_LPUART_PARAMS(5)
       ACTIVATE_LPUART_TX_SERIAL(5)
       periodicTimer_.setPriority(NVIC_GET_PRIORITY(IRQ_LPUART5));
       break;
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
   }
 }
 
@@ -521,11 +523,12 @@ bool Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
             break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
           case 7:
             LPUART5_CTRL = LPUART_CTRL_TX_ACTIVE;
             break;
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
         }
       }
 
@@ -639,11 +642,12 @@ void Sender::disableIRQs() const {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
     case 7:
       NVIC_DISABLE_IRQ(IRQ_LPUART5);
       break;
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
   }
 }
 
@@ -722,11 +726,12 @@ void Sender::enableIRQs() const {
       break;
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
     case 7:
       NVIC_ENABLE_IRQ(IRQ_LPUART5);
       break;
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
   }
 }
 
@@ -1140,7 +1145,8 @@ void lpuart7_tx_isr() {
 //  LPUART5 TX ISR (Serial8 on Teensy 4)
 // ---------------------------------------------------------------------------
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
 
 #define UART_TX_DATA_STATE_5 LPUART_TX_DATA_STATE_WITH_FIFO(5)
 #define UART_TX_SET_BREAK_BAUD_5 LPUART_SET_BAUD(5, lpuartBreakParams_)
@@ -1160,7 +1166,7 @@ void lpuart5_tx_isr() {
 #undef UART_TX_SET_BREAK_BAUD_5
 #undef UART_TX_SET_SLOTS_BAUD_5
 
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
 
 // Undefine these macros
 #undef UART_C2_TX_ENABLE
