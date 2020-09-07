@@ -723,9 +723,10 @@ class Receiver final : public TeensyDMX {
   friend void lpuart7_rx_isr();
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
   friend void lpuart5_rx_isr();
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
 };
 
 // ---------------------------------------------------------------------------
@@ -1143,9 +1144,10 @@ class Sender final : public TeensyDMX {
   friend void lpuart7_tx_isr();
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
   friend void lpuart5_tx_isr();
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
 };
 
 }  // namespace teensydmx

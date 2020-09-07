@@ -58,11 +58,12 @@ constexpr int serialIndex(const HardwareSerial &uart) {
   }
 #endif  // IMXRT_LPUART7
 
-#if defined(IMXRT_LPUART5) && defined(__IMXRT1052__)
+#if defined(IMXRT_LPUART5) && \
+    (defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41))
   if (&uart == &Serial8) {
     return 7;
   }
-#endif  // IMXRT_LPUART5 && __IMXRT1052__
+#endif  // IMXRT_LPUART5 && (__IMXRT1052__ || ARDUINO_TEENSY41)
 
   return -1;
 }
