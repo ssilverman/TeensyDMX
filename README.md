@@ -1,7 +1,7 @@
 # Readme for TeensyDMX v4.0.0
 
-This is a library for receiving and transmitting DMX on Teensy 3 and Teensy LC.
-It follows the
+This is a full-featured library for receiving and transmitting DMX on Teensy 3,
+Teensy LC, and Teensy 4. It follows the
 [ANSI E1.11 DMX512-A specification](https://tsp.esta.org/tsp/documents/published_docs.php).
 
 ## Features
