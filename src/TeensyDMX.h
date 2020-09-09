@@ -28,7 +28,13 @@
 #include <Arduino.h>
 
 // Project includes
+#include "LPUARTReceiveHandler.h"
+#include "LPUARTSendHandler.h"
+#include "ReceiveHandler.h"
 #include "Responder.h"
+#include "SendHandler.h"
+#include "UARTReceiveHandler.h"
+#include "UARTSendHandler.h"
 #include "util/PeriodicTimer.h"
 
 namespace qindesign {
@@ -525,12 +531,6 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void completePacket();
 
-  // Sets the "Idle Line Type Select" to "Idle starts after start bit".
-  void clearILT() const;
-
-  // Sets the "Idle Line Type Select" to "Idle starts after stop bit".
-  void setILT() const;
-
   // Look for potential packet timeouts when an IDLE condition was detected.
   // This is called from an ISR.
   void receiveIdle(uint32_t eventTime);
@@ -565,6 +565,8 @@ class Receiver final : public TeensyDMX {
       f(flag);
     }
   }
+
+  std::unique_ptr<ReceiveHandler> receiveHandler_;
 
   // Whether the transmitter is or should be enabled.
   volatile bool txEnabled_;
@@ -639,12 +641,12 @@ class Receiver final : public TeensyDMX {
   // Timer for tracking IDLE timeouts and for timing sending a responder BREAK.
   util::PeriodicTimer periodicTimer_;
 
-  // Transmit function for the current UART.
-  void (*txFunc_)(const uint8_t *b, int len);
-
-  // Transmit BREAK function for the current UART. This accepts both a BREAK
-  // time and a Mark after BREAK time.
-  void (*txBreakFunc_)(uint32_t breakTime, uint32_t mabTime);
+#if defined(__IMXRT1062__) || defined(__IMXRT1052__) || defined(__MK66FX1M0__)
+  friend class LPUARTReceiveHandler;
+#endif
+#if defined(KINETISK) || defined(KINETISL)
+  friend class UARTReceiveHandler;
+#endif
 
   // RX pin change ISRs
   friend void rxPinFellSerial0_isr();
@@ -1018,13 +1020,7 @@ class Sender final : public TeensyDMX {
     const Sender &s_;
   };
 
-  // Stored LPUART parameters for quickly setting the baud rate between BREAK
-  // and slots. Used for Teensy 3.6 and Teensy 4.
-  struct LPUARTParams final {
-    uint32_t baud = 0x0f000004;  // 5-bit OSR is 0x0f and 13-bit SBR is 0x0004
-    uint32_t stat = 0;
-    uint32_t ctrl = 0;
-  };
+  std::unique_ptr<SendHandler> sendHandler_;
 
   // The minimum allowed packet time for senders, either BREAK plus data,
   // or BREAK to BREAK, in microseconds.
@@ -1043,11 +1039,6 @@ class Sender final : public TeensyDMX {
   //
   // This is called from an ISR.
   void completePacket();
-
-  // These are only filled in if this Sender uses an LPUART
-  LPUARTParams lpuartBreakParams_;
-  LPUARTParams lpuartSlotsParams_;
-  bool lpuartParamsSet_;
 
   // Tracks whether the system has been configured.
   volatile bool began_;
@@ -1086,6 +1077,13 @@ class Sender final : public TeensyDMX {
 
   // This is called when we are done transmitting after a `resumeFor` call.
   void (*volatile doneTXFunc_)(Sender *s);
+
+#if defined(__IMXRT1062__) || defined(__IMXRT1052__) || defined(__MK66FX1M0__)
+  friend class LPUARTSendHandler;
+#endif
+#if defined(KINETISK) || defined(KINETISL)
+  friend class UARTSendHandler;
+#endif
 
   // These error ISRs need to access private functions
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)

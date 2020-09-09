@@ -9,6 +9,11 @@
 namespace qindesign {
 namespace teensydmx {
 
+extern const uint32_t kSlotsBaud   = 250000;                // 4us
+extern const uint32_t kSlotsFormat = SERIAL_8N2;            // 9:2
+extern const uint32_t kBitTime     = 1000000 / kSlotsBaud;  // In microseconds
+extern const uint32_t kCharTime    = 11 * kBitTime;         // In microseconds
+
 // Returns the index given a serial port, or -1 if the serial port is
 // not supported.
 constexpr int serialIndex(const HardwareSerial &uart) {
