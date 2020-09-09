@@ -2,6 +2,23 @@
 
 This document details the changes between each release.
 
+The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
+and this project adheres to
+[Semantic Versioning](https://semver.org/spec/v2.0.0.html).
+
+## [4.1.0-beta]
+
+While the functionality stays the same, this is a major update because of the
+restructured code. Much of the #define-based code was replaced with something
+much more maintainable.
+
+### Added
+* Added Serial8 support for Teensy 4.1.
+* Added a Teensy 4.1 section to platform.ini.
+
+### Changed
+* Replaced much of the #define-based code with something much more maintainable.
+
 ## [4.0.0]
 
 ### Added
