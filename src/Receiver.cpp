@@ -418,8 +418,8 @@ uint16_t Receiver::get16Bit(int channel, bool *rangeError) const {
       v = (uint16_t{inactiveBuf_[channel]} << 8) |
           uint16_t{inactiveBuf_[channel + 1]};
     }
-    //}
-    return v;
+  //}
+  return v;
 }
 
 std::shared_ptr<Responder> Receiver::setResponder(
