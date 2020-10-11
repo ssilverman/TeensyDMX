@@ -10,6 +10,10 @@ and this project adheres to
 
 ### Added
 * Added an error stat for packets that are too long.
+* README additions:
+  * New table of contents
+  * New "Error statistics" section
+  * Added details about packets that are too long
 
 ## [4.1.0-beta]
 

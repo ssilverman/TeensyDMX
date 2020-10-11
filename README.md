@@ -1,10 +1,48 @@
 <a href="https://www.buymeacoffee.com/ssilverman" title="Donate to this project using Buy Me A Coffee"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange.svg" alt="Buy Me A Coffee donate button"></a>
 
-# Readme for TeensyDMX v4.1.0-beta
+# Readme for TeensyDMX v4.1.0-beta.1
 
 This is a full-featured library for receiving and transmitting DMX on Teensy 3,
 Teensy LC, and Teensy 4. It follows the
 [ANSI E1.11 DMX512-A specification](https://tsp.esta.org/tsp/documents/published_docs.php).
+
+## Table of contents
+
+1. [Features](#features)
+   1. [Receiver timing limitations and RX line monitoring](#receiver-timing-limitations-and-rx-line-monitoring)
+2. [Changes since v3](#changes-since-v3)
+3. [The TODO list](#the-todo-list)
+4. [How to use](#how-to-use)
+   1. [Synchronous vs. asynchronous operation](#synchronous-vs-asynchronous-operation)
+5. [DMX receive](#dmx-receive)
+   1. [Code example](#code-example)
+   2. [Retrieving 16-bit values](#retrieving-16-bit-values)
+   3. [Error counts and disconnection](#error-counts-and-disconnection)
+      1. [The truth about connection detection](#the-truth-about-connection-detection)
+      2. [Keeping short packets](#keeping-short-packets)
+   4. [Packet statistics](#packet-statistics)
+   5. [Error statistics](#error-statistics)
+   6. [Synchronous operation by using custom responders](#synchronous-operation-by-using-custom-responders)
+      1. [Responding](#responding)
+6. [DMX transmit](#dmx-transmit)
+   1. [Code example](#code-example-1)
+   2. [Packet size](#packet-size)
+   3. [Transmission rate](#transmission-rate)
+   4. [Synchronous operation by pausing and resuming](#synchronous-operation-by-pausing-and-resuming)
+   5. [Choosing BREAK and MAB times](#choosing-break-and-mab-times)
+      1. [A note on MAB timing](#a-note-on-mab-timing)
+   6. [Error handling in the API](#error-handling-in-the-api)
+7. [Technical notes](#technical-notes)
+   1. [Simultaneous transmit and receive](#simultaneous-transmit-and-receive)
+   2. [Transmission rate](#transmission-rate)
+   3. [Transmit/receive enable pins](#transmitreceive-enable-pins)
+   4. [Thread safety](#thread-safety)
+   5. [Dynamic memory allocation failures](#dynamic-memory-allocation-failures)
+   6. [Hardware connection](#hardware-connection)
+   7. [`Receiver` and driving the TX pin](#receiver-and-driving-the-tx-pin)
+8. [Code style](#code-style)
+9. [References](#references)
+10. [Acknowledgements](#acknowledgements)
 
 ## Features
 
@@ -29,8 +67,9 @@ Some notable features of this library:
    knows of the concept of being disconnected from a DMX transmitter when
    timeouts or bad BREAKs are encountered in the data stream.
 8. Error counts are available in the receiver. These can be used to detect
-   protocol problems, including timeouts, framing errors and bad BREAKs, and
-   short packets (those less than 1196us).
+   protocol problems, including timeouts, framing errors and bad BREAKs, short
+   packets (those less than 1196us), and long packets (those that exceed
+   513 bytes).
 9. The receiver can be used synchronously through the use of the `Responder`
    API. Alternate start codes can not only be handled, for example, for Text
    Packets or System Information Packets (SIP), but responses can be sent back
@@ -82,7 +121,8 @@ This section summarizes the changes and new features since v3.
     that are too short in duration, less than 1196us. Accompanying this are: a
     way to enable and disable the feature and a way to tell whether a packet is
     too short.
-11. Improved IDLE and timeout handling logic in the receiver.
+11. Added a way to heuristically track the count of packets that are too long.
+12. Improved IDLE and timeout handling logic in the receiver.
 
 ## The TODO list
 
@@ -315,6 +355,17 @@ There is also an optional parameter in `readPacket`, a `PacketStats*`, that
 enables retrieval of this data atomically with the packet data.
 
 These metrics are reset to zero when the receiver is started or restarted.
+
+### Error statistics
+
+Error statistics are tracked and the latest can be retrieved from an
+`ErrorStats` object returned by `errorStats()`. Included are these counts:
+
+1. `packetTimeoutCount`: Packet timeouts.
+2. `framingErrorCount`: Framing error count, including BREAKs that were
+   too short.
+3. `shortPacketCount`: Packets that were too short.
+4. `longPacketCount`: Packets that were too long.
 
 ### Synchronous operation by using custom responders
 
