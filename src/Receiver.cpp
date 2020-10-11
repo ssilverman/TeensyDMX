@@ -489,14 +489,16 @@ std::shared_ptr<Responder> Receiver::setResponder(
   return old;
 }
 
-void Receiver::completePacket() {
+void Receiver::completePacket(RecvStates newState) {
   uint32_t t = millis();
-  state_ = RecvStates::kIdle;
+  state_ = newState;  // Should only be kIdle or kDataIdle
 
   receiveHandler_->setILT(false);  // Set IDLE detection to "after start bit"
 
   // An empty packet isn't valid, there must be at least a start code
   if (activeBufIndex_ <= 0) {
+    // kDataIdle isn't used unless the packet is full, so don't need to
+    // reset to kIdle here
     return;
   }
 
@@ -530,6 +532,7 @@ void Receiver::completePacket() {
 
   // Packet stats
   packetStats_.size = packetSize_ = activeBufIndex_;
+  packetStats_.extraSize = 0;
   packetStats_.timestamp = t;
   packetStats_.packetTime = lastSlotEndTime_ - breakStartTime_;
   packetStats_.breakPlusMABTime = packetStats_.nextBreakPlusMABTime;
@@ -542,7 +545,7 @@ void Receiver::completePacket() {
     if (r != nullptr) {
       r->receivePacket(inactiveBuf_, packetSize_);
       if (r->eatPacket()) {
-        packetStats_.size = packetSize_ = 0;
+        packetStats_.extraSize = packetStats_.size = packetSize_ = 0;
       }
     }
   }
@@ -579,10 +582,14 @@ void Receiver::receiveIdle(uint32_t eventTime) {
           (eventTime - lastSlotEndTime_) >= kMaxDMXIdleTime) {
         // We'll consider this as a packet end and not as a timeout
         // errorStats_.packetTimeoutCount++;
-        completePacket();
+        completePacket(RecvStates::kIdle);
         setConnected(false);
         return;
       }
+      break;
+
+    case RecvStates::kDataIdle:
+      state_ = RecvStates::kIdle;
       break;
 
     default:
@@ -593,7 +600,7 @@ void Receiver::receiveIdle(uint32_t eventTime) {
   periodicTimer_.begin(
       [&]() {
         periodicTimer_.end();
-        completePacket();
+        completePacket(RecvStates::kIdle);
         setConnected(false);
       },
       kMaxDMXIdleTime - kCharTime);
@@ -629,7 +636,7 @@ void Receiver::receiveBadBreak() {
   // Don't keep the packet
   // See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292)
   activeBufIndex_ = 0;
-  completePacket();
+  completePacket(RecvStates::kIdle);
 
   // Consider this case as not seeing a BREAK
   // This may be line noise, so now we can't tell for sure where the
@@ -662,7 +669,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
         breakTime = mabStartTime_ - breakStartTime_;
         mabTime = eopTime - kCharTime - mabStartTime_;
         if (mabTime >= kMaxDMXIdleTime) {
-          completePacket();
+          completePacket(RecvStates::kIdle);
           setConnected(false);
           return;
         }
@@ -701,7 +708,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
           // Don't disconnect because the timeout was relative to the
           // previous packet
         }
-        completePacket();
+        completePacket(RecvStates::kIdle);
       } else {
         packetStats_.breakToBreakTime = 0;
         activeBufIndex_ = 0;
@@ -734,6 +741,27 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       //       too large because the IDLE detection will catch that
       break;
 
+    case RecvStates::kDataIdle:
+      // Conditions for recognizing an extra byte:
+      // 1. Still within the minimum packet time; we have to cut it off
+      //    somewhere, and this seems like a good point, and
+      // 2. A responder hasn't eaten the packet. If a responder doesn't eat
+      //    the packet then the packet size won't have been set to zero.
+      if (eopTime - breakStartTime_ <= kMaxDMXPacketTime &&
+          packetStats_.size > 0) {
+        // If a responder cut the packet off early, then the processed
+        // packet size may be < 513, so use the sum and not just the
+        // extra size
+        int size = packetStats_.size + packetStats_.extraSize;
+        if (size == kMaxDMXPacketSize) {
+          errorStats_.longPacketCount++;
+        }
+        packetStats_.extraSize++;
+      } else {
+        state_ = RecvStates::kIdle;
+      }
+      return;
+
     case RecvStates::kIdle:
       return;
 
@@ -747,7 +775,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
   lastSlotEndTime_ = eopTime;
   if ((eopTime - breakStartTime_) > kMaxDMXPacketTime) {
     errorStats_.packetTimeoutCount++;
-    completePacket();
+    completePacket(RecvStates::kIdle);
     setConnected(false);
     return;
   }
@@ -768,7 +796,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
   }
   if (r == nullptr) {
     if (packetFull) {
-      completePacket();
+      completePacket(RecvStates::kDataIdle);
     }
     return;
   }
@@ -780,12 +808,12 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
     if (packetFull) {
       // If the responder isn't done by now, it's too late for this packet
       // because the maximum packet size has been reached
-      completePacket();
+      completePacket(RecvStates::kDataIdle);
     }
     return;
   }
-  completePacket();  // This is probably the best option, even though there may
-                     // be more bytes
+  completePacket(RecvStates::kDataIdle);  // This is probably the best option,
+                                          // even though there may be more bytes
   if (!txEnabled_) {
     return;
   }

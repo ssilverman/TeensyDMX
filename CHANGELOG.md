@@ -6,6 +6,11 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0-beta.1]
+
+### Added
+* Added an error stat for packets that are too long.
+
 ## [4.1.0-beta]
 
 While the functionality stays the same, this is a major update because of the

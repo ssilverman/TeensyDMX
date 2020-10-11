@@ -156,6 +156,7 @@ class Receiver final : public TeensyDMX {
           packetTime(0),
           breakTime(0),
           mabTime(0),
+          extraSize(0),
           nextBreakPlusMABTime(0),
           nextBreakTime(0),
           nextMABTime(0) {}
@@ -192,6 +193,7 @@ class Receiver final : public TeensyDMX {
           packetTime(other.packetTime),
           breakTime(other.breakTime),
           mabTime(other.mabTime),
+          extraSize(other.extraSize),
           nextBreakPlusMABTime(other.nextBreakPlusMABTime),
           nextBreakTime(other.nextBreakTime),
           nextMABTime(other.nextMABTime) {}
@@ -208,6 +210,7 @@ class Receiver final : public TeensyDMX {
       packetTime = other.packetTime;
       breakTime = other.breakTime;
       mabTime = other.mabTime;
+      extraSize = other.extraSize;
       nextBreakPlusMABTime = other.nextBreakPlusMABTime;
       nextBreakTime = other.nextBreakTime;
       nextMABTime = other.nextMABTime;
@@ -223,11 +226,21 @@ class Receiver final : public TeensyDMX {
       packetTime = other.packetTime;
       breakTime = other.breakTime;
       mabTime = other.mabTime;
+      extraSize = other.extraSize;
       nextBreakPlusMABTime = other.nextBreakPlusMABTime;
       nextBreakTime = other.nextBreakTime;
       nextMABTime = other.nextMABTime;
       return *this;
     }
+
+    // An accumulator for extra bytes beyond the max. packet length.
+    // This is private for now because the value may not be in sync
+    // by the time a user retrieves the packet info.
+    // Note that the packet size may be less than the maximum when this
+    // starts incrementing because a Responder may have cut the packet
+    // off early. Thus, an actual overflow occurs when
+    // size + extraSize >= kMaxDMXPacketSize.
+    int extraSize;  // Size beyond kMaxDMXPacketSize
 
     // Store the 'next' values to solve the one-ahead problem of completing the
     // packet on the next BREAK (or timeout or size limit)
@@ -245,13 +258,15 @@ class Receiver final : public TeensyDMX {
   // * Framing error count: Total number of framing errors encountered. This
   //   includes BREAKs that are too short.
   // * Short packet count: Total number of packets that were too short.
+  // * Long packet count: Total number of packets that were too long.
   class ErrorStats final {
    public:
     // Initializes everything to zero.
     constexpr ErrorStats()
         : packetTimeoutCount(0),
           framingErrorCount(0),
-          shortPacketCount(0) {}
+          shortPacketCount(0),
+          longPacketCount(0) {}
 
     ~ErrorStats() = default;
 
@@ -264,13 +279,15 @@ class Receiver final : public TeensyDMX {
     uint32_t packetTimeoutCount;
     uint32_t framingErrorCount;
     uint32_t shortPacketCount;
+    uint32_t longPacketCount;
 
    private:
     // Volatile copy constructor.
     ErrorStats(const volatile ErrorStats &other)
         : packetTimeoutCount(other.packetTimeoutCount),
           framingErrorCount(other.framingErrorCount),
-          shortPacketCount(other.shortPacketCount) {}
+          shortPacketCount(other.shortPacketCount),
+          longPacketCount(other.longPacketCount) {}
 
     // Volatile assignment operator. This returns void to avoid a warning
     // of non-use.
@@ -279,6 +296,7 @@ class Receiver final : public TeensyDMX {
       packetTimeoutCount = other.packetTimeoutCount;
       framingErrorCount = other.framingErrorCount;
       shortPacketCount = other.shortPacketCount;
+      longPacketCount = other.longPacketCount;
     }
 
     friend class Receiver;
@@ -478,10 +496,11 @@ class Receiver final : public TeensyDMX {
  private:
   // State that tracks where we are in the receive process.
   enum class RecvStates {
-    kBreak,  // BREAK
-    kMAB,    // Mark after BREAK
-    kData,   // Packet data
-    kIdle,   // The end of data for one packet has been reached
+    kBreak,     // BREAK
+    kMAB,       // Mark after BREAK
+    kData,      // Packet data
+    kDataIdle,  // Received data is beyond the max. packet size
+    kIdle,      // The end of data for one packet has been reached
   };
 
   // Interrupt lock that uses RAII to disable and enable the UART interrupts.
@@ -527,9 +546,9 @@ class Receiver final : public TeensyDMX {
   // 1. If there's data:
   //    1. Makes a new packet available and sets the packet stats, and
   //    2. Calls any associated responder.
-  // 2. Sets the state to `kIdle`.
+  // 2. Sets the state to either `kDataIdle` or `kIdle`.
   // This is called from an ISR.
-  void completePacket();
+  void completePacket(RecvStates newState);
 
   // Look for potential packet timeouts when an IDLE condition was detected.
   // This is called from an ISR.
