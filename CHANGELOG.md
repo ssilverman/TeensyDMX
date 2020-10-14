@@ -15,6 +15,10 @@ and this project adheres to
   * New "Error statistics" section
   * Added details about packets that are too long
 
+### Fixed
+* Fixed the status read inside `LPUARTReceiveHandler::irqHandler` to use
+  `uint32_t` instead of the incorrect `uint8_t`. `STAT` is a 32-bit register.
+
 ## [4.1.0-beta]
 
 While the functionality stays the same, this is a major update because of the

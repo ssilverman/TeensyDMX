@@ -82,7 +82,7 @@ void LPUARTReceiveHandler::setIRQsEnabled(bool flag) const {
 }
 
 void LPUARTReceiveHandler::irqHandler() const {
-  uint8_t status = port_->STAT;
+  uint32_t status = port_->STAT;
 
   uint32_t eventTime = micros();
 
