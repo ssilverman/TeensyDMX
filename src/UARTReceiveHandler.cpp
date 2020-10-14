@@ -163,9 +163,9 @@ void UARTReceiveHandler::irqHandler() const {
     return;
   }
 
-  // If the receive buffer is full or there's an idle condition
 #if defined(KINETISK)
   if (rxFIFOSize_ > 1) {
+    // If the receive buffer is full or there's an idle condition
     if ((status & (UART_S1_RDRF | UART_S1_IDLE)) != 0) {
       __disable_irq();
       uint8_t avail = port_->RCFIFO;  // Receive Count
@@ -217,6 +217,7 @@ void UARTReceiveHandler::irqHandler() const {
       }
     }
   } else {  // No FIFO
+    // If the receive buffer is full
     if ((status & UART_S1_RDRF) != 0) {
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
       // Check that the 9th bit is high; used as the first stop bit
@@ -231,6 +232,7 @@ void UARTReceiveHandler::irqHandler() const {
     }
   }
 #else  // No FIFO
+  // If the receive buffer is full
   if ((status & UART_S1_RDRF) != 0) {
     receiver_->receiveByte(port_->D, eventTime);
   } else if ((status & UART_S1_IDLE) != 0) {

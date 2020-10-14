@@ -116,8 +116,8 @@ void LPUARTReceiveHandler::irqHandler() const {
     return;
   }
 
-  // If the receive buffer is full or there's an idle condition
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)
+  // If the receive buffer is full or there's an idle condition
   if ((status & (LPUART_STAT_RDRF | LPUART_STAT_IDLE)) != 0) {
     uint8_t avail = (port_->WATER >> 24) & 0x07;  // RXCOUNT
     if (avail == 0) {
@@ -141,6 +141,7 @@ void LPUARTReceiveHandler::irqHandler() const {
     }
   }
 #else  // No FIFO
+  // If the receive buffer is full
   if ((status & LPUART_STAT_RDRF) != 0) {
     receiver_->receiveByte(port_->DATA, eventTime);
   } else if ((status & LPUART_STAT_IDLE) != 0) {
