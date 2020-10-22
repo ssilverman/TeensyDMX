@@ -35,7 +35,11 @@
 #include "SendHandler.h"
 #include "UARTReceiveHandler.h"
 #include "UARTSendHandler.h"
+#ifndef TEENSYDMX_USE_INTERVAL_TIMER
 #include "util/PeriodicTimer.h"
+#else
+#include "util/IntervalTimerEx.h"
+#endif  // !TEENSYDMX_USE_INTERVAL_TIMER
 
 namespace qindesign {
 namespace teensydmx {
@@ -658,7 +662,11 @@ class Receiver final : public TeensyDMX {
   uint32_t mabStartTime_;       // When we've seen the pin rise
 
   // Timer for tracking IDLE timeouts and for timing sending a responder BREAK.
+#ifndef TEENSYDMX_USE_INTERVAL_TIMER
   util::PeriodicTimer periodicTimer_;
+#else
+  util::IntervalTimerEx periodicTimer_;
+#endif  // !TEENSYDMX_USE_INTERVAL_TIMER
 
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__) || defined(__MK66FX1M0__)
   friend class LPUARTReceiveHandler;
@@ -1078,7 +1086,11 @@ class Sender final : public TeensyDMX {
 
   // The packet refresh rate, in Hz.
   float refreshRate_;
+#ifndef TEENSYDMX_USE_INTERVAL_TIMER
   util::PeriodicTimer periodicTimer_;  // General purpose timer
+#else
+  util::IntervalTimerEx periodicTimer_;  // General purpose timer
+#endif  // !TEENSYDMX_USE_INTERVAL_TIMER
 
   // The BREAK-to-BREAK timing, matching the refresh rate.
   // This is specified in microseconds.

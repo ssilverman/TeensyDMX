@@ -83,6 +83,7 @@ void LPUARTSendHandler::irqHandler() {
   if ((control & LPUART_CTRL_TIE) != 0 && (status & LPUART_STAT_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
+#ifndef TEENSYDMX_USE_INTERVAL_TIMER
         if (!sender_->periodicTimer_.begin(
                 [&]() {
                   if (sender_->state_ == Sender::XmitStates::kBreak) {
@@ -107,12 +108,15 @@ void LPUARTSendHandler::irqHandler() {
                   port_->CTRL |= LPUART_CTRL_TXINV;
                   sender_->breakStartTime_ = micros();
                 })) {
+#endif  // !TEENSYDMX_USE_INTERVAL_TIMER
           // Starting the timer failed, revert to the original way
           breakSerialParams_.apply(port_);
           port_->DATA = 0;
           port_->CTRL = LPUART_CTRL_TX_COMPLETING;
           sender_->breakStartTime_ = micros();
+#ifndef TEENSYDMX_USE_INTERVAL_TIMER
         }
+#endif  // !TEENSYDMX_USE_INTERVAL_TIMER
         break;
 
       case Sender::XmitStates::kMAB:  // Shouldn't be needed

@@ -84,6 +84,7 @@ void UARTSendHandler::irqHandler() {
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
+#ifndef TEENSYDMX_USE_INTERVAL_TIMER
         if (!sender_->periodicTimer_.begin(
                 [&]() {
                   if (sender_->state_ == Sender::XmitStates::kBreak) {
@@ -108,12 +109,15 @@ void UARTSendHandler::irqHandler() {
                   port_->C3 |= UART_C3_TXINV;
                   sender_->breakStartTime_ = micros();
                 })) {
+#endif  // !TEENSYDMX_USE_INTERVAL_TIMER
           // Starting the timer failed, revert to the original way
           breakSerialParams_.apply(serialIndex_, port_);
           port_->D = 0;
           port_->C2 = UART_C2_TX_COMPLETING;
           sender_->breakStartTime_ = micros();
+#ifndef TEENSYDMX_USE_INTERVAL_TIMER
         }
+#endif  // !TEENSYDMX_USE_INTERVAL_TIMER
         break;
 
       case Sender::XmitStates::kMAB:  // Shouldn't be needed
