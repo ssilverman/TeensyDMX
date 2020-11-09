@@ -20,6 +20,9 @@
 #ifndef TEENSYDMX_TEENSYDMX_H_
 #define TEENSYDMX_TEENSYDMX_H_
 
+// Force this define for now
+#define TEENSYDMX_USE_INTERVAL_TIMER
+
 // C++ includes
 #include <cstdint>
 #include <memory>
