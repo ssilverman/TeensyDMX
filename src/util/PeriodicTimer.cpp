@@ -56,12 +56,15 @@ static uint8_t priorities[kNumChannels]{255, 255, 255, 255};
 
 #if defined(KINETISK) || defined(KINETISL)
 static constexpr uint32_t kFreq = F_BUS;
+// Maximum period in microseconds.
+static constexpr uint32_t kMaxPeriod = UINT32_MAX / (kFreq / 1000000.0);
+static constexpr uint32_t kMinCycles = 36;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
 static constexpr uint32_t kFreq = 24000000;
-#endif  // Processor check
-
 // Maximum period in microseconds.
-static constexpr uint32_t kMaxPeriod = UINT32_MAX / (kFreq / 1000000.0f);
+static constexpr uint32_t kMaxPeriod = UINT32_MAX / (kFreq / 1000000);
+static constexpr uint32_t kMinCycles = 17;
+#endif  // Processor check
 
 bool PeriodicTimer::begin(std::function<void()> func, uint32_t micros,
                           std::function<void()> startFunc) {
@@ -118,6 +121,9 @@ bool PeriodicTimer::updateCycles(uint32_t cycles) {
   if (channel_ == nullptr) {
     return false;
   }
+  if (cycles < kMinCycles) {
+    return false;
+  }
   channel_->LDVAL = cycles;
   return true;
 }
@@ -125,6 +131,9 @@ bool PeriodicTimer::updateCycles(uint32_t cycles) {
 bool PeriodicTimer::restartCycles(uint32_t cycles) {
   // Lock lock{};
   if (channel_ == nullptr) {
+    return false;
+  }
+  if (cycles < kMinCycles) {
     return false;
   }
   channel_->TCTRL = 0;            // Disable the timer so it can be restarted
@@ -137,6 +146,10 @@ bool PeriodicTimer::restartCycles(uint32_t cycles) {
 bool PeriodicTimer::beginCycles(std::function<void()> func, uint32_t cycles,
                                 std::function<void()> startFunc) {
   // Lock lock{};
+
+  if (cycles < kMinCycles) {
+    return false;
+  }
 
   // Capture the timer
   if (channel_ != nullptr) {
