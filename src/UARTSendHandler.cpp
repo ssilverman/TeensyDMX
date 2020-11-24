@@ -84,30 +84,29 @@ void UARTSendHandler::irqHandler() {
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
-        if (!sender_->periodicTimer_.begin(
+        if (sender_->intervalTimer_.begin(
                 [&]() {
                   if (sender_->state_ == Sender::XmitStates::kBreak) {
                     port_->C3 &= ~UART_C3_TXINV;
                     sender_->state_ = Sender::XmitStates::kMAB;
-                    if (sender_->periodicTimer_.restart(
+                    if (sender_->intervalTimer_.restart(
                             sender_->adjustedMABTime_)) {
                       return;
                     }
                     // We shouldn't delay as an alternative because
                     // that might mean we delay too long
                   }
-                  sender_->periodicTimer_.end();
+                  sender_->intervalTimer_.end();
                   sender_->state_ = Sender::XmitStates::kData;
                   port_->C2 = UART_C2_TX_ACTIVE;
                 },
-                sender_->breakTime_,
-                [&]() {
-                  port_->C2 = UART_C2_TX_INACTIVE;
-                  // Invert the line as close as possible to the
-                  // interrupt start
-                  port_->C3 |= UART_C3_TXINV;
-                  sender_->breakStartTime_ = micros();
-                })) {
+                sender_->breakTime_)) {
+          port_->C2 = UART_C2_TX_INACTIVE;
+          // Invert the line as close as possible to the
+          // interrupt start
+          port_->C3 |= UART_C3_TXINV;
+          sender_->breakStartTime_ = micros();
+        } else {
           // Starting the timer failed, revert to the original way
           breakSerialParams_.apply(serialIndex_, port_);
           port_->D = 0;
@@ -175,9 +174,9 @@ void UARTSendHandler::irqHandler() {
           port_->C2 = UART_C2_TX_INACTIVE;
           if (sender_->breakToBreakTime_ != UINT32_MAX) {
             // Non-infinite break time
-            if (!sender_->periodicTimer_.begin(
+            if (!sender_->intervalTimer_.begin(
                     [&]() {
-                      sender_->periodicTimer_.end();
+                      sender_->intervalTimer_.end();
                       port_->C2 = UART_C2_TX_ACTIVE;
                     },
                     sender_->breakToBreakTime_ - timeSinceBreak)) {

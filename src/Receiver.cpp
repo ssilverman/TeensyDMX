@@ -597,9 +597,9 @@ void Receiver::receiveIdle(uint32_t eventTime) {
   }
 
   // Start a timer watching for disconnection/packet end
-  periodicTimer_.begin(
+  intervalTimer_.begin(
       [&]() {
-        periodicTimer_.end();
+        intervalTimer_.end();
         completePacket(RecvStates::kIdle);
         setConnected(false);
       },
@@ -607,7 +607,7 @@ void Receiver::receiveIdle(uint32_t eventTime) {
 }
 
 void Receiver::receivePotentialBreak(uint32_t eventTime) {
-  periodicTimer_.end();
+  intervalTimer_.end();
 
   // A potential BREAK is detected when a stop bit is expected but not
   // received, and this happens after the start bit, nine bits, and the
@@ -645,7 +645,7 @@ void Receiver::receiveBadBreak() {
 }
 
 void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
-  periodicTimer_.end();
+  intervalTimer_.end();
 
   // Bad BREAKs are detected when BREAK + MAB + character time is too short
   // BREAK: 88us

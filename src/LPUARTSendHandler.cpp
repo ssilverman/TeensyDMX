@@ -83,30 +83,29 @@ void LPUARTSendHandler::irqHandler() {
   if ((control & LPUART_CTRL_TIE) != 0 && (status & LPUART_STAT_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
-        if (!sender_->periodicTimer_.begin(
+        if (sender_->intervalTimer_.begin(
                 [&]() {
                   if (sender_->state_ == Sender::XmitStates::kBreak) {
                     port_->CTRL &= ~LPUART_CTRL_TXINV;
                     sender_->state_ = Sender::XmitStates::kMAB;
-                    if (sender_->periodicTimer_.restart(
+                    if (sender_->intervalTimer_.restart(
                             sender_->adjustedMABTime_)) {
                       return;
                     }
                     // We shouldn't delay as an alternative because
                     // that might mean we delay too long
                   }
-                  sender_->periodicTimer_.end();
+                  sender_->intervalTimer_.end();
                   sender_->state_ = Sender::XmitStates::kData;
                   port_->CTRL = LPUART_CTRL_TX_ACTIVE;
                 },
-                sender_->breakTime_,
-                [&]() {
-                  port_->CTRL = LPUART_CTRL_TX_INACTIVE;
-                  // Invert the line as close as possible to the
-                  // interrupt start
-                  port_->CTRL |= LPUART_CTRL_TXINV;
-                  sender_->breakStartTime_ = micros();
-                })) {
+                sender_->breakTime_)) {
+          port_->CTRL = LPUART_CTRL_TX_INACTIVE;
+          // Invert the line as close as possible to the
+          // interrupt start
+          port_->CTRL |= LPUART_CTRL_TXINV;
+          sender_->breakStartTime_ = micros();
+        } else {
           // Starting the timer failed, revert to the original way
           breakSerialParams_.apply(port_);
           port_->DATA = 0;
@@ -162,9 +161,9 @@ void LPUARTSendHandler::irqHandler() {
           port_->CTRL = LPUART_CTRL_TX_INACTIVE;
           if (sender_->breakToBreakTime_ != UINT32_MAX) {
             // Non-infinite BREAK time
-            if (!sender_->periodicTimer_.begin(
+            if (!sender_->intervalTimer_.begin(
                     [&]() {
-                      sender_->periodicTimer_.end();
+                      sender_->intervalTimer_.end();
                       port_->CTRL = LPUART_CTRL_TX_ACTIVE;
                     },
                     sender_->breakToBreakTime_ - timeSinceBreak)) {

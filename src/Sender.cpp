@@ -264,7 +264,7 @@ void Sender::begin() {
   state_ = XmitStates::kIdle;
 
   sendHandler_->start();
-  periodicTimer_.setPriority(sendHandler_->priority());
+  intervalTimer_.setPriority(sendHandler_->priority());
   // Also set the interval timer priority to match the UART priority
 
   sendHandler_->setActive();
@@ -284,7 +284,7 @@ void Sender::end() {
   // so disable the IRQs first
 
   sendHandler_->end();
-  periodicTimer_.end();
+  intervalTimer_.end();
 
   // Remove the reference from the instances,
   // but only if we're the ones who added it
