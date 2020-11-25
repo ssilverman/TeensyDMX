@@ -54,7 +54,6 @@ class ReceiveHandler {
   Receiver *receiver_;
 };
 
-
 }  // namespace teensydmx
 }  // namespace qindesign
 

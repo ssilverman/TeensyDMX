@@ -49,7 +49,6 @@ class SendHandler {
   Sender *sender_;
 };
 
-
 }  // namespace teensydmx
 }  // namespace qindesign
 

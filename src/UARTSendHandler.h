@@ -91,7 +91,6 @@ class UARTSendHandler final : public SendHandler {
   SerialParams slotsSerialParams_;
 };
 
-
 }  // namespace teensydmx
 }  // namespace qindesign
 
