@@ -37,9 +37,9 @@ constexpr uint32_t kSerialMABTime   = 1000000/kBreakBaud * 1;  // In us
 // Empirically observed MAB generation adjustment constants, for 20us. The timer
 // adjust values are subtracted from the requested MAB to get the actual MAB.
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
-constexpr uint32_t kMABTimerAdjust = 5;
+constexpr uint32_t kMABTimerAdjust = 7;
 #elif defined(__MKL26Z64__)
-constexpr uint32_t kMABTimerAdjust = 8;
+constexpr uint32_t kMABTimerAdjust = 11;
 #elif defined(__MK64FX512__)
 constexpr uint32_t kMABTimerAdjust = 5;
 #elif defined(__MK66FX1M0__)
