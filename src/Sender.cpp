@@ -28,11 +28,11 @@ namespace teensydmx {
 // 8N1: 50000 baud, 180us BREAK, 20us MAB <-- Closer to "typical" in ANSI E1.11
 // 8E1: 45500 baud, 220us BREAK, 22us MAB
 
-extern const uint32_t kBreakBaud   = 50000;       // 20us
-extern const uint32_t kBreakFormat = SERIAL_8N1;  // 9:1
+extern const uint32_t kDefaultBreakBaud   = 50000;       // 20us
+extern const uint32_t kDefaultBreakFormat = SERIAL_8N1;  // 9:1
 
-constexpr uint32_t kSerialBreakTime = 1000000/kBreakBaud * 9;  // In us
-constexpr uint32_t kSerialMABTime   = 1000000/kBreakBaud * 1;  // In us
+constexpr uint32_t kSerialBreakTime = 1000000/kDefaultBreakBaud * 9;  // In us
+constexpr uint32_t kSerialMABTime   = 1000000/kDefaultBreakBaud * 1;  // In us
 
 // Empirically observed MAB generation adjustment constants, for 20us. The timer
 // adjust values are subtracted from the requested MAB to get the actual MAB.

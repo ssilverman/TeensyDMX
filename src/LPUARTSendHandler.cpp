@@ -20,14 +20,14 @@ namespace teensydmx {
 #define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
 #define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
-extern const uint32_t kBreakBaud;
-extern const uint32_t kBreakFormat;
+extern const uint32_t kDefaultBreakBaud;
+extern const uint32_t kDefaultBreakFormat;
 extern const uint32_t kSlotsBaud;
 extern const uint32_t kSlotsFormat;
 
 void LPUARTSendHandler::start() {
   if (!serialParamsSet_) {
-    sender_->uart_.begin(kBreakBaud, kBreakFormat);
+    sender_->uart_.begin(kDefaultBreakBaud, kDefaultBreakFormat);
     breakSerialParams_.getFrom(port_);
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
     slotsSerialParams_.getFrom(port_);

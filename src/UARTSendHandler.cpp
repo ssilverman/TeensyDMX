@@ -20,15 +20,15 @@ namespace teensydmx {
 #define UART_C2_TX_COMPLETING ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
 #define UART_C2_TX_INACTIVE   (UART_C2_TX_ENABLE)
 
-extern const uint32_t kBreakBaud;
-extern const uint32_t kBreakFormat;
+extern const uint32_t kDefaultBreakBaud;
+extern const uint32_t kDefaultBreakFormat;
 extern const uint32_t kSlotsBaud;
 extern const uint32_t kSlotsFormat;
 
 void UARTSendHandler::start() {
   // Set the serial parameters for the two modes
   if (!serialParamsSet_) {
-    sender_->uart_.begin(kBreakBaud, kBreakFormat);
+    sender_->uart_.begin(kDefaultBreakBaud, kDefaultBreakFormat);
     breakSerialParams_.getFrom(serialIndex_, port_);
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
     slotsSerialParams_.getFrom(serialIndex_, port_);
