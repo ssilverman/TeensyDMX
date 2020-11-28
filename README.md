@@ -569,16 +569,19 @@ notification approach and the second uses the polling approach.
 
 The BREAK and MAB times can be specified using the `setBreakTime` and
 `setMABTime` functions. The BREAK will be transmitted with a duration very close
-to the specified value, but the actual MAB time may be slightly larger
-than requested.
+to the specified value, but the actual MAB time may be slightly larger than
+requested. This has to do with how the UARTs work on the chip.
 
-This feature uses one of the _PIT_ timers via `PeriodicTimer`, but if none are
-available, then the transmitter will fall back on using the baud rate generator
-to achieve a 180us BREAK and something a little larger than a 20us MAB.
+This feature uses one of the _PIT_ timers via the `IntervalTimer` API, but if
+none are available, then the transmitter will fall back on using the baud rate
+generator to achieve a 180us BREAK and something a little larger than a
+20us MAB.
 
 If the UART is used to generate the BREAK and MAB timings then they are
-otherwise restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, or 10:1.
-These correspond to the UART formats, 8N2, 8E2, 8N1, and 8E1.
+otherwise restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, 10:1, or
+9:3. These correspond to the UART formats, 8N2, 8E2, 8N1, 8E1, and 8O2. For
+additional information on this subject, see the
+[BREAK Timing in DMX512-A](extras/break-timing.md) note.
 
 #### A note on MAB timing
 
@@ -603,7 +606,7 @@ adjusts the MAB time under the covers to achieve times that are as close to the
 requested time as possible without going under, but it is often not possible to
 be more precise than "within one or two bit times", depending on the processor.
 
-There is a second, less flexibile, way for the BREAK and MAB timings to be
+There is a second, less flexible, way for the BREAK and MAB timings to be
 specified, and that is to change the baud rate and serial format just for the
 BREAK and MAB, and then change back to 250kbaud (8N2), however the act of
 changing the baud rate can introduce a delay as well, somewhere up to one full
@@ -719,6 +722,8 @@ Other conventions are adopted from Bjarne Stroustrup's and Herb Sutter's
 [C++ Core Guidelines](https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md).
 
 ## References
+
+1. [BREAK Timing in DMX512-A](extras/break-timing.md)
 
 Inspirations for this library:
 
