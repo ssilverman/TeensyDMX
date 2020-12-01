@@ -842,7 +842,7 @@ class Sender final : public TeensyDMX {
 
   // Returns whether a timer or serial parameters are being used to achieve the
   // BREAK and MAB timings.
-  bool isUseTimerNotSerial() const {
+  bool isBreakUseTimerNotSerial() const {
     return breakUseTimer_;
   }
 
