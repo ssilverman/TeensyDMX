@@ -106,7 +106,7 @@ void LPUARTSendHandler::irqHandler() {
                   sender_->state_ = Sender::XmitStates::kData;
                   port_->CTRL = LPUART_CTRL_TX_ACTIVE;
                 },
-                sender_->breakTime_)) {
+                sender_->adjustedBreakTime_)) {
           // Invert the line as close as possible to the timer start
           port_->CTRL = LPUART_CTRL_TX_INACTIVE | LPUART_CTRL_TXINV;
           sender_->breakStartTime_ = micros();

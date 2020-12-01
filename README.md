@@ -31,7 +31,8 @@ Teensy LC, and Teensy 4. It follows the
    4. [Synchronous operation by pausing and resuming](#synchronous-operation-by-pausing-and-resuming)
    5. [Choosing BREAK and MAB times](#choosing-break-and-mab-times)
       1. [Specific BREAK/MAB times](#specific-break/mab-times)
-         1. [A note on MAB timing](#a-note-on-mab-timing)
+         1. [A note on BREAK timing](#a-note-on-break-timing)
+         2. [A note on MAB timing](#a-note-on-mab-timing)
       2. [BREAK/MAB times using serial parameters](#break/mab-times-using-serial-parameters)
    6. [Error handling in the API](#error-handling-in-the-api)
 7. [Technical notes](#technical-notes)
@@ -594,13 +595,22 @@ This feature uses one of the _PIT_ timers via the `IntervalTimer` API, but if
 none are available, then the transmitter will fall back on using the baud rate
 generator with the specified serial port parameters.
 
+##### A note on BREAK timing
+
+The BREAK timing is pretty accurate, but there's some inaccuracy due to the
+default `IntervalTimer` API. It doesn't provide a way to execute an action (in
+this case, starting a BREAK) just before the timer starts. Instead, the timer
+will have already started and some time elapsed before the BREAK can start.
+
+Efforts have been made to make the BREAK time be at least the amount requested,
+but it likely won't be exactly the requested duration.
+
 ##### A note on MAB timing
 
-The BREAK timing is pretty accurate, but slightly shorter and longer times have
-have been observed. The MAB time may be longer than requested. The reason is
-that it's not possible to immediately start sending a character using the UART
-on the Teensy chips. It seems that the best resolution one can get is "somewhere
-within one or two bit times".
+The MAB time may be longer than requested. The reason is that it's not possible
+to immediately start sending a character using the UART on the Teensy chips. It
+seems that the best resolution one can get is "somewhere within one or two
+bit times".
 
 To illustrate:
 BREAK ->(immediate) MAB ->(not immediate) First packet character

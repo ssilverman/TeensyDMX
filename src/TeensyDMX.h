@@ -775,18 +775,20 @@ class Sender final : public TeensyDMX {
   // achieved due to an internal problem, for example a timer is unavailable,
   // then the BREAK/MAB serial parameters will be used instead.
   //
-  // The BREAK time will be pretty accurate, but slightly shorter and longer
-  // times have been observed.
+  // The BREAK time will be pretty accurate, but, due to the inaccuracy of the
+  // default IntervalTimer API, it won't be exact. (It doesn't allow precisely
+  // starting an action, in this case starting the BREAK.)
   //
   // Note that the specification states that the BREAK time must be at
   // least 92us. See `kMinTXBreakTime`.
   //
   // The default duration is 180us.
-  void setBreakTime(uint32_t t) {
-    breakTime_ = t;
-  }
+  void setBreakTime(uint32_t t);
 
-  // Returns this sender's BREAK time, in microseconds.
+  // Returns this sender's BREAK time, in microseconds. The actual time may be
+  // slightly different, due to the inaccuracy of the default IntervalTimer API.
+  // (It doesn't allow precisely starting an action, in this case starting
+  // the BREAK.)
   uint32_t breakTime() const {
     return breakTime_;
   }
@@ -1113,9 +1115,12 @@ class Sender final : public TeensyDMX {
   int outputBufIndex_;
 
   // BREAK and MAB times
-  volatile uint32_t breakTime_;
+  uint32_t breakTime_;
   uint32_t mabTime_;
-  volatile uint32_t adjustedMABTime_;  // Adjusted for the real world; requested
+
+  // Adjusted for the real world
+  volatile uint32_t adjustedBreakTime_;
+  volatile uint32_t adjustedMABTime_;
 
   // BREAK serial parameters
   uint32_t breakBaud_;

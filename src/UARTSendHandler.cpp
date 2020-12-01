@@ -107,7 +107,7 @@ void UARTSendHandler::irqHandler() {
                   sender_->state_ = Sender::XmitStates::kData;
                   port_->C2 = UART_C2_TX_ACTIVE;
                 },
-                sender_->breakTime_)) {
+                sender_->adjustedBreakTime_)) {
           // Invert the line as close as possible to the timer start
           port_->C3 |= UART_C3_TXINV;
           port_->C2 = UART_C2_TX_INACTIVE;
