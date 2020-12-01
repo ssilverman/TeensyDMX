@@ -20,19 +20,20 @@ namespace teensydmx {
 #define UART_C2_TX_COMPLETING ((UART_C2_TX_ENABLE) | (UART_C2_TCIE))
 #define UART_C2_TX_INACTIVE   (UART_C2_TX_ENABLE)
 
-extern const uint32_t kDefaultBreakBaud;
-extern const uint32_t kDefaultBreakFormat;
 extern const uint32_t kSlotsBaud;
 extern const uint32_t kSlotsFormat;
 
 void UARTSendHandler::start() {
   // Set the serial parameters for the two modes
-  if (!serialParamsSet_) {
-    sender_->uart_.begin(kDefaultBreakBaud, kDefaultBreakFormat);
+  if (breakSerialParamsChanged_) {
+    sender_->uart_.begin(sender_->breakBaud_, sender_->breakFormat_);
     breakSerialParams_.getFrom(serialIndex_, port_);
+    breakSerialParamsChanged_ = false;
+  }
+  if (!slotsSerialParamsSet_) {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
     slotsSerialParams_.getFrom(serialIndex_, port_);
-    serialParamsSet_ = true;
+    slotsSerialParamsSet_ = true;
   } else {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
   }
@@ -84,7 +85,8 @@ void UARTSendHandler::irqHandler() {
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
-        if (sender_->intervalTimer_.begin(
+        if (sender_->breakUseTimer_ &&
+            sender_->intervalTimer_.begin(
                 [&]() {
                   if (sender_->state_ == Sender::XmitStates::kBreak) {
                     port_->C3 &= ~UART_C3_TXINV;
@@ -93,18 +95,22 @@ void UARTSendHandler::irqHandler() {
                             sender_->adjustedMABTime_)) {
                       return;
                     }
-                    // We shouldn't delay as an alternative because
-                    // that might mean we delay too long
+                    // The restart shouldn't fail because the timer is already
+                    // active, but we need to check it because the return value
+                    // is part of the API
+                    //
+                    // We shouldn't delay as an alternative because that might
+                    // mean we delay too long, however the MAB is most likely to
+                    // be too short in this case
                   }
                   sender_->intervalTimer_.end();
                   sender_->state_ = Sender::XmitStates::kData;
                   port_->C2 = UART_C2_TX_ACTIVE;
                 },
                 sender_->breakTime_)) {
-          port_->C2 = UART_C2_TX_INACTIVE;
-          // Invert the line as close as possible to the
-          // interrupt start
+          // Invert the line as close as possible to the timer start
           port_->C3 |= UART_C3_TXINV;
+          port_->C2 = UART_C2_TX_INACTIVE;
           sender_->breakStartTime_ = micros();
         } else {
           // Starting the timer failed, revert to the original way

@@ -1,6 +1,6 @@
 <a href="https://www.buymeacoffee.com/ssilverman" title="Donate to this project using Buy Me A Coffee"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange.svg" alt="Buy Me A Coffee donate button"></a>
 
-# Readme for TeensyDMX v4.1.0-beta.1
+# Readme for TeensyDMX v4.1.0-beta.2
 
 This is a full-featured library for receiving and transmitting DMX on Teensy 3,
 Teensy LC, and Teensy 4. It follows the
@@ -30,7 +30,9 @@ Teensy LC, and Teensy 4. It follows the
    3. [Transmission rate](#transmission-rate)
    4. [Synchronous operation by pausing and resuming](#synchronous-operation-by-pausing-and-resuming)
    5. [Choosing BREAK and MAB times](#choosing-break-and-mab-times)
-      1. [A note on MAB timing](#a-note-on-mab-timing)
+      1. [Specific BREAK/MAB times](#specific-break/mab-times)
+         1. [A note on MAB timing](#a-note-on-mab-timing)
+      2. [BREAK/MAB times using serial parameters](#break/mab-times-using-serial-parameters)
    6. [Error handling in the API](#error-handling-in-the-api)
 7. [Technical notes](#technical-notes)
    1. [Simultaneous transmit and receive](#simultaneous-transmit-and-receive)
@@ -62,7 +64,7 @@ Some notable features of this library:
    be used synchronously. For example, System Information Packets (SIP) require
    this. See Annex D5 of ANSI E1.11.
 6. The transmitter BREAK and MAB times can be specified (where the actual MAB
-   time is something only slightly larger than requested).
+   time is something slightly larger than requested).
 7. The receiver checks for timeouts according to the DMX specification. It
    knows of the concept of being disconnected from a DMX transmitter when
    timeouts or bad BREAKs are encountered in the data stream.
@@ -567,28 +569,38 @@ notification approach and the second uses the polling approach.
 
 ### Choosing BREAK and MAB times
 
-The BREAK and MAB times can be specified using the `setBreakTime` and
-`setMABTime` functions. The BREAK will be transmitted with a duration very close
-to the specified value, but the actual MAB time may be slightly larger than
-requested. This has to do with how the UARTs work on the chip.
+The BREAK and MAB times can be specified in two ways:
+1. By specifying specific times using the `setBreakTime` and `setMABTime`
+   functions, or
+2. By specifying serial port parameters and relying on multiples of bit times,
+   using the `setBreakSerialParams` function.
+
+The default times are set, in both cases, to approximately 180us for the BREAK
+and approximately 20us for the MAB.
+
+The mode is switched between these two options using the
+`setBreakUseTimerNotSerial` function. The default is to use
+serial parameters.
+
+#### Specific BREAK/MAB times
+
+This is the first way to generate these times.
+
+The BREAK will be transmitted with a duration reasonably close to the specified
+value, but the actual MAB time may be larger than requested. This has to do with
+how the UARTs on the chip work.
 
 This feature uses one of the _PIT_ timers via the `IntervalTimer` API, but if
 none are available, then the transmitter will fall back on using the baud rate
-generator to achieve a 180us BREAK and something a little larger than a
-20us MAB.
+generator with the specified serial port parameters.
 
-If the UART is used to generate the BREAK and MAB timings then they are
-otherwise restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, 10:1, or
-9:3. These correspond to the UART formats, 8N2, 8E2, 8N1, 8E1, and 8O2. For
-additional information on this subject, see the
-[BREAK Timing in DMX512-A](extras/break-timing.md) note.
+##### A note on MAB timing
 
-#### A note on MAB timing
-
-The BREAK timing is pretty accurate. However, the MAB time may be slightly
-longer than requested. The reason is that it's not possible to immediately start
-sending a character using the UART on the Teensy chips. It seems that the best
-resolution one can get is "somewhere within one or two bit times".
+The BREAK timing is pretty accurate, but slightly shorter and longer times have
+have been observed. The MAB time may be longer than requested. The reason is
+that it's not possible to immediately start sending a character using the UART
+on the Teensy chips. It seems that the best resolution one can get is "somewhere
+within one or two bit times".
 
 To illustrate:
 BREAK ->(immediate) MAB ->(not immediate) First packet character
@@ -606,13 +618,25 @@ adjusts the MAB time under the covers to achieve times that are as close to the
 requested time as possible without going under, but it is often not possible to
 be more precise than "within one or two bit times", depending on the processor.
 
-There is a second, less flexible, way for the BREAK and MAB timings to be
-specified, and that is to change the baud rate and serial format just for the
-BREAK and MAB, and then change back to 250kbaud (8N2), however the act of
-changing the baud rate can introduce a delay as well, somewhere up to one full
-character. This is used as a fallback if the system doesn't have the timers
-available, and is fixed to a 180us BREAK and a 20us MAB (possibly appearing as
-a longer MAB, by up to at least several bit times).
+#### BREAK/MAB times using serial parameters
+
+This is the second way to generate these times.
+
+The times are restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, 10:1, or
+9:3. These correspond to the UART formats, 8N2, 8E2, 8N1, 8E1, and 8O2. For
+additional information on this subject, see the
+[BREAK Timing in DMX512-A](extras/break-timing.md) note.
+
+The BREAK time will be fairly accurate, but the MAB time will be a little longer
+than expected, by up to at least several bit times.
+
+This is a less flexible way to specify the BREAK and MAB times. The baud rate is
+changed just for these and then changed back to 250kbaud (8N2) for the packet
+data. The act of changing the baud rate can introduce a delay, somewhere up to
+one full character.
+
+This mode is also used as a fallback if the system doesn't have the
+timers available.
 
 ### Error handling in the API
 

@@ -772,32 +772,76 @@ class Sender final : public TeensyDMX {
   void end() override;
 
   // Sets the BREAK time, in microseconds. Note that if the timing could not be
-  // achieved due to an internal problem then it will be sent as a default
-  // of 180us.
+  // achieved due to an internal problem, for example a timer is unavailable,
+  // then the BREAK/MAB serial parameters will be used instead.
+  //
+  // The BREAK time will be pretty accurate, but slightly shorter and longer
+  // times have been observed.
   //
   // Note that the specification states that the BREAK time must be at
   // least 92us. See `kMinTXBreakTime`.
-  void setBreakTime(uint32_t t);
+  //
+  // The default duration is 180us.
+  void setBreakTime(uint32_t t) {
+    breakTime_ = t;
+  }
 
   // Returns this sender's BREAK time, in microseconds.
   uint32_t breakTime() const {
     return breakTime_;
   }
 
-  // Sets the MAB time, in microseconds. Note that if the timing could not be
-  // achieved due to an internal problem then it will be sent as a default of
-  // about 20us. Also, due to some system timing, the actual MAB time may
-  // be longer.
+  // Sets the MAB time, in microseconds. Note that if the BREAK/MAB timing could
+  // not be achieved due to an internal problem, for example if a timer is
+  // unavailable, then the serial parameters will be used instead.
+  //
+  // Due to some system timing, the actual MAB time may be longer.
   //
   // Note that the specification states that the MAB time must be at least 12us
   // and less than 1s. See `kMinTXMABTime`.
+  //
+  // The default duration is 20us.
   void setMABTime(uint32_t t);
 
-  // Returns this sender's Mark after BREAK time, in microseconds.
+  // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
   //
   // Note that due to some UART intricacies, the actual time may be longer.
   uint32_t mabTime() const {
     return mabTime_;
+  }
+
+  // Sets the BREAK/MAB serial port parameters. The parameters will only be
+  // applied when the transmitter is not running. To apply the parameters, the
+  // transmitter must be started or restarted.
+  //
+  // The default parameters are 50000 baud and 8N1, approximately a 180us BREAK
+  // and 20us MAB.
+  void setBreakSerialParams(uint32_t baud, uint32_t format);
+
+  // Returns the currently-set BREAK baud rate.
+  //
+  // The default value is 50000 baud.
+  uint32_t breakSerialBaud() const {
+    return breakBaud_;
+  }
+
+  // Returns the currently-set BREAK serial format.
+  uint32_t breakSerialFormat() const {
+    return breakFormat_;
+  }
+
+  // Sets whether to use a timer or serial parameters to achieve the BREAK and
+  // MAB timings.
+  //
+  // The default is to use serial parameters and not a timer.
+  void setBreakUseTimerNotSerial(bool flag) {
+    breakUseTimer_ = flag;
+  }
+
+  // Returns whether a timer or serial parameters are being used to achieve the
+  // BREAK and MAB timings.
+  bool isUseTimerNotSerial() const {
+    return breakUseTimer_;
   }
 
   // Sets the transmit packet size, in number of channels plus the start code.
@@ -815,7 +859,7 @@ class Sender final : public TeensyDMX {
   // from 0 to 24, inclusive, with channel zero containing the start code and
   // slots 1-24 containing the remainder of the packet data.
   //
-  // The default is 513.
+  // The default size is 513.
   bool setPacketSize(int size) {
     if (size < 0 || kMaxDMXPacketSize < size) {
       return false;
@@ -1068,10 +1112,16 @@ class Sender final : public TeensyDMX {
   volatile uint8_t outputBuf_[kMaxDMXPacketSize];
   int outputBufIndex_;
 
-  // BREAK and MAB timings
+  // BREAK and MAB times
   volatile uint32_t breakTime_;
   uint32_t mabTime_;
   volatile uint32_t adjustedMABTime_;  // Adjusted for the real world; requested
+
+  // BREAK serial parameters
+  uint32_t breakBaud_;
+  uint32_t breakFormat_;
+  volatile bool breakUseTimer_;  // Whether to use a timer or serial parameters
+                                 // for BREAK/MAB times
 
   // The size of the packet to be sent.
   volatile int packetSize_;

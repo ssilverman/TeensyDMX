@@ -28,7 +28,7 @@ class UARTSendHandler final : public SendHandler {
 #endif
         irq_(irq),
         irqHandler_(irqHandler),
-        serialParamsSet_(false) {}
+        slotsSerialParamsSet_(false) {}
 
   ~UARTSendHandler() override = default;
 
@@ -86,7 +86,7 @@ class UARTSendHandler final : public SendHandler {
   IRQ_NUMBER_t irq_;
   void (*irqHandler_)();
 
-  bool serialParamsSet_;
+  bool slotsSerialParamsSet_;
   SerialParams breakSerialParams_;
   SerialParams slotsSerialParams_;
 };

@@ -20,18 +20,19 @@ namespace teensydmx {
 #define LPUART_CTRL_TX_COMPLETING ((LPUART_CTRL_TX_ENABLE) | (LPUART_CTRL_TCIE))
 #define LPUART_CTRL_TX_INACTIVE   (LPUART_CTRL_TX_ENABLE)
 
-extern const uint32_t kDefaultBreakBaud;
-extern const uint32_t kDefaultBreakFormat;
 extern const uint32_t kSlotsBaud;
 extern const uint32_t kSlotsFormat;
 
 void LPUARTSendHandler::start() {
-  if (!serialParamsSet_) {
-    sender_->uart_.begin(kDefaultBreakBaud, kDefaultBreakFormat);
+  if (breakSerialParamsChanged_) {
+    sender_->uart_.begin(sender_->breakBaud_, sender_->breakFormat_);
     breakSerialParams_.getFrom(port_);
+    breakSerialParamsChanged_ = false;
+  }
+  if (!slotsSerialParamsSet_) {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
     slotsSerialParams_.getFrom(port_);
-    serialParamsSet_ = true;
+    slotsSerialParamsSet_ = true;
   } else {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
   }
@@ -83,7 +84,8 @@ void LPUARTSendHandler::irqHandler() {
   if ((control & LPUART_CTRL_TIE) != 0 && (status & LPUART_STAT_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
-        if (sender_->intervalTimer_.begin(
+        if (sender_->breakUseTimer_ &&
+            sender_->intervalTimer_.begin(
                 [&]() {
                   if (sender_->state_ == Sender::XmitStates::kBreak) {
                     port_->CTRL &= ~LPUART_CTRL_TXINV;
@@ -92,18 +94,21 @@ void LPUARTSendHandler::irqHandler() {
                             sender_->adjustedMABTime_)) {
                       return;
                     }
-                    // We shouldn't delay as an alternative because
-                    // that might mean we delay too long
+                    // The restart shouldn't fail because the timer is already
+                    // active, but we need to check it because the return value
+                    // is part of the API
+                    //
+                    // We shouldn't delay as an alternative because that might
+                    // mean we delay too long, however the MAB is most likely to
+                    // be too short in this case
                   }
                   sender_->intervalTimer_.end();
                   sender_->state_ = Sender::XmitStates::kData;
                   port_->CTRL = LPUART_CTRL_TX_ACTIVE;
                 },
                 sender_->breakTime_)) {
-          port_->CTRL = LPUART_CTRL_TX_INACTIVE;
-          // Invert the line as close as possible to the
-          // interrupt start
-          port_->CTRL |= LPUART_CTRL_TXINV;
+          // Invert the line as close as possible to the timer start
+          port_->CTRL = LPUART_CTRL_TX_INACTIVE | LPUART_CTRL_TXINV;
           sender_->breakStartTime_ = micros();
         } else {
           // Starting the timer failed, revert to the original way

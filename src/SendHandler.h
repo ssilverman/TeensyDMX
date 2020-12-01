@@ -17,9 +17,15 @@ class SendHandler {
  public:
   SendHandler(int serialIndex, Sender *sender)
       : serialIndex_(serialIndex),
-        sender_(sender) {}
+        sender_(sender),
+        breakSerialParamsChanged_(true) {}
 
   virtual ~SendHandler() = default;
+
+  // Indicates that the BREAK/MAB serial parameters have changed.
+  void breakSerialParamsChanged() {
+    breakSerialParamsChanged_ = true;
+  }
 
   // Starts the UART with the slots baud rate. If the baud rate parameters have
   // not been set then this sets the baud rate to the BREAK baud rate and then
@@ -47,6 +53,8 @@ class SendHandler {
  protected:
   int serialIndex_;
   Sender *sender_;
+
+  bool breakSerialParamsChanged_;
 };
 
 }  // namespace teensydmx

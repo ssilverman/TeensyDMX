@@ -34,7 +34,7 @@ class LPUARTSendHandler final : public SendHandler {
 #endif  // __IMXRT1062__ || __IMXRT1052__
         irq_(irq),
         irqHandler_(irqHandler),
-        serialParamsSet_(false) {}
+        slotsSerialParamsSet_(false) {}
 
   ~LPUARTSendHandler() override = default;
 
@@ -75,7 +75,7 @@ class LPUARTSendHandler final : public SendHandler {
   IRQ_NUMBER_t irq_;
   void (*irqHandler_)();
 
-  bool serialParamsSet_;
+  bool slotsSerialParamsSet_;
   SerialParams breakSerialParams_;
   SerialParams slotsSerialParams_;
 };

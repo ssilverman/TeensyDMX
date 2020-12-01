@@ -28,11 +28,11 @@ namespace teensydmx {
 // 8N1: 50000 baud, 180us BREAK, 20us MAB <-- Closer to "typical" in ANSI E1.11
 // 8E1: 45500 baud, 220us BREAK, 22us MAB
 
-extern const uint32_t kDefaultBreakBaud   = 50000;       // 20us
-extern const uint32_t kDefaultBreakFormat = SERIAL_8N1;  // 9:1
+constexpr uint32_t kDefaultBreakBaud   = 50000;       // 20us
+constexpr uint32_t kDefaultBreakFormat = SERIAL_8N1;  // 9:1
 
-constexpr uint32_t kSerialBreakTime = 1000000/kDefaultBreakBaud * 9;  // In us
-constexpr uint32_t kSerialMABTime   = 1000000/kDefaultBreakBaud * 1;  // In us
+constexpr uint32_t kDefaultBreakTime = 180;  // In us
+constexpr uint32_t kDefaultMABTime   = 20;   // In us
 
 // Empirically observed MAB generation adjustment constants, for 20us. The timer
 // adjust values are subtracted from the requested MAB to get the actual MAB.
@@ -125,9 +125,12 @@ Sender::Sender(HardwareSerial &uart)
       state_(XmitStates::kIdle),
       outputBuf_{0},
       outputBufIndex_(0),
-      breakTime_(kSerialBreakTime),
-      mabTime_(kSerialMABTime),
+      breakTime_(kDefaultBreakTime),
+      mabTime_(kDefaultMABTime),
       adjustedMABTime_(mabTime_),
+      breakBaud_(kDefaultBreakBaud),
+      breakFormat_(kDefaultBreakFormat),
+      breakUseTimer_(false),
       packetSize_(kMaxDMXPacketSize),
       refreshRate_(std::numeric_limits<float>::infinity()),
       breakToBreakTime_(0),
@@ -293,10 +296,6 @@ void Sender::end() {
   }
 }
 
-void Sender::setBreakTime(uint32_t t) {
-  breakTime_ = t;
-}
-
 void Sender::setMABTime(uint32_t t) {
   mabTime_ = t;
   if (t < kMABTimerAdjust) {
@@ -304,6 +303,12 @@ void Sender::setMABTime(uint32_t t) {
   } else {
     adjustedMABTime_ = t - kMABTimerAdjust;
   }
+}
+
+void Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
+  breakBaud_ = baud;
+  breakFormat_ = format;
+  sendHandler_->breakSerialParamsChanged();
 }
 
 bool Sender::set(int channel, uint8_t value) {
