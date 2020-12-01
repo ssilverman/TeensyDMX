@@ -6,6 +6,20 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0-beta.2]
+
+### Added
+* Added a way to use either serial parameters or a timer to achieve the BREAK
+  and MAB timings. Along with this, added the ability to change those
+  serial parameters.
+
+### Changed
+* Replaced use of the custom `PeriodicTimer` with the Teensy library's
+  `IntervalTimer`. This helps compatibility with other libraries that use
+  this API. This means that BREAK times are slightly less accurate.
+* Changed the default way to generate BREAK and MAB timings to use serial
+  parameters instead of a timer.
+
 ## [4.1.0-beta.1]
 
 ### Added
