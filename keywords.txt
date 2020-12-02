@@ -20,6 +20,8 @@ begin	KEYWORD2
 end	KEYWORD2
 packetCount	KEYWORD2
 setTXEnabled	KEYWORD2
+setKeepShortPackets	KEYWORD2
+isKeepShortPackets	KEYWORD2
 readPacket	KEYWORD2
 get	KEYWORD2
 get16Bit	KEYWORD2
@@ -73,3 +75,5 @@ receivePacket	KEYWORD2
 
 kMaxDMXPacketSize	LITERAL1
 kMinDMXPacketSize	LITERAL1
+kMinTXBreakTime	LITERAL1
+kMinTXMABTime	LITERAL1
