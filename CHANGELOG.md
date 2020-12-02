@@ -11,7 +11,12 @@ and this project adheres to
 ### Added
 * Added a way to use either serial parameters or a timer to achieve the BREAK
   and MAB timings. Along with this, added the ability to change those
-  serial parameters.
+  serial parameters. New functions:
+  * `setBreakSerialParams`
+  * `breakSerialBaud`
+  * `breakSerialFormat`
+  * `setBreakUseTimerNotSerial`
+  * `isBreakUseTimerNotSerial`
 
 ### Changed
 * Replaced use of the custom `PeriodicTimer` with the Teensy library's

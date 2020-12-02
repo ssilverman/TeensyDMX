@@ -35,6 +35,11 @@ setBreakTime	KEYWORD2
 breakTime	KEYWORD2
 setMABTime	KEYWORD2
 mabTime	KEYWORD2
+setBreakSerialParams	KEYWORD2
+breakSerialBaud	KEYWORD2
+breakSerialFormat	KEYWORD2
+setBreakUseTimerNotSerial	KEYWORD2
+isBreakUseTimerNotSerial	KEYWORD2
 setPacketSize	KEYWORD2
 packetSize	KEYWORD2
 set	KEYWORD2
