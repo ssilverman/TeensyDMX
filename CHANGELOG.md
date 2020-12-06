@@ -18,6 +18,7 @@ and this project adheres to
   * `setBreakUseTimerNotSerial`
   * `isBreakUseTimerNotSerial`
 * Added an "Examples" section (under "How to use") to the README.
+* Added a `USBProWidget` example.
 
 ### Changed
 * Replaced use of the custom `PeriodicTimer` with the Teensy library's
