@@ -25,6 +25,11 @@ and this project adheres to
 * Changed the default way to generate BREAK and MAB timings to use serial
   parameters instead of a timer.
 
+### Fixed
+* Fixed the sender to handle parity correctly when using serial parameters to
+  achieve the BREAK and MAB timings. Some of the control bits were being
+  incorrectly overwritten (LPUART) or not saved (UART).
+
 ## [4.1.0-beta.1]
 
 ### Added

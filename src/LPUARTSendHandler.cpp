@@ -61,7 +61,18 @@ void LPUARTSendHandler::end() const {
 }
 
 void LPUARTSendHandler::setActive() const {
-  port_->CTRL = LPUART_CTRL_TX_ACTIVE;
+  port_->CTRL =
+      (port_->CTRL | (LPUART_CTRL_TE | LPUART_CTRL_TIE)) & ~LPUART_CTRL_TCIE;
+}
+
+void LPUARTSendHandler::setInactive() const {
+  port_->CTRL =
+      (port_->CTRL | LPUART_CTRL_TE) & ~(LPUART_CTRL_TIE | LPUART_CTRL_TCIE);
+}
+
+void LPUARTSendHandler::setCompleting() const {
+  port_->CTRL =
+      (port_->CTRL | (LPUART_CTRL_TE | LPUART_CTRL_TCIE)) & ~LPUART_CTRL_TIE;
 }
 
 void LPUARTSendHandler::setIRQsEnabled(bool flag) const {
@@ -104,42 +115,43 @@ void LPUARTSendHandler::irqHandler() {
                   }
                   sender_->intervalTimer_.end();
                   sender_->state_ = Sender::XmitStates::kData;
-                  port_->CTRL = LPUART_CTRL_TX_ACTIVE;
+                  setActive();
                 },
                 sender_->adjustedBreakTime_)) {
           // Invert the line as close as possible to the timer start
-          port_->CTRL = LPUART_CTRL_TX_INACTIVE | LPUART_CTRL_TXINV;
+          port_->CTRL |= LPUART_CTRL_TXINV;
+          setInactive();
           sender_->breakStartTime_ = micros();
         } else {
           // Starting the timer failed, revert to the original way
           breakSerialParams_.apply(port_);
           port_->DATA = 0;
-          port_->CTRL = LPUART_CTRL_TX_COMPLETING;
+          setCompleting();
           sender_->breakStartTime_ = micros();
         }
         break;
 
       case Sender::XmitStates::kMAB:  // Shouldn't be needed
         sender_->state_ = Sender::XmitStates::kData;
-        port_->CTRL = LPUART_CTRL_TX_ACTIVE;
+        setActive();
         break;
 
       case Sender::XmitStates::kData:
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)
         do {
           if (sender_->outputBufIndex_ >= sender_->packetSize_) {
-            port_->CTRL = LPUART_CTRL_TX_COMPLETING;
+            setCompleting();
             break;
           }
           port_->DATA = sender_->outputBuf_[sender_->outputBufIndex_++];
         } while (((port_->WATER >> 8) & 0x07) < fifoSize_);  // TXCOUNT
 #else  // No FIFO
         if (sender_->outputBufIndex_ >= sender_->packetSize_) {
-          port_->CTRL = LPUART_CTRL_TX_COMPLETING;
+          setCompleting();
         } else {
           port_->DATA = sender_->outputBuf_[sender_->outputBufIndex_++];
           if (sender_->outputBufIndex_ >= sender_->packetSize_) {
-            port_->CTRL = LPUART_CTRL_TX_COMPLETING;
+            setCompleting();
           }
         }
 #endif
@@ -148,7 +160,7 @@ void LPUARTSendHandler::irqHandler() {
       case Sender::XmitStates::kIdle: {
         // Pause management
         if (sender_->paused_) {
-          port_->CTRL = LPUART_CTRL_TX_INACTIVE;
+          setInactive();
           return;
         }
         if (sender_->resumeCounter_ > 0) {
@@ -163,22 +175,22 @@ void LPUARTSendHandler::irqHandler() {
         // Delay so that we can achieve the specified refresh rate
         uint32_t timeSinceBreak = micros() - sender_->breakStartTime_;
         if (timeSinceBreak < sender_->breakToBreakTime_) {
-          port_->CTRL = LPUART_CTRL_TX_INACTIVE;
+          setInactive();
           if (sender_->breakToBreakTime_ != UINT32_MAX) {
             // Non-infinite BREAK time
             if (!sender_->intervalTimer_.begin(
                     [&]() {
                       sender_->intervalTimer_.end();
-                      port_->CTRL = LPUART_CTRL_TX_ACTIVE;
+                      setActive();
                     },
                     sender_->breakToBreakTime_ - timeSinceBreak)) {
               // If starting the timer failed
-              port_->CTRL = LPUART_CTRL_TX_ACTIVE;
+              setActive();
             }
           }
         } else {
           // No delay necessary
-          port_->CTRL = LPUART_CTRL_TX_ACTIVE;
+          setActive();
         }
         break;
       }
@@ -211,7 +223,7 @@ void LPUARTSendHandler::irqHandler() {
       default:
         break;
     }
-    port_->CTRL = LPUART_CTRL_TX_ACTIVE;
+    setActive();
   }
 }
 

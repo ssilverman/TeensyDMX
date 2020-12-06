@@ -66,6 +66,9 @@ class LPUARTSendHandler final : public SendHandler {
     }
   };
 
+  // Set CTRL states
+  void setInactive() const;
+  void setCompleting() const;
 
   PortType *port_;
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)

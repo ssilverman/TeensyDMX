@@ -45,6 +45,7 @@ class UARTSendHandler final : public SendHandler {
   struct SerialParams final {
     uint8_t bdh = 0;
     uint8_t bdl = 0x04;  // 13-bit SBR is 0x0004
+    uint8_t c1 = 0;
     uint8_t s2 = 0;
     uint8_t c3 = 0;
     uint8_t c4 = 0;
@@ -52,6 +53,7 @@ class UARTSendHandler final : public SendHandler {
     void getFrom(int serialIndex, KINETISK_UART_t *port) {
       bdh = port->BDH;
       bdl = port->BDL;
+      c1 = port->C1;
       s2 = port->S2;
       c3 = port->C3;
 #if defined(__MKL26Z64__)
@@ -66,6 +68,7 @@ class UARTSendHandler final : public SendHandler {
     void apply(int serialIndex, KINETISK_UART_t *port) const {
       port->BDH = bdh;
       port->BDL = bdl;
+      port->C1 = c1;
       port->S2 = s2;
       port->C3 = c3;
 #if defined(__MKL26Z64__)
