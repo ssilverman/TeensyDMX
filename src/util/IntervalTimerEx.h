@@ -22,6 +22,7 @@ static constexpr int kNumChannels = 2;
 static constexpr int kNumChannels = 4;
 #endif  // Processor check
 
+// Wraps IntervalTimer so that we can use function callbacks.
 class IntervalTimerEx final {
  public:
   IntervalTimerEx()
@@ -83,13 +84,10 @@ class IntervalTimerEx final {
     return true;
   }
 
-  // Sets the timer priority, if it's already been started.
-  void setPriority(uint8_t n) {
-    if (started_) {
-      intervalTimer_.priority(n);
-    }
-  }
+  // Sets the timer priority, if running.
+  void setPriority(uint8_t n);
 
+  // Stops the current timer, if running.
   void end();
 
  private:

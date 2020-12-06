@@ -27,6 +27,12 @@ IntervalTimerEx::~IntervalTimerEx() {
   end();
 }
 
+void IntervalTimerEx::setPriority(uint8_t n) {
+  if (started_) {
+    intervalTimer_.priority(n);
+  }
+}
+
 void IntervalTimerEx::end() {
   if (started_) {
     started_ = false;
