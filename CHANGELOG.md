@@ -24,6 +24,10 @@ and this project adheres to
   this API. This means that BREAK times are slightly less accurate.
 * Changed the default way to generate BREAK and MAB timings to use serial
   parameters instead of a timer.
+* Updated the `SendTestPackets` example to use serial parameters for the BREAK
+  and MAB times. Also changed the previous BREAK and MAB times to 88 and 8 (from
+  108 and 12), respectively, and commented that section out; it's present as
+  an alternative.
 
 ### Fixed
 * Fixed the sender to handle parity correctly when using serial parameters to

@@ -46,11 +46,17 @@ void setup() {
     dmxTx.set(i, 0x55);
   }
 
-  // Set appropriate BREAK and MAB times
-  // Set something at least a few microseconds less than the maximum allowed
-  // MAB time because practically, the actual MAB time may be longer
-  dmxTx.setBreakTime(108);  // Should be in the range 88-120us
-  dmxTx.setMABTime(12);     // Should be in the range 8-16us
+  // Set appropriate BREAK and MAB times:
+  // Bit time=9us, format=8E1: BREAK=90us, MAB=9us
+  // Note that the MAB time might be larger than expected;
+  // if too large, try the timer method below
+  dmxTx.setBreakSerialParams(1000000/9, SERIAL_8E1);
+
+  // Optionally, we can try setting the times directly,
+  // but they'll likely be larger by a few microseconds
+  // dmxTx.setBreakTime(88);  // Should be in the range 88-120us
+  // dmxTx.setMABTime(8);     // Should be in the range 8-16us
+  // dmxTx.setBreakUseTimerNotSerial(true);
 
   dmxTx.begin();
   Serial.println("Started.");
