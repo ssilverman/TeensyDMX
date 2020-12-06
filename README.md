@@ -13,7 +13,8 @@ Teensy LC, and Teensy 4. It follows the
 2. [Changes since v3](#changes-since-v3)
 3. [The TODO list](#the-todo-list)
 4. [How to use](#how-to-use)
-   1. [Synchronous vs. asynchronous operation](#synchronous-vs-asynchronous-operation)
+   1. [Examples](#examples)
+   2. [Synchronous vs. asynchronous operation](#synchronous-vs-asynchronous-operation)
 5. [DMX receive](#dmx-receive)
    1. [Code example](#code-example)
    2. [Retrieving 16-bit values](#retrieving-16-bit-values)
@@ -141,17 +142,28 @@ These are either in the works or ideas for subsequent versions:
 ## How to use
 
 The classes you'll need are in the `qindesign::teensydmx` namespace: `Receiver`
-and `Sender`. `Receiver` examples are in `BasicReceive` and `Flasher`, and
-`Sender` examples are in `BasicSend`, `Chaser`, `SendADC`, and
-`SendTestPackets`. `Flasher` and `Chaser` are more complete examples.
-
-Other examples that show how to utilize synchronous transmission are in
-`SIPSenderAsync` and `SIPSenderSync`.
-
-Examples that show how to use a synchronous packet handler in a receiver are in
-`SIPHandler` and `TextPacketHandler`.
+and `Sender`.
 
 All class documentation can be found in `src/TeensyDMX.h`.
+
+### Examples
+`Receiver` examples:
+* `BasicReceive`: A basic receive example
+* `Flasher`: Change the flash speed of the board LED based on DMX input
+
+`Sender` examples:
+* `BasicSend`: A basic send example
+* `Chaser`: Chases values across all channels
+* `SendADC`: Sends the value from an ADC over a DMX channel
+* `SendTestPackets`: Sends test packets (start code 55h)
+
+Examples that show how to utilize synchronous and asynchronous transmission:
+* `SIPSenderAsync`: Sends SIP packets asynchronously
+* `SIPSenderSync`: Sends SIP packets synchronously
+
+Examples that show how to use a synchronous packet handler in a receiver:
+* `SIPHandler`: Understands System Information Packets (SIP) (start code CFh)
+* `TextPacketHandler`: Understands text packets (start codes 17h and 90h)
 
 ### Synchronous vs. asynchronous operation
 

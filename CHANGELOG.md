@@ -17,6 +17,7 @@ and this project adheres to
   * `breakSerialFormat`
   * `setBreakUseTimerNotSerial`
   * `isBreakUseTimerNotSerial`
+* Added an "Examples" section (under "How to use") to the README.
 
 ### Changed
 * Replaced use of the custom `PeriodicTimer` with the Teensy library's
