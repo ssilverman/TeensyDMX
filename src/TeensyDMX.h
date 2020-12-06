@@ -821,8 +821,6 @@ class Sender final : public TeensyDMX {
   void setBreakSerialParams(uint32_t baud, uint32_t format);
 
   // Returns the currently-set BREAK baud rate.
-  //
-  // The default value is 50000 baud.
   uint32_t breakSerialBaud() const {
     return breakBaud_;
   }
