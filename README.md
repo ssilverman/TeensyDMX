@@ -147,6 +147,7 @@ and `Sender`.
 All class documentation can be found in `src/TeensyDMX.h`.
 
 ### Examples
+
 `Receiver` examples:
 * `BasicReceive`: A basic receive example
 * `Flasher`: Change the flash speed of the board LED based on DMX input
