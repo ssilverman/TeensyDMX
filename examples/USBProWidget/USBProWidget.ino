@@ -67,8 +67,8 @@ struct Message {
 // Read timeout.
 constexpr uint32_t kReadTimeout = 500;
 
-constexpr uint8_t kStartByte = 0x7e;
-constexpr uint8_t kEndByte   = 0xe7;
+constexpr uint8_t kStartByte = 0x7E;
+constexpr uint8_t kEndByte   = 0xE7;
 
 constexpr uint32_t kRxTimeout = 1000;  // In milliseconds
 
@@ -86,21 +86,27 @@ constexpr uint8_t kTxPin = 17;
 constexpr uint8_t kTxEnable = HIGH;
 constexpr uint8_t kTxDisable = LOW;
 
-constexpr uint16_t kFirmwareVersion = 0x0100;  // MSB=1 means supports all
-                                               // except RDM (is this true)?
-constexpr uint8_t kSerialNumber[4]{0xff, 0xff, 0xff, 0xff};  // LSB first
+// Firmware version.
+//
+// This example is v1.44.
+constexpr uint16_t kFirmwareVersion = 0x012C;  // MSB=1 means supports all
+                                               // except RDM?
+
+// Serial number, MSB first.
+constexpr uint8_t kSerialNumber[4]{0x01, 0x02, 0x03, 0x04};
 
 // ESTA manufacturer ID
 // https://tsp.esta.org/tsp/working_groups/CP/mfctrIDs.php
 constexpr bool kHasManufacturerID = true;
-constexpr uint16_t kManufacturerID = 0x7ff0;
+constexpr uint16_t kManufacturerID = 0x7FF0;  // Prototype use
 constexpr char kManufacturerName[] = "Manufacturer Nom";
 
+// Device ID and name
 constexpr bool kHasDeviceID = true;
 constexpr uint16_t kDeviceID = 0x0001;
 constexpr char kDeviceName[] = "USB Pro Widget (TeensyDMX demo)";
 
-// DMX serial port
+// DMX serial port.
 HardwareSerial &kDMXSerial = Serial3;
 
 // ---------------------------------------------------------------------------
@@ -171,7 +177,7 @@ void loop() {
 
   // LED blinking
 
-  if (dmxState != DMXStates::kTx) {
+  if (dmxState == DMXStates::kRx) {
     bool timedOut = millis() - dmxRx.lastPacketTimestamp() > kRxTimeout;
     if (timedOut) {
       if (ledState) {
@@ -182,6 +188,7 @@ void loop() {
     }
   }
 
+  // Flash the light at a rate depending on the current state
   uint32_t rate;
   if (dmxState == DMXStates::kTx) {
     // 2Hz blink
@@ -282,7 +289,7 @@ void handleMessage(const Message &msg) {
       msgBuf[7] = static_cast<uint8_t>(t);
       float refreshRate = dmxTx.refreshRate();
       if (refreshRate > 40.0f) {
-        refreshRate = 40.0f;  // Why doesn't the spec allow zero?
+        refreshRate = 0.0f;  // Why doesn't the spec allow zero? Send it anyway
       } else if (refreshRate < 1.0f) {
         refreshRate = 1.0f;
       }
@@ -379,7 +386,10 @@ void handleMessage(const Message &msg) {
       msgBuf[1] = static_cast<uint8_t>(msg.label);
       msgBuf[2] = 4;
       msgBuf[3] = 0;
-      memcpy(&msgBuf[4], kSerialNumber, 4);
+      msgBuf[4] = kSerialNumber[3];
+      msgBuf[5] = kSerialNumber[2];
+      msgBuf[6] = kSerialNumber[1];
+      msgBuf[7] = kSerialNumber[0];
       msgBuf[8] = kEndByte;
       stream.write(msgBuf, 9);
       stream.flush();
@@ -498,7 +508,7 @@ void processStreamIn() {
         parseState = ParseStates::kStart;
         break;
     }
-  }
+  }  // While there's data
 
   if (parseState != ParseStates::kStart && lastReadTimer > kReadTimeout) {
     parseState = ParseStates::kStart;
