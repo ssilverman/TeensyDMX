@@ -6,9 +6,9 @@
 // C++ includes
 #include <cstring>
 
-void sendDMX(const uint8_t *buf, int len);
-void sendDMXChange(int channel, const uint8_t changeBits[5],
-                   const uint8_t *data, int dataLen);
+void sendDMXToHost(const uint8_t *buf, int len);
+void sendDMXChangeToHost(int channel, const uint8_t changeBits[5],
+                         const uint8_t *data, int dataLen);
 
 void ReceiveHandler::setSendOnChangeOnly(bool flag) {
   if (sendOnChangeOnly_ != flag) {
@@ -26,7 +26,7 @@ void ReceiveHandler::receivePacket(const uint8_t *buf, int len) {
   lastLen_ = len;
   if (!sendOnChangeOnly_) {
     memcpy(lastBuf_, buf, len);
-    sendDMX(buf, len);
+    sendDMXToHost(buf, len);
     return;
   }
 
@@ -51,7 +51,7 @@ void ReceiveHandler::receivePacket(const uint8_t *buf, int len) {
       }
       i++;
     }
-    sendDMXChange(block, changedBits_, changedData_, dataIndex);
+    sendDMXChangeToHost(block, changedBits_, changedData_, dataIndex);
   }
   memcpy(lastBuf_, buf, len);
 }

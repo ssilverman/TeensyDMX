@@ -6,6 +6,7 @@
  */
 
 // C++ includes
+#include <algorithm>
 #include <cstdint>
 #include <cstring>
 #include <limits>
@@ -112,15 +113,27 @@ Stream &stream = Serial;
 // Parsing and response
 ParseStates parseState = ParseStates::kStart;
 elapsedMillis lastReadTimer{0};
-Message msg;
-uint8_t msgBuf[5 + 1 + 513]{0};  // Largest possible message has a
-                                 // complete DMX packet plus 1
+
+// Received message.
+Message recvMsg;
+
+// Message buffer for receiving DMX data. This will be copied into the send
+// message buffer in the main loop.
+//
+// These are marked volatile because they're accessed asynchronously from an
+// interrupt and we don't want the compiler to optimize anything improperly.
+volatile int recvDMXMsgLen;
+volatile uint8_t recvDMXMsgBuf[5 + 1 + 513]{0};  // Largest possible message has
+                                                 // a complete DMX packet plus 1
+
+// Send message buffer.
+uint8_t msgBuf[5 + 1 + 513]{0};  // Largest possible message has
+                                 // a complete DMX packet plus 1
 
 // DMX
 teensydmx::Sender dmxTx{kDMXSerial};
 teensydmx::Receiver dmxRx{kDMXSerial};
 auto receiveHandler = std::make_shared<ReceiveHandler>(stream);
-
 DMXStates dmxState = DMXStates::kRx;
 
 // Main program setup.
@@ -149,6 +162,8 @@ void setup() {
 
 // Main program loop.
 void loop() {
+  // Handle any received DMX data in addition to processing the serial stream
+  processReceivedData();
   processStreamIn();
 
   static elapsedMillis blinkTimer{0};
@@ -183,40 +198,60 @@ void loop() {
   }
 }
 
-// Sends a DMX message to the host.
-// TODO: Execute on the main thread.
-void sendDMX(const uint8_t *buf, int len) {
-  // It's possible for buf and msgBuf to be the same, so use memmove
-  memmove(&msgBuf[5], buf, len);
-  msgBuf[0] = kStartByte;
-  msgBuf[1] = static_cast<uint8_t>(Labels::kReceivedDMX);
-  msgBuf[2] = static_cast<uint8_t>(len + 1);
-  msgBuf[3] = static_cast<uint8_t>(static_cast<uint16_t>(len + 1) >> 8);
-  msgBuf[4] = 0;  // No queue overflow nor overrun
-  msgBuf[5 + len] = kEndByte;
-  stream.write(msgBuf, 5 + len + 1);
-  stream.flush();
+// Processes any asynchronously received DMX data and sends it to the host.
+void processReceivedData() {
+  int recvLen = 0;
+
+  __disable_irq();
+  if (recvDMXMsgLen > 0) {
+    std::copy_n(recvDMXMsgBuf, recvDMXMsgLen, msgBuf);
+    recvLen = recvDMXMsgLen;
+    recvDMXMsgLen = 0;
+  }
+  __enable_irq();
+
+  if (recvLen > 0) {
+    stream.write(msgBuf, recvLen);
+  }
 }
 
-// Sends a DMX change message to the host.
+// Sends a DMX message to the host. The data is sent in the main loop.
+//
+// This is called from the DMX receive handler.
+void sendDMXToHost(const uint8_t *buf, int len) {
+  std::copy_n(buf, len, &recvDMXMsgBuf[5]);
+  recvDMXMsgBuf[0] = kStartByte;
+  recvDMXMsgBuf[1] = static_cast<uint8_t>(Labels::kReceivedDMX);
+  recvDMXMsgBuf[2] = static_cast<uint8_t>(len + 1);
+  recvDMXMsgBuf[3] = static_cast<uint8_t>(static_cast<uint16_t>(len + 1) >> 8);
+  recvDMXMsgBuf[4] = 0;  // No queue overflow nor overrun
+  recvDMXMsgBuf[5 + len] = kEndByte;
+
+  recvDMXMsgLen = 5 + len + 1;
+}
+
+// Sends a DMX change message to the host. The data is sent in the main loop.
+//
 // The 'block' is which block of 8 bytes.
-// TODO: Execute on the main thread.
-void sendDMXChange(int block, const uint8_t changeBits[5],
-                   const uint8_t *data, int dataLen) {
-  msgBuf[0] = kStartByte;
-  msgBuf[1] = static_cast<uint8_t>(Labels::kReceivedDMXChange);
+//
+// This is called from the DMX receive handler.
+void sendDMXChangeToHost(int block, const uint8_t changeBits[5],
+                         const uint8_t *data, int dataLen) {
+  recvDMXMsgBuf[0] = kStartByte;
+  recvDMXMsgBuf[1] = static_cast<uint8_t>(Labels::kReceivedDMXChange);
   uint16_t len = static_cast<uint16_t>(1 + 5 + dataLen);
-  msgBuf[2] = static_cast<uint8_t>(len);
-  msgBuf[3] = static_cast<uint8_t>(len >> 8);
-  msgBuf[4] = static_cast<uint8_t>(block);
-  memcpy(&msgBuf[5], changeBits, 5);
-  memcpy(&msgBuf[10], data, dataLen);
-  msgBuf[10 + dataLen] = kEndByte;
-  stream.write(msgBuf, 10 + dataLen + 1);
-  stream.flush();
+  recvDMXMsgBuf[2] = static_cast<uint8_t>(len);
+  recvDMXMsgBuf[3] = static_cast<uint8_t>(len >> 8);
+  recvDMXMsgBuf[4] = static_cast<uint8_t>(block);
+  recvDMXMsgBuf[10 + dataLen] = kEndByte;
+
+  std::copy_n(changeBits, 5, &recvDMXMsgBuf[5]);
+  std::copy_n(data, dataLen, &recvDMXMsgBuf[10]);
+
+  recvDMXMsgLen = 10 + dataLen + 1;
 }
 
-// Handles a received message.
+// Handles a received message from the host.
 void handleMessage(const Message &msg) {
   switch (msg.label) {
     case Labels::kGetParams: {
@@ -406,7 +441,7 @@ void handleMessage(const Message &msg) {
   }
 }
 
-// Parses protocol data from the input stream.
+// Parses protocol data from the input stream from the host.
 void processStreamIn() {
   while (stream.available() > 0) {
     int b = stream.read();
@@ -423,19 +458,19 @@ void processStreamIn() {
         break;
 
       case ParseStates::kLabel:
-        msg.label = static_cast<Labels>(b);
+        recvMsg.label = static_cast<Labels>(b);
         parseState = ParseStates::kLenLSB;
         break;
 
       case ParseStates::kLenLSB:
-        msg.dataLen = static_cast<uint8_t>(b);
+        recvMsg.dataLen = static_cast<uint8_t>(b);
         parseState = ParseStates::kLenMSB;
         break;
 
       case ParseStates::kLenMSB:
-        msg.dataLen |= uint16_t{static_cast<uint8_t>(b)} << 8;
-        msg.dataEnd = 0;
-        if (msg.dataLen > 0) {
+        recvMsg.dataLen |= uint16_t{static_cast<uint8_t>(b)} << 8;
+        recvMsg.dataEnd = 0;
+        if (recvMsg.dataLen > 0) {
           parseState = ParseStates::kData;
         } else {
           parseState = ParseStates::kEnd;
@@ -443,18 +478,18 @@ void processStreamIn() {
         break;
 
       case ParseStates::kData:
-        if (msg.dataEnd < sizeof(msg.data)) {
-          msg.data[msg.dataEnd++] = static_cast<uint8_t>(b);
+        if (recvMsg.dataEnd < sizeof(recvMsg.data)) {
+          recvMsg.data[recvMsg.dataEnd++] = static_cast<uint8_t>(b);
         }
-        msg.dataLen--;
-        if (msg.dataLen == 0) {
+        recvMsg.dataLen--;
+        if (recvMsg.dataLen == 0) {
           parseState = ParseStates::kEnd;
         }
         break;
 
       case ParseStates::kEnd:
         if (b == kEndByte) {
-          handleMessage(msg);
+          handleMessage(recvMsg);
         }
         parseState = ParseStates::kStart;
         break;
