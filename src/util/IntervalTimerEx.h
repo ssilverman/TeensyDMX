@@ -3,6 +3,9 @@
 // This file is part of the TeensyDMX library.
 // (c) 2020 Shawn Silverman
 
+// See also https://github.com/luni64/TeensyHelpers for luni64's take on
+// improved IntervalTimer usage.
+
 #ifndef TEENSYDMX_UTIL_INTERVALTIMEREX_H_
 #define TEENSYDMX_UTIL_INTERVALTIMEREX_H_
 
