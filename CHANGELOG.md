@@ -30,6 +30,8 @@ and this project adheres to
   and MAB times. Also changed the previous BREAK and MAB times to 88 and 8 (from
   108 and 12), respectively, and commented that section out; it's present as
   an alternative.
+* Updated the `Chaser` example change interval to 50ms so that it's greater than
+  the DMX packet time.
 
 ### Fixed
 * Fixed the sender to handle parity correctly when using serial parameters to

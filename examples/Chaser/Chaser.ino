@@ -9,10 +9,10 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
-// Interval between channel value changes. A value of 20ms was chosen
+// Interval between channel value changes. A value of 50ms was chosen
 // so that all we cycle through all 512 channels every
-// 512 * 0.02s = 10.24 seconds.
-constexpr unsigned long kChaseInterval = 20;  // 20ms
+// 512 * 0.05s = 25.6 seconds.
+constexpr unsigned long kChaseInterval = 50;  // 50ms
 
 // The LED pin.
 constexpr uint8_t kLEDPin = LED_BUILTIN;
