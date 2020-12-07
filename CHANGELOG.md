@@ -22,8 +22,9 @@ and this project adheres to
 
 ### Changed
 * Replaced use of the custom `PeriodicTimer` with the Teensy library's
-  `IntervalTimer`. This helps compatibility with other libraries that use
-  this API. This means that BREAK times are slightly less accurate.
+  `IntervalTimer`. This helps compatibility with other libraries that use this
+  API. This means that BREAK times are slightly less accurate (when using a
+  timer and not serial parameters).
 * Changed the default way to generate BREAK and MAB timings to use serial
   parameters instead of a timer.
 * Updated the `SendTestPackets` example to use serial parameters for the BREAK
