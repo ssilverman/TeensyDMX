@@ -188,7 +188,7 @@ void loop() {
     bool timedOut = millis() - dmxRx.lastPacketTimestamp() > kRxTimeout;
     if (timedOut) {
       if (ledState) {
-        digitalWriteFast(LED_BUILTIN, LOW);
+        digitalWriteFast(kLEDPin, LOW);
         ledState = false;
       }
       return;
@@ -208,7 +208,7 @@ void loop() {
   if (blinkTimer >= 1000 / rate / 2) {
     blinkTimer = 0;
     ledState = !ledState;
-    digitalWriteFast(LED_BUILTIN, ledState ? HIGH : LOW);
+    digitalWriteFast(kLEDPin, ledState ? HIGH : LOW);
   }
 }
 
