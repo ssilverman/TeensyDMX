@@ -31,6 +31,7 @@ enum class ParseStates {
   kEnd,
 };
 
+// Possible states of the DMX line.
 enum class DMXStates {
   kRx,
   kTx,
@@ -50,6 +51,12 @@ enum class Labels : uint8_t {  // Fixed type to avoid undefined behaviour when
   // https://wiki.openlighting.org/index.php/USB_Protocol_Extensions
   kDeviceManufacturer = 77,
   kDeviceName         = 78,
+};
+
+// Error types passed to the handleError function, for received messages.
+enum class Errors {
+  kBadLength,
+  kBadValue,
 };
 
 // Holds a received message.
@@ -205,6 +212,14 @@ void loop() {
   }
 }
 
+// Handles an error with a received message.
+// Implement this to perform some custom behaviour.
+//
+// For example, you could play a beep or light an LED.
+void handleError(Labels msgLabel, Errors err) {
+  // Implement me
+}
+
 // Processes any asynchronously received DMX data and sends it to the host.
 void processReceivedData() {
   int recvLen = 0;
@@ -263,7 +278,7 @@ void handleMessage(const Message &msg) {
   switch (msg.label) {
     case Labels::kGetParams: {
       if (msg.dataEnd != 2) {
-        // Bad message
+        handleError(msg.label, Errors::kBadLength);
         break;
       }
       // Ignore the user configuration size and just respond
@@ -302,25 +317,28 @@ void handleMessage(const Message &msg) {
 
     case Labels::kSetParams: {
       if (msg.dataEnd < 5) {
-        // Bad message
+        handleError(msg.label, Errors::kBadLength);
         break;
       }
       // Ignore user configuration size
 
+      if ((msg.data[2] < 9 || 127 < msg.data[2]) ||
+          (msg.data[3] < 1 || 127 < msg.data[3]) ||
+          (msg.data[4] > 40)) {
+        handleError(msg.label, Errors::kBadValue);
+        break;
+      }
+
       // BREAK and MAB times
       uint32_t val = msg.data[2];
-      if (9 <= val && val <= 127) {
-        dmxTx.setBreakTime((val * 1067) / 100);
-      }
+      dmxTx.setBreakTime((val * 1067) / 100);  // Floor
       val = msg.data[3];
-      if (1 <= val && val < 127) {
-        dmxTx.setMABTime((val * 1067) / 100);
-      }
+      dmxTx.setMABTime((val * 1067) / 100);  // Floor
 
       val = msg.data[4];
       if (val == 0) {
         dmxTx.setRefreshRate(std::numeric_limits<float>::infinity());
-      } else if (1 <= val && val <= 40) {
+      } else {
         dmxTx.setRefreshRate(val);
       }
 
@@ -329,7 +347,7 @@ void handleMessage(const Message &msg) {
 
     case Labels::kSendDMX: {
       if (msg.dataEnd < 1 || 513 < msg.dataEnd) {
-        // Bad message
+        handleError(msg.label, Errors::kBadLength);
         break;
       }
       if (dmxState == DMXStates::kRx) {
@@ -359,8 +377,12 @@ void handleMessage(const Message &msg) {
     }
 
     case Labels::kReceiveDMXOnChange: {
-      if (msg.dataEnd != 1 || msg.data[0] > 1) {  // Note: Not a minimum of 25
-        // Bad message
+      if (msg.dataEnd != 1) {
+        handleError(msg.label, Errors::kBadLength);
+        break;
+      }
+      if (msg.data[0] > 1) {
+        handleError(msg.label, Errors::kBadValue);
         break;
       }
       if (dmxState == DMXStates::kTx) {
@@ -379,7 +401,7 @@ void handleMessage(const Message &msg) {
 
     case Labels::kGetSerial: {
       if (msg.dataEnd != 0) {
-        // Bad message
+        handleError(msg.label, Errors::kBadLength);
         break;
       }
       msgBuf[0] = kStartByte;
@@ -398,7 +420,7 @@ void handleMessage(const Message &msg) {
 
     case Labels::kDeviceManufacturer: {
       if (msg.dataEnd != 0) {
-        // Bad message
+        handleError(msg.label, Errors::kBadLength);
         break;
       }
       if (!kHasManufacturerID) {
@@ -423,7 +445,7 @@ void handleMessage(const Message &msg) {
 
     case Labels::kDeviceName: {
       if (msg.dataEnd != 0) {
-        // Bad message
+        handleError(msg.label, Errors::kBadLength);
         break;
       }
       if (!kHasDeviceID) {
