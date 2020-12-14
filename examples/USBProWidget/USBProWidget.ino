@@ -130,14 +130,12 @@ elapsedMillis lastReadTimer{0};
 // Received message.
 Message recvMsg;
 
-// Message buffer for receiving DMX data. This will be copied into the send
-// message buffer in the main loop.
+// Buffer for receiving DMX data. This will be processed in the main loop.
 //
 // These are marked volatile because they're accessed asynchronously from an
 // interrupt and we don't want the compiler to optimize anything improperly.
-volatile int recvDMXMsgLen;
-volatile uint8_t recvDMXMsgBuf[5 + 1 + 513]{0};  // Largest possible message has
-                                                 // a complete DMX packet plus 1
+volatile int recvDMXLen = 0;
+volatile uint8_t recvDMXBuf[513]{0};
 
 // Send message buffer.
 uint8_t msgBuf[5 + 1 + 513]{0};  // Largest possible message has
@@ -146,8 +144,14 @@ uint8_t msgBuf[5 + 1 + 513]{0};  // Largest possible message has
 // DMX
 teensydmx::Sender dmxTx{kDMXSerial};
 teensydmx::Receiver dmxRx{kDMXSerial};
-auto receiveHandler = std::make_shared<ReceiveHandler>(stream);
+auto receiveHandler = std::make_shared<ReceiveHandler>();
 DMXStates dmxState = DMXStates::kRx;
+
+// Track DMX packet changes
+bool sendOnChangeOnly = false;
+uint8_t lastDMXBuf[513]{0};
+int lastDMXLen = -1;  // -1 means we've never seen a last packet
+uint8_t changeMsg[5 + 46];  // Contents of a "change of state" message
 
 // Main program setup.
 void setup() {
@@ -226,19 +230,73 @@ void handleError(Labels msgLabel, Errors err) {
 
 // Processes any asynchronously received DMX data and sends it to the host.
 void processReceivedData() {
-  int recvLen = 0;
+  int len = 0;
 
+  // Copy the DMX packet into the message buffer
   __disable_irq();
-  if (recvDMXMsgLen > 0) {
-    std::copy_n(recvDMXMsgBuf, recvDMXMsgLen, msgBuf);
-    recvLen = recvDMXMsgLen;
-    recvDMXMsgLen = 0;
+  if (recvDMXLen > 0) {
+    std::copy_n(recvDMXBuf, recvDMXLen, &msgBuf[5]);
+    len = recvDMXLen;
+    recvDMXLen = 0;
   }
   __enable_irq();
 
-  if (recvLen > 0) {
-    stream.write(msgBuf, recvLen);
+  if (len <= 0) {
+    return;
   }
+  if (len > 513) {  // Trim the length just in case
+    len = 513;
+  }
+
+  if (!sendOnChangeOnly || lastDMXLen < 0) {
+    msgBuf[0] = kStartByte;
+    msgBuf[1] = static_cast<uint8_t>(Labels::kReceivedDMX);
+    msgBuf[2] = static_cast<uint8_t>(len + 1);
+    msgBuf[3] = static_cast<uint8_t>(static_cast<uint16_t>(len + 1) >> 8);
+    msgBuf[4] = 0;  // No queue overflow nor overrun
+    msgBuf[5 + len] = kEndByte;
+    stream.write(msgBuf, 5 + 1 + len);
+
+    memcpy(lastDMXBuf, &msgBuf[5], len);
+
+    return;
+  }
+
+  // Process the change
+  if (len == lastDMXLen && memcmp(&msgBuf[5], lastDMXBuf, len) == 0) {
+    return;
+  }
+  lastDMXLen = len;
+
+  changeMsg[0] = kStartByte;
+  changeMsg[1] = static_cast<uint8_t>(Labels::kReceivedDMXChange);
+
+  for (int i = 0; i < len; i++) {
+    if (msgBuf[i + 5] == lastDMXBuf[i]) {
+      i++;
+      continue;
+    }
+
+    // A mismatch, look at the next (up to) 40 bytes,
+    // starting at the block-of-8 start
+    int block = i / 8;
+    i = block * 8;  // Reset 'i' to the start of this block
+    changeMsg[4] = block;
+    int changeLen = 10;
+    for (int j = 0; j < 40 && i < len; j++) {
+      if (msgBuf[i + 5] != lastDMXBuf[i]) {
+        changeMsg[5 + j/8] |= 1 << (j % 8);
+        changeMsg[changeLen++] = msgBuf[i + 5];
+      }
+      i++;
+    }
+    changeMsg[2] = changeLen - 4;
+    changeMsg[3] = static_cast<uint16_t>(changeLen - 4) >> 8;
+    changeMsg[changeLen] = kEndByte;
+    stream.write(changeMsg, changeLen + 1);
+  }
+
+  memcpy(lastDMXBuf, &msgBuf[5], len);
 }
 
 // Parses protocol data from the input stream from the host.
@@ -313,36 +371,8 @@ void processStreamIn() {
 //
 // This is called from the DMX receive handler.
 void sendDMXToHost(const uint8_t *buf, int len) {
-  std::copy_n(buf, len, &recvDMXMsgBuf[5]);
-  recvDMXMsgBuf[0] = kStartByte;
-  recvDMXMsgBuf[1] = static_cast<uint8_t>(Labels::kReceivedDMX);
-  recvDMXMsgBuf[2] = static_cast<uint8_t>(len + 1);
-  recvDMXMsgBuf[3] = static_cast<uint8_t>(static_cast<uint16_t>(len + 1) >> 8);
-  recvDMXMsgBuf[4] = 0;  // No queue overflow nor overrun
-  recvDMXMsgBuf[5 + len] = kEndByte;
-
-  recvDMXMsgLen = 5 + len + 1;
-}
-
-// Sends a DMX change message to the host. The data is sent in the main loop.
-//
-// The 'block' is which block of 8 bytes.
-//
-// This is called from the DMX receive handler.
-void sendDMXChangeToHost(int block, const uint8_t changeBits[5],
-                         const uint8_t *data, int dataLen) {
-  recvDMXMsgBuf[0] = kStartByte;
-  recvDMXMsgBuf[1] = static_cast<uint8_t>(Labels::kReceivedDMXChange);
-  uint16_t len = static_cast<uint16_t>(1 + 5 + dataLen);
-  recvDMXMsgBuf[2] = static_cast<uint8_t>(len);
-  recvDMXMsgBuf[3] = static_cast<uint8_t>(len >> 8);
-  recvDMXMsgBuf[4] = static_cast<uint8_t>(block);
-  recvDMXMsgBuf[10 + dataLen] = kEndByte;
-
-  std::copy_n(changeBits, 5, &recvDMXMsgBuf[5]);
-  std::copy_n(data, dataLen, &recvDMXMsgBuf[10]);
-
-  recvDMXMsgLen = 10 + dataLen + 1;
+  std::copy_n(buf, len, recvDMXBuf);
+  recvDMXLen = len;
 }
 
 // ---------------------------------------------------------------------------
@@ -465,7 +495,7 @@ void handleMessage(const Message &msg) {
         dmxTx.end();
       }
 
-      receiveHandler->setSendOnChangeOnly(msg.data[0] == 1);
+      sendOnChangeOnly = (msg.data[0] != 0);
 
       if (dmxState != DMXStates::kRx) {
         digitalWriteFast(kTxPin, kTxDisable);
