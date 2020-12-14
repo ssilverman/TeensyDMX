@@ -386,6 +386,9 @@ void sendDMXToHost(const uint8_t *buf, int len) {
 
 // Handles a received message from the host.
 void handleMessage(const Message &msg) {
+  // Most commands reset the device to input
+  bool resetToInput = true;
+
   switch (msg.label) {
     case Labels::kGetParams: {
       if (msg.dataEnd != 2) {
@@ -423,6 +426,9 @@ void handleMessage(const Message &msg) {
       msgBuf[9] = kEndByte;
       stream.write(msgBuf, 10);
       stream.flush();
+
+      resetToInput = false;
+
       break;
     }
 
@@ -484,6 +490,9 @@ void handleMessage(const Message &msg) {
         dmxTx.begin();
         dmxState = DMXStates::kTx;
       }
+
+      resetToInput = false;
+
       break;
     }
 
@@ -496,9 +505,6 @@ void handleMessage(const Message &msg) {
         handleError(msg.label, Errors::kBadValue);
         break;
       }
-      if (dmxState == DMXStates::kTx) {
-        dmxTx.end();
-      }
 
       sendOnChangeOnly = (msg.data[0] != 0);
 
@@ -506,11 +512,6 @@ void handleMessage(const Message &msg) {
       std::fill_n(lastDMXBuf, 513, 0);
       lastDMXLen = 0;
 
-      if (dmxState != DMXStates::kRx) {
-        digitalWriteFast(kTxPin, kTxDisable);
-        dmxRx.begin();
-        dmxState = DMXStates::kRx;
-      }
       break;
     }
 
@@ -585,5 +586,13 @@ void handleMessage(const Message &msg) {
 
     default:
       break;
+  }
+
+  // Potentially reset the device to input
+  if (resetToInput && dmxState != DMXStates::kRx) {
+    dmxTx.end();
+    digitalWriteFast(kTxPin, kTxDisable);
+    dmxRx.begin();
+    dmxState = DMXStates::kRx;
   }
 }
