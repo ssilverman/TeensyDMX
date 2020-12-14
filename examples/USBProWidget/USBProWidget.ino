@@ -220,6 +220,10 @@ void handleError(Labels msgLabel, Errors err) {
   // Implement me
 }
 
+// ---------------------------------------------------------------------------
+//  Input processing functions
+// ---------------------------------------------------------------------------
+
 // Processes any asynchronously received DMX data and sends it to the host.
 void processReceivedData() {
   int recvLen = 0;
@@ -236,6 +240,74 @@ void processReceivedData() {
     stream.write(msgBuf, recvLen);
   }
 }
+
+// Parses protocol data from the input stream from the host.
+void processStreamIn() {
+  while (stream.available() > 0) {
+    int b = stream.read();
+    if (b < 0) {
+      break;
+    }
+    lastReadTimer = 0;
+
+    switch (parseState) {
+      case ParseStates::kStart:
+        if (b == kStartByte) {
+          parseState = ParseStates::kLabel;
+        }
+        break;
+
+      case ParseStates::kLabel:
+        recvMsg.label = static_cast<Labels>(b);
+        parseState = ParseStates::kLenLSB;
+        break;
+
+      case ParseStates::kLenLSB:
+        recvMsg.dataLen = static_cast<uint8_t>(b);
+        parseState = ParseStates::kLenMSB;
+        break;
+
+      case ParseStates::kLenMSB:
+        recvMsg.dataLen |= uint16_t{static_cast<uint8_t>(b)} << 8;
+        recvMsg.dataEnd = 0;
+        if (recvMsg.dataLen > 0) {
+          parseState = ParseStates::kData;
+        } else {
+          parseState = ParseStates::kEnd;
+        }
+        break;
+
+      case ParseStates::kData:
+        if (recvMsg.dataEnd < sizeof(recvMsg.data)) {
+          recvMsg.data[recvMsg.dataEnd++] = static_cast<uint8_t>(b);
+        }
+        recvMsg.dataLen--;
+        if (recvMsg.dataLen == 0) {
+          parseState = ParseStates::kEnd;
+        }
+        break;
+
+      case ParseStates::kEnd:
+        if (b == kEndByte) {
+          handleMessage(recvMsg);
+        }
+        parseState = ParseStates::kStart;
+        break;
+
+      default:
+        parseState = ParseStates::kStart;
+        break;
+    }
+  }  // While there's data
+
+  if (parseState != ParseStates::kStart && lastReadTimer > kReadTimeout) {
+    parseState = ParseStates::kStart;
+  }
+}
+
+// ---------------------------------------------------------------------------
+//  Callback functions
+// ---------------------------------------------------------------------------
 
 // Sends a DMX message to the host. The data is sent in the main loop.
 //
@@ -272,6 +344,10 @@ void sendDMXChangeToHost(int block, const uint8_t changeBits[5],
 
   recvDMXMsgLen = 10 + dataLen + 1;
 }
+
+// ---------------------------------------------------------------------------
+//  Message handling
+// ---------------------------------------------------------------------------
 
 // Handles a received message from the host.
 void handleMessage(const Message &msg) {
@@ -470,69 +546,5 @@ void handleMessage(const Message &msg) {
 
     default:
       break;
-  }
-}
-
-// Parses protocol data from the input stream from the host.
-void processStreamIn() {
-  while (stream.available() > 0) {
-    int b = stream.read();
-    if (b < 0) {
-      break;
-    }
-    lastReadTimer = 0;
-
-    switch (parseState) {
-      case ParseStates::kStart:
-        if (b == kStartByte) {
-          parseState = ParseStates::kLabel;
-        }
-        break;
-
-      case ParseStates::kLabel:
-        recvMsg.label = static_cast<Labels>(b);
-        parseState = ParseStates::kLenLSB;
-        break;
-
-      case ParseStates::kLenLSB:
-        recvMsg.dataLen = static_cast<uint8_t>(b);
-        parseState = ParseStates::kLenMSB;
-        break;
-
-      case ParseStates::kLenMSB:
-        recvMsg.dataLen |= uint16_t{static_cast<uint8_t>(b)} << 8;
-        recvMsg.dataEnd = 0;
-        if (recvMsg.dataLen > 0) {
-          parseState = ParseStates::kData;
-        } else {
-          parseState = ParseStates::kEnd;
-        }
-        break;
-
-      case ParseStates::kData:
-        if (recvMsg.dataEnd < sizeof(recvMsg.data)) {
-          recvMsg.data[recvMsg.dataEnd++] = static_cast<uint8_t>(b);
-        }
-        recvMsg.dataLen--;
-        if (recvMsg.dataLen == 0) {
-          parseState = ParseStates::kEnd;
-        }
-        break;
-
-      case ParseStates::kEnd:
-        if (b == kEndByte) {
-          handleMessage(recvMsg);
-        }
-        parseState = ParseStates::kStart;
-        break;
-
-      default:
-        parseState = ParseStates::kStart;
-        break;
-    }
-  }  // While there's data
-
-  if (parseState != ParseStates::kStart && lastReadTimer > kReadTimeout) {
-    parseState = ParseStates::kStart;
   }
 }
