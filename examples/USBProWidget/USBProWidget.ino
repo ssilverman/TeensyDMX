@@ -150,7 +150,7 @@ DMXStates dmxState = DMXStates::kRx;
 // Track DMX packet changes
 bool sendOnChangeOnly = false;
 uint8_t lastDMXBuf[513]{0};
-int lastDMXLen = -1;  // -1 means we've never seen a last packet
+int lastDMXLen = 0;
 uint8_t changeMsg[5 + 46];  // Contents of a "change of state" message
 
 // Main program setup.
@@ -265,6 +265,11 @@ void processReceivedData() {
   // Process the change
   if (len == lastDMXLen && memcmp(&msgBuf[5], lastDMXBuf, len) == 0) {
     return;
+  }
+
+  // If the length doesn't match, assume any additional bytes are reset
+  if (len > lastDMXLen) {
+    std::fill_n(&lastDMXBuf[lastDMXLen], len - lastDMXLen, 0);
   }
   lastDMXLen = len;
 
@@ -496,6 +501,10 @@ void handleMessage(const Message &msg) {
       }
 
       sendOnChangeOnly = (msg.data[0] != 0);
+
+      // Reset everything to zero, per the spec
+      std::fill_n(lastDMXBuf, 513, 0);
+      lastDMXLen = 0;
 
       if (dmxState != DMXStates::kRx) {
         digitalWriteFast(kTxPin, kTxDisable);
