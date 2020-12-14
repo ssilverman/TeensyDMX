@@ -257,13 +257,14 @@ void processReceivedData() {
     msgBuf[5 + len] = kEndByte;
     stream.write(msgBuf, 5 + 1 + len);
 
-    memcpy(lastDMXBuf, &msgBuf[5], len);
+    std::copy_n(&msgBuf[5], len, lastDMXBuf);
 
     return;
   }
 
   // Process the change
-  if (len == lastDMXLen && memcmp(&msgBuf[5], lastDMXBuf, len) == 0) {
+  if (len == lastDMXLen &&
+      std::equal(&msgBuf[5], &msgBuf[5 + len], lastDMXBuf)) {
     return;
   }
 
@@ -301,7 +302,7 @@ void processReceivedData() {
     stream.write(changeMsg, changeLen + 1);
   }
 
-  memcpy(lastDMXBuf, &msgBuf[5], len);
+  std::copy_n(&msgBuf[5], len, lastDMXBuf);
 }
 
 // Parses protocol data from the input stream from the host.
@@ -552,7 +553,7 @@ void handleMessage(const Message &msg) {
       msgBuf[3] = static_cast<uint8_t>(static_cast<uint16_t>(nameLen + 2) >> 8);
       msgBuf[4] = static_cast<uint8_t>(kManufacturerID);
       msgBuf[5] = static_cast<uint8_t>(kManufacturerID >> 8);
-      memcpy(&msgBuf[6], kManufacturerName, nameLen);
+      std::copy_n(kManufacturerName, nameLen, &msgBuf[6]);
       msgBuf[6 + nameLen] = kEndByte;
       stream.write(msgBuf, 6 + nameLen + 1);
       stream.flush();
@@ -577,7 +578,7 @@ void handleMessage(const Message &msg) {
       msgBuf[3] = static_cast<uint8_t>(static_cast<uint16_t>(nameLen + 2) >> 8);
       msgBuf[4] = static_cast<uint8_t>(kDeviceID);
       msgBuf[5] = static_cast<uint8_t>(kDeviceID >> 8);
-      memcpy(&msgBuf[6], kDeviceName, nameLen);
+      std::copy_n(kDeviceName, nameLen, &msgBuf[6]);
       msgBuf[6 + nameLen] = kEndByte;
       stream.write(msgBuf, 6 + nameLen + 1);
       stream.flush();
