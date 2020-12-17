@@ -28,8 +28,6 @@ void setup() {
   pinMode(kTXPin, OUTPUT);
   digitalWriteFast(kTXPin, HIGH);
 
-  dmxTx.begin();
-
   // Set some channel values. These are being set in setup() to illustrate that
   // values are 'sticky'. They stay set until changed. There's no special
   // function to call for each iteration of loop().
@@ -39,6 +37,13 @@ void setup() {
 
   // Set channels 10-12 to the 3 values in 'data'
   dmxTx.set(10, data, 3);
+
+  // Call this after setting up the channel contents if you want to
+  // guarantee that the values are used as the initial contents;
+  // transmission doesn't start until after begin() is called.
+  // If it doesn't matter, begin() can be called before setting the
+  // channel contents.
+  dmxTx.begin();
 }
 
 void loop() {
