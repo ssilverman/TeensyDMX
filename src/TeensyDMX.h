@@ -816,9 +816,15 @@ class Sender final : public TeensyDMX {
   // applied when the transmitter is not running. To apply the parameters, the
   // transmitter must be started or restarted.
   //
+  // This will return whether the parameters are valid. If this returns false
+  // then the parameters will not be set; they will be set otherwise. Invalid
+  // parameters include:
+  // * Formats that specify TXINV
+  // * A baud rate of zero
+  //
   // The default parameters are 50000 baud and 8N1, approximately a 180us BREAK
   // and 20us MAB.
-  void setBreakSerialParams(uint32_t baud, uint32_t format);
+  bool setBreakSerialParams(uint32_t baud, uint32_t format);
 
   // Returns the currently-set BREAK baud rate.
   uint32_t breakSerialBaud() const {

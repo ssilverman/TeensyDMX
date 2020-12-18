@@ -34,6 +34,9 @@ constexpr uint32_t kDefaultBreakFormat = SERIAL_8N1;  // 9:1
 constexpr uint32_t kDefaultBreakTime = 180;  // In us
 constexpr uint32_t kDefaultMABTime   = 20;   // In us
 
+// Modifier bits in the serial format
+constexpr uint32_t kSerialFormatTXINVBit = 0x20;
+
 // Empirically observed BREAK generation adjustment constants, for 180us. The
 // timer adjust values are added to the requested BREAK to get the actual BREAK.
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
@@ -328,10 +331,19 @@ void Sender::setMABTime(uint32_t t) {
   }
 }
 
-void Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
+bool Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
+  // Check the parameters
+  if (baud == 0) {
+    return false;
+  }
+  if ((format & kSerialFormatTXINVBit) != 0) {
+    return false;
+  }
+
   breakBaud_ = baud;
   breakFormat_ = format;
   sendHandler_->breakSerialParamsChanged();
+  return true;
 }
 
 bool Sender::set(int channel, uint8_t value) {
