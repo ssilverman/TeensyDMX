@@ -648,9 +648,9 @@ be more precise than "within one or two bit times", depending on the processor.
 
 This is the second way to generate these times.
 
-The times are restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, 10:1, or
-9:3. These correspond to the UART formats, 8N2, 8E2, 8N1, 8E1, and 8O2. For
-additional information on this subject, see the
+The times are restricted to having a BREAK:MAB ratio of 9:2, 10:2, 9:1, 10:1,
+9:3, 8:2, or 11:1. These correspond to the UART formats, 8N2, 8E2, 8N1, 8E1,
+8O2, 7O1, and 9E1. For additional information on this subject, see the
 [BREAK Timing in DMX512-A](extras/break-timing.md) note.
 
 The BREAK time will be fairly accurate, but the MAB time will be a little longer

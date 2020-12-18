@@ -34,10 +34,15 @@ setting. These are constraints.
 | 8E2    |         10 |        2 |
 | 8O1    |          9 |        2 |
 | 8O2    |          9 |        3 |
+| 7E1    |          9 |        1 |
+| 7O1    |          8 |        2 |
+| 9N1    |         10 |        1 |
+| 9E1    |         11 |        1 |
+| 9O1    |         10 |        2 |
 
-Note that 8O1 gives the same timings as 8N2. Also, 8N1 and 8E1 have a MAB time
-of one bit; for the baud rate table below, these are the rows used to calculate
-the associated baud rates.
+Note that several of the formats produce the same timings. Also, 8N1 and 8E1
+have a MAB time of one bit; for the baud rate table below, these are the rows
+used to calculate the associated baud rates, for illustration purposes.
 
 We can use this information to construct a wide variety of theoretical BREAK and
 MAB durations using different theoretical baud rates. Baud rates are theoretical
