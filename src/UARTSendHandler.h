@@ -50,12 +50,16 @@ class UARTSendHandler final : public SendHandler {
     uint8_t c3 = 0;
     uint8_t c4 = 0;
 
-    void getFrom(int serialIndex, KINETISK_UART_t *port) {
+    void getFrom(int serialIndex, KINETISK_UART_t *port, bool format9Bits) {
       bdh = port->BDH;
       bdl = port->BDL;
       c1 = port->C1;
       s2 = port->S2;
       c3 = port->C3;
+      if (format9Bits) {
+        // Ensure 9th bit is zero for 9-bit formats
+        c3 &= ~0x40;
+      }
 #if defined(__MKL26Z64__)
       if (serialIndex == 0) {
         c4 = port->C4;

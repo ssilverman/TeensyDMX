@@ -27,12 +27,13 @@ void UARTSendHandler::start() {
   // Set the serial parameters for the two modes
   if (breakSerialParamsChanged_) {
     sender_->uart_.begin(sender_->breakBaud_, sender_->breakFormat_);
-    breakSerialParams_.getFrom(serialIndex_, port_);
+    breakSerialParams_.getFrom(serialIndex_, port_,
+                               (sender_->breakFormat_ & 0x80) != 0);
     breakSerialParamsChanged_ = false;
   }
   if (!slotsSerialParamsSet_) {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
-    slotsSerialParams_.getFrom(serialIndex_, port_);
+    slotsSerialParams_.getFrom(serialIndex_, port_, (kSlotsFormat & 0x80) != 0);
     slotsSerialParamsSet_ = true;
   } else {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
