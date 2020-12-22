@@ -100,8 +100,7 @@ constexpr uint8_t kTxDisable = LOW;
 // Firmware version.
 //
 // This example is v1.44.
-constexpr uint16_t kFirmwareVersion = 0x012C;  // MSB=1 means supports all
-                                               // except RDM?
+constexpr uint16_t kFirmwareVersion = 0x012C;
 
 // Serial number, MSB first.
 constexpr uint8_t kSerialNumber[4]{0x01, 0x02, 0x03, 0x04};
