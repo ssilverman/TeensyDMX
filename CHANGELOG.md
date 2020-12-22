@@ -10,7 +10,8 @@ and this project adheres to
 
 ### Added
 * `USBProWidget` example: Added received message error handling.
-* Added 7- and 9-bit formats to the README and break-timing note.
+* Added 7- and 9-bit format support when using serial parameters to accomplish
+  BREAK and MAB timing.
 * `Sender::breakTime()` and `mabTime()` now return correct values if the sender
   is using serial parameters instead of a timer to generate the BREAK/MAB times.
 
