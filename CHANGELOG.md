@@ -6,6 +6,31 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.0]
+
+### Added
+* `USBProWidget` example: Added received message error handling.
+* Added 7- and 9-bit formats to the README and break-timing note.
+* `Sender::breakTime()` and `mabTime()` now return correct values if the sender
+  is using serial parameters instead of a timer to generate the BREAK/MAB times.
+
+### Changed
+* `USBProWidget` example:
+  * Moved DMX receive processing into the main loop.
+  * Reduced the minimum returned BREAK time to 10.67us instead of 9*10.67us.
+  * Updated uses of `memcpy` and `memcmp` to `std::copy_n` and `std::equal`,
+    respectively.
+* `BasicSend` example: Now calling `begin()` after setting the channel contents.
+* `Sender::setBreakSerialParams` now checks for valid parameters and returns a
+  Boolean indicating success.
+
+### Fixed
+* `USBProWidget` example:
+  * More correct changed-DMX behaviour.
+  * All commands except the appropriate ones now reset the program to
+    input mode.
+* Ensuring the 9th bit is set when sending a BREAK via serial parameters.
+
 ## [4.1.0-beta.2]
 
 ### Added
