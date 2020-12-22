@@ -1,6 +1,6 @@
 <a href="https://www.buymeacoffee.com/ssilverman" title="Donate to this project using Buy Me A Coffee"><img src="https://img.shields.io/badge/buy%20me%20a%20coffee-donate-orange.svg" alt="Buy Me A Coffee donate button"></a>
 
-# Readme for TeensyDMX v4.1.0-beta.2
+# Readme for TeensyDMX v4.1.0
 
 This is a full-featured library for receiving and transmitting DMX on Teensy 3,
 Teensy LC, and Teensy 4. It follows the
