@@ -771,9 +771,10 @@ class Sender final : public TeensyDMX {
   // transmission is still active. See `pause()` and `isTransmitting()`.
   void end() override;
 
-  // Sets the BREAK time, in microseconds. Note that if the timing could not be
-  // achieved due to an internal problem, for example a timer is unavailable,
-  // then the BREAK/MAB serial parameters will be used instead.
+  // Sets the BREAK time, in microseconds, for when a timer is selected to
+  // perform the timing. Note that if the timing could not be achieved due to an
+  // internal problem, for example a timer is unavailable, then the BREAK/MAB
+  // serial parameters will be used instead.
   //
   // The BREAK time will be pretty accurate, but, due to the inaccuracy of the
   // default IntervalTimer API, it won't be exact. (It doesn't allow precisely
@@ -785,17 +786,22 @@ class Sender final : public TeensyDMX {
   // The default duration is 180us.
   void setBreakTime(uint32_t t);
 
-  // Returns this sender's BREAK time, in microseconds. The actual time may be
-  // slightly different, due to the inaccuracy of the default IntervalTimer API.
-  // (It doesn't allow precisely starting an action, in this case starting
-  // the BREAK.)
-  uint32_t breakTime() const {
-    return breakTime_;
-  }
+  // Returns this sender's BREAK time, in microseconds. The value returned is
+  // dependent on whether a timer or serial parameters are being used to
+  // generate the timing.
+  //
+  // If a timer is being used then the actual time may be slightly different,
+  // due to the inaccuracy of the default IntervalTimer API. (It doesn't allow
+  // precisely starting an action, in this case starting the BREAK.)
+  //
+  // If serial parameters are being used then the actual time will likely match
+  // closely with the return value.
+  uint32_t breakTime() const;
 
-  // Sets the MAB time, in microseconds. Note that if the BREAK/MAB timing could
-  // not be achieved due to an internal problem, for example if a timer is
-  // unavailable, then the serial parameters will be used instead.
+  // Sets the MAB time, in microseconds, for when a timer is selected to perform
+  // the timing. Note that if the BREAK/MAB timing could not be achieved due to
+  // an internal problem, for example if a timer is unavailable, then the
+  // BREAK/MAB serial parameters will be used instead.
   //
   // Due to some system timing, the actual MAB time may be longer.
   //
@@ -805,12 +811,11 @@ class Sender final : public TeensyDMX {
   // The default duration is 20us.
   void setMABTime(uint32_t t);
 
-  // Returns this sender's Mark after BREAK (MAB) time, in microseconds.
-  //
-  // Note that due to some UART intricacies, the actual time may be longer.
-  uint32_t mabTime() const {
-    return mabTime_;
-  }
+  // Returns this sender's Mark after BREAK (MAB) time, in microseconds. The
+  // value returned is dependent on whether a timer or serial parameters are
+  // being used to generate the timing. In both cases, the actual time will
+  // likely be larger than the return value due to some UART intricacies.
+  uint32_t mabTime() const;
 
   // Sets the BREAK/MAB serial port parameters. The parameters will only be
   // applied when the transmitter is not running. To apply the parameters, the
@@ -819,8 +824,9 @@ class Sender final : public TeensyDMX {
   // This will return whether the parameters are valid. If this returns false
   // then the parameters will not be set; they will be set otherwise. Invalid
   // parameters include:
-  // * Formats that specify TXINV
   // * A baud rate of zero
+  // * Formats that specify TXINV
+  // * Unknown formats
   //
   // The default parameters are 50000 baud and 8N1, approximately a 180us BREAK
   // and 20us MAB.

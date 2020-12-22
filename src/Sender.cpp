@@ -35,6 +35,7 @@ constexpr uint32_t kDefaultBreakTime = 180;  // In us
 constexpr uint32_t kDefaultMABTime   = 20;   // In us
 
 // Modifier bits in the serial format
+constexpr uint32_t kSerialFormatRXINVBit = 0x10;
 constexpr uint32_t kSerialFormatTXINVBit = 0x20;
 
 // Empirically observed BREAK generation adjustment constants, for 180us. The
@@ -322,6 +323,37 @@ void Sender::setBreakTime(uint32_t t) {
   adjustedBreakTime_ = t + kBreakTimerAdjust;
 }
 
+uint32_t Sender::breakTime() const {
+  if (isBreakUseTimerNotSerial()) {
+    return breakTime_;
+  }
+
+  uint32_t t;
+  switch (breakSerialFormat() &
+          ~(kSerialFormatTXINVBit | kSerialFormatRXINVBit)) {
+    case SERIAL_7E1:
+    case SERIAL_8N1:
+    case SERIAL_8O1:
+    case SERIAL_8N2: t = 9; break;
+    case SERIAL_8E1: t = 10; break;
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(KINETISL) || \
+    defined(__IMXRT1062__) || defined(__IMXRT1052__)
+    case SERIAL_8E2: t = 10; break;
+    case SERIAL_8O2: t = 9; break;
+#endif
+    case SERIAL_7O1: t = 8; break;
+#ifdef SERIAL_9BIT_SUPPORT
+    case SERIAL_9N1:
+    case SERIAL_9O1: t = 10; break;
+    case SERIAL_9E1: t = 11; break;
+#endif
+    default:
+      return kDefaultBreakTime;
+  }
+
+  return (t * 1000000) / breakSerialBaud();
+}
+
 void Sender::setMABTime(uint32_t t) {
   mabTime_ = t;
   if (t < kMABTimerAdjust) {
@@ -331,6 +363,37 @@ void Sender::setMABTime(uint32_t t) {
   }
 }
 
+uint32_t Sender::mabTime() const {
+  if (isBreakUseTimerNotSerial()) {
+    return mabTime_;
+  }
+
+  uint32_t t;
+  switch (breakSerialFormat() &
+          ~(kSerialFormatTXINVBit | kSerialFormatRXINVBit)) {
+    case SERIAL_7E1:
+    case SERIAL_8N1:
+    case SERIAL_8E1: t = 1; break;
+    case SERIAL_7O1:
+    case SERIAL_8O1:
+    case SERIAL_8N2: t = 2; break;
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(KINETISL) || \
+    defined(__IMXRT1062__) || defined(__IMXRT1052__)
+    case SERIAL_8E2: t = 2; break;
+    case SERIAL_8O2: t = 3; break;
+#endif
+#ifdef SERIAL_9BIT_SUPPORT
+    case SERIAL_9N1:
+    case SERIAL_9E1: t = 1; break;
+    case SERIAL_9O1: t = 2; break;
+#endif
+    default:
+      return kDefaultMABTime;
+  }
+
+  return (t * 1000000) / breakSerialBaud();
+}
+
 bool Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
   // Check the parameters
   if (baud == 0) {
@@ -338,6 +401,30 @@ bool Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
   }
   if ((format & kSerialFormatTXINVBit) != 0) {
     return false;
+  }
+
+  switch (breakSerialFormat() &
+          ~(kSerialFormatTXINVBit | kSerialFormatRXINVBit)) {
+    case SERIAL_7E1:
+    case SERIAL_7O1:
+    case SERIAL_8N1:
+    case SERIAL_8E1:
+    case SERIAL_8O1:
+    case SERIAL_8N2:
+#if defined(__MK64FX512__) || defined(__MK66FX1M0__) || defined(KINETISL) || \
+    defined(__IMXRT1062__) || defined(__IMXRT1052__)
+    case SERIAL_8E2:
+    case SERIAL_8O2:
+#endif
+#ifdef SERIAL_9BIT_SUPPORT
+    case SERIAL_9N1:
+    case SERIAL_9E1:
+    case SERIAL_9O1:
+#endif
+      break;
+
+    default:
+      return false;
   }
 
   breakBaud_ = baud;
