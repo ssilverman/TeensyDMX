@@ -10,12 +10,11 @@ Teensy LC, and Teensy 4. It follows the
 
 1. [Features](#features)
    1. [Receiver timing limitations and RX line monitoring](#receiver-timing-limitations-and-rx-line-monitoring)
-2. [Changes since v3](#changes-since-v3)
-3. [The TODO list](#the-todo-list)
-4. [How to use](#how-to-use)
+2. [The TODO list](#the-todo-list)
+3. [How to use](#how-to-use)
    1. [Examples](#examples)
    2. [Synchronous vs. asynchronous operation](#synchronous-vs-asynchronous-operation)
-5. [DMX receive](#dmx-receive)
+4. [DMX receive](#dmx-receive)
    1. [Code example](#code-example)
    2. [Retrieving 16-bit values](#retrieving-16-bit-values)
    3. [Error counts and disconnection](#error-counts-and-disconnection)
@@ -25,7 +24,7 @@ Teensy LC, and Teensy 4. It follows the
    5. [Error statistics](#error-statistics)
    6. [Synchronous operation by using custom responders](#synchronous-operation-by-using-custom-responders)
       1. [Responding](#responding)
-6. [DMX transmit](#dmx-transmit)
+5. [DMX transmit](#dmx-transmit)
    1. [Code example](#code-example-1)
    2. [Packet size](#packet-size)
    3. [Transmission rate](#transmission-rate)
@@ -36,7 +35,7 @@ Teensy LC, and Teensy 4. It follows the
          2. [A note on MAB timing](#a-note-on-mab-timing)
       2. [BREAK/MAB times using serial parameters](#break/mab-times-using-serial-parameters)
    6. [Error handling in the API](#error-handling-in-the-api)
-7. [Technical notes](#technical-notes)
+6. [Technical notes](#technical-notes)
    1. [Simultaneous transmit and receive](#simultaneous-transmit-and-receive)
    2. [Transmission rate](#transmission-rate)
    3. [Transmit/receive enable pins](#transmitreceive-enable-pins)
@@ -44,9 +43,9 @@ Teensy LC, and Teensy 4. It follows the
    5. [Dynamic memory allocation failures](#dynamic-memory-allocation-failures)
    6. [Hardware connection](#hardware-connection)
    7. [`Receiver` and driving the TX pin](#receiver-and-driving-the-tx-pin)
-8. [Code style](#code-style)
-9. [References](#references)
-10. [Acknowledgements](#acknowledgements)
+7. [Code style](#code-style)
+8. [References](#references)
+9. [Acknowledgements](#acknowledgements)
 
 ## Features
 
@@ -70,7 +69,7 @@ Some notable features of this library:
 7. The receiver checks for timeouts according to the DMX specification. It
    knows of the concept of being disconnected from a DMX transmitter when
    timeouts or bad BREAKs are encountered in the data stream.
-8. Error counts are available in the receiver. These can be used to detect
+8. Packet and error statistics are available. These can be used to detect
    protocol problems, including timeouts, framing errors and bad BREAKs, short
    packets (those less than 1196us), and long packets (those that exceed
    513 bytes).
@@ -78,6 +77,7 @@ Some notable features of this library:
    API. Alternate start codes can not only be handled, for example, for Text
    Packets or System Information Packets (SIP), but responses can be sent back
    to the transmitter, for example for RDM.
+10. Functions for handling 16-bit data.
 
 ### Receiver timing limitations and RX line monitoring
 
@@ -103,41 +103,14 @@ This limitation does not exist if the RX line is monitored. To monitor the line,
 connect it to a digital I/O-capable pin and call `setRXWatchPin` with the pin
 number. The pin cannot be the same as the RX pin.
 
-## Changes since v3
-
-This section summarizes the changes and new features since v3.
-
-1. Changed responders to use shared pointers instead of raw pointers when adding
-   them to a receiver.
-2. Added the ability to disable the transmitter pin in the receiver.
-3. Added a way to set and retrieve 16-bit slot values.
-4. Added a new way to retrieve packet and error statistics.
-5. Added the ability to accurately measure received BREAK and MAB times using
-   another digital I/O pin to watch the RX line.
-6. Added a way for the transmitter to specify the BREAK and MAB timings.
-7. Functions that previously did nothing or ignored the values on bad input now
-   return a `bool` to indicate success or failure.
-8. Teensy 4 support.
-9. Added a way to know when the zero returned by `Receiver::get` and
-   `Receiver::get16Bit` was because the channel was out of range of the
-   last packet.
-10. Added a new "Keep Short Packets" feature that provides access to any packets
-    that are too short in duration, less than 1196us. Accompanying this are: a
-    way to enable and disable the feature and a way to tell whether a packet is
-    too short.
-11. Added a way to heuristically track the count of packets that are too long.
-12. Improved IDLE and timeout handling logic in the receiver.
-
 ## The TODO list
 
 These are either in the works or ideas for subsequent versions:
 
-1. Code instead of `#define`s for all the specialized UART access. A branch with
-   a working version exists.
-2. Asynchronous responder data. Currently, the data is sent synchronously inside
+1. Asynchronous responder data. Currently, the data is sent synchronously inside
    the UART ISR where responders process the packet. This will be easier to add
    once all the `#define` code is replaced.
-3. Better MAB timing, perhaps by somehow synchronizing with the baud rate clock.
+2. Better MAB timing, perhaps by somehow synchronizing with the baud rate clock.
 
 ## How to use
 
