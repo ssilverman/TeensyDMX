@@ -30,6 +30,8 @@ and this project adheres to
   * All commands except the appropriate ones now reset the program to
     input mode.
 * Ensuring the 9th bit is set when sending a BREAK via serial parameters.
+* Fixed `Sender::resumeFor` to ensure the UART has been started before setting
+  it to active.
 
 ## [4.1.0-beta.2]
 

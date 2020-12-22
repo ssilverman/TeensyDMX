@@ -44,7 +44,8 @@ class SendHandler {
   // Returns the priority of the internal IRQ.
   virtual int priority() const = 0;
 
-  // Puts the UART into "ACTIVE" mode.
+  // Puts the UART into "ACTIVE" mode. The UART should have already been started
+  // before calling this function, otherwise the chip may hang.
   virtual void setActive() const = 0;
 
   // Handles interrupts.

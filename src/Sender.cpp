@@ -535,7 +535,7 @@ bool Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
   //{
     resumeCounter_ = n;
     if (paused_) {
-      if (!transmitting_) {
+      if (began_ && !transmitting_) {
         sendHandler_->setActive();
       }
 
