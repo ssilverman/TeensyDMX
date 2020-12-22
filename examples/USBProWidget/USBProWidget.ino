@@ -74,10 +74,14 @@ struct Message {
 // Read timeout.
 constexpr uint32_t kReadTimeout = 500;
 
+// Message constants
 constexpr uint8_t kStartByte = 0x7E;
 constexpr uint8_t kEndByte   = 0xE7;
 
 constexpr uint32_t kRxTimeout = 1000;  // In milliseconds
+
+// Start codes
+constexpr uint8_t SC_NULL = 0x00;
 
 // ---------------------------------------------------------------------------
 //  User-settable parameters
@@ -166,7 +170,7 @@ void setup() {
   pinMode(kTxPin, OUTPUT);
 
   // Set up DMX
-  dmxRx.setResponder(0, receiveHandler);
+  dmxRx.setResponder(SC_NULL, receiveHandler);
   dmxTx.setBreakUseTimerNotSerial(true);
   if (dmxState != DMXStates::kTx) {
     digitalWriteFast(kTxPin, kTxDisable);
@@ -248,7 +252,8 @@ void processReceivedData() {
     len = 513;
   }
 
-  if (!sendOnChangeOnly || lastDMXLen < 0) {
+  uint8_t startCode = msgBuf[5];
+  if (startCode != SC_NULL || !sendOnChangeOnly) {
     msgBuf[0] = kStartByte;
     msgBuf[1] = static_cast<uint8_t>(Labels::kReceivedDMX);
     msgBuf[2] = static_cast<uint8_t>(len + 1);
@@ -257,7 +262,9 @@ void processReceivedData() {
     msgBuf[5 + len] = kEndByte;
     stream.write(msgBuf, 5 + 1 + len);
 
-    std::copy_n(&msgBuf[5], len, lastDMXBuf);
+    if (startCode == SC_NULL) {
+      std::copy_n(&msgBuf[5], len, lastDMXBuf);
+    }
 
     return;
   }
