@@ -29,7 +29,6 @@ and this project adheres to
   * More correct changed-DMX behaviour.
   * All commands except the appropriate ones now reset the program to
     input mode.
-* Ensuring the 9th bit is set when sending a BREAK via serial parameters.
 * Fixed `Sender::resumeFor` to ensure the UART has been started before setting
   it to active.
 
