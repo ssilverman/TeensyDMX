@@ -403,20 +403,26 @@ void handleMessage(const Message &msg) {
       msgBuf[3] = 0;
       msgBuf[4] = static_cast<uint8_t>(kFirmwareVersion);
       msgBuf[5] = static_cast<uint8_t>(kFirmwareVersion >> 8);
-      uint32_t t = (dmxTx.breakTime()*100 + 1066)/1067;  // Ceiling
-      if (t < 9) {
-        t = 9;
+
+      // Ceiling calculations for the BREAK and MAB times
+
+      uint32_t t = (dmxTx.breakTime()*100 + 1066)/1067;
+      if (t < 1) {  // Really should be 9, according to the spec,
+                    // but the library allows smaller
+        t = 1;
       } else if (t > 127) {
         t = 127;
       }
       msgBuf[6] = static_cast<uint8_t>(t);
-      t = (dmxTx.mabTime()*100 + 1066)/1067;  // Ceiling
+
+      t = (dmxTx.mabTime()*100 + 1066)/1067;
       if (t < 1) {
         t = 1;
       } else if (t > 127) {
         t = 127;
       }
       msgBuf[7] = static_cast<uint8_t>(t);
+
       float refreshRate = dmxTx.refreshRate();
       if (refreshRate > 40.0f) {
         refreshRate = 0.0f;  // Why doesn't the spec allow zero? Send it anyway
@@ -424,6 +430,7 @@ void handleMessage(const Message &msg) {
         refreshRate = 1.0f;
       }
       msgBuf[8] = static_cast<uint8_t>(refreshRate);
+
       msgBuf[9] = kEndByte;
       stream.write(msgBuf, 10);
       stream.flush();
