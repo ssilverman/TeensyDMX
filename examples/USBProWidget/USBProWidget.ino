@@ -171,12 +171,12 @@ void setup() {
   // Set up DMX
   dmxRx.setResponder(SC_NULL, receiveHandler);
   dmxTx.setBreakUseTimerNotSerial(true);
-  if (dmxState != DMXStates::kTx) {
-    digitalWriteFast(kTxPin, kTxDisable);
-    dmxRx.begin();
-  } else {
+  if (dmxState == DMXStates::kTx) {
     digitalWriteFast(kTxPin, kTxEnable);
     dmxTx.begin();
+  } else {
+    digitalWriteFast(kTxPin, kTxDisable);
+    dmxRx.begin();
   }
 }
 
@@ -191,7 +191,7 @@ void loop() {
 
   // LED blinking
 
-  if (dmxState == DMXStates::kRx) {
+  if (dmxState != DMXStates::kTx) {
     bool timedOut = millis() - dmxRx.lastPacketTimestamp() > kRxTimeout;
     if (timedOut) {
       if (ledState) {
@@ -481,7 +481,7 @@ void handleMessage(const Message &msg) {
         handleError(msg.label, Errors::kBadLength);
         break;
       }
-      if (dmxState == DMXStates::kRx) {
+      if (dmxState != DMXStates::kTx) {
         dmxRx.end();
       }
 
@@ -603,7 +603,7 @@ void handleMessage(const Message &msg) {
   }
 
   // Potentially reset the device to input
-  if (resetToInput && dmxState != DMXStates::kRx) {
+  if (resetToInput && dmxState == DMXStates::kTx) {
     dmxTx.end();
     digitalWriteFast(kTxPin, kTxDisable);
     dmxRx.begin();
