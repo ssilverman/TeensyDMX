@@ -172,11 +172,9 @@ void setup() {
   dmxRx.setResponder(SC_NULL, receiveHandler);
   dmxTx.setBreakUseTimerNotSerial(true);
   if (dmxState == DMXStates::kTx) {
-    digitalWriteFast(kTxPin, kTxEnable);
-    dmxTx.begin();
+    startTx();
   } else {
-    digitalWriteFast(kTxPin, kTxDisable);
-    dmxRx.begin();
+    startRx();
   }
 }
 
@@ -225,6 +223,18 @@ void loop() {
 // For example, you could play a beep or light an LED.
 void handleError(Labels msgLabel, Errors err) {
   // Implement me
+}
+
+// Starts the receiver.
+void startRx() {
+  digitalWriteFast(kTxPin, kTxDisable);
+  dmxRx.begin();
+}
+
+// Starts the transmitter.
+void startTx() {
+  digitalWriteFast(kTxPin, kTxEnable);
+  dmxTx.begin();
 }
 
 // ---------------------------------------------------------------------------
@@ -500,8 +510,7 @@ void handleMessage(const Message &msg) {
       }
 
       if (dmxState != DMXStates::kTx) {
-        digitalWriteFast(kTxPin, kTxEnable);
-        dmxTx.begin();
+        startTx();
         dmxState = DMXStates::kTx;
       }
 
@@ -605,8 +614,7 @@ void handleMessage(const Message &msg) {
   // Potentially reset the device to input
   if (resetToInput && dmxState == DMXStates::kTx) {
     dmxTx.end();
-    digitalWriteFast(kTxPin, kTxDisable);
-    dmxRx.begin();
+    startRx();
     dmxState = DMXStates::kRx;
   }
 }
