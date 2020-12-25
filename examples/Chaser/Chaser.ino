@@ -48,8 +48,9 @@ void setup() {
 
   dmxTx.begin();
 
-  channel = 1;
-  dmxTx.set(channel, 255);
+  // Initialize the state to the end conditions
+  channel = 512;
+  sinceLastChase = kChaseInterval;
 }
 
 void loop() {
