@@ -6,6 +6,17 @@ The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.0.0/),
 and this project adheres to
 [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [4.1.1]
+
+### Changed
+* DMX TX and RX are now started with new `startRx` and `startTx` convenience
+  functions in the `USBProWidget` example.
+
+### Fixed
+* Fixed `Chaser` example to start the blink and packet correctly.
+* Fixed `TextPacketHandler` example to define one of the static members.
+* Fixed `Sender` to use double-buffering to guarantee atomic behaviour.
+
 ## [4.1.0]
 
 ### Added
