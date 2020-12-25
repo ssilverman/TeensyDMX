@@ -131,29 +131,29 @@ void UARTSendHandler::irqHandler() {
 #if defined(KINETISK)
         if (fifoSize_ > 1) {
           do {
-            if (sender_->outputBufIndex_ >= sender_->packetSize_) {
+            if (sender_->inactiveBufIndex_ >= sender_->packetSize_) {
               port_->C2 = UART_C2_TX_COMPLETING;
               break;
             }
             port_->S1;
-            port_->D = sender_->outputBuf_[sender_->outputBufIndex_++];
+            port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
           } while (port_->TCFIFO < fifoSize_);  // Transmit Count
         } else {  // No FIFO
-          if (sender_->outputBufIndex_ >= sender_->packetSize_) {
+          if (sender_->inactiveBufIndex_ >= sender_->packetSize_) {
             port_->C2 = UART_C2_TX_COMPLETING;
           } else {
-            port_->D = sender_->outputBuf_[sender_->outputBufIndex_++];
-            if (sender_->outputBufIndex_ >= sender_->packetSize_) {
+            port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
+            if (sender_->inactiveBufIndex_ >= sender_->packetSize_) {
               port_->C2 = UART_C2_TX_COMPLETING;
             }
           }
         }
 #else  // No FIFO
-        if (sender_->outputBufIndex_ >= sender_->packetSize_) {
+        if (sender_->inactiveBufIndex_ >= sender_->packetSize_) {
           port_->C2 = UART_C2_TX_COMPLETING;
         } else {
-          port_->D = sender_->outputBuf_[sender_->outputBufIndex_++];
-          if (sender_->outputBufIndex_ >= sender_->packetSize_) {
+          port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
+          if (sender_->inactiveBufIndex_ >= sender_->packetSize_) {
             port_->C2 = UART_C2_TX_COMPLETING;
           }
         }

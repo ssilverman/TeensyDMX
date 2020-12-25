@@ -1121,8 +1121,10 @@ class Sender final : public TeensyDMX {
   // Keeps track of what we're transmitting.
   volatile XmitStates state_;
 
-  volatile uint8_t outputBuf_[kMaxDMXPacketSize];
-  int outputBufIndex_;
+  // Output buffers
+  volatile uint8_t activeBuf_[kMaxDMXPacketSize];
+  uint8_t inactiveBuf_[kMaxDMXPacketSize];
+  int inactiveBufIndex_;
 
   // BREAK and MAB times
   uint32_t breakTime_;

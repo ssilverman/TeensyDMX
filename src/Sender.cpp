@@ -143,8 +143,9 @@ Sender::Sender(HardwareSerial &uart)
     : TeensyDMX(uart),
       began_(false),
       state_(XmitStates::kIdle),
-      outputBuf_{0},
-      outputBufIndex_(0),
+      activeBuf_{0},
+      inactiveBuf_{0},
+      inactiveBufIndex_(0),
       breakTime_(kDefaultBreakTime),
       mabTime_(kDefaultMABTime),
       adjustedBreakTime_(breakTime_),
@@ -437,7 +438,10 @@ bool Sender::set(int channel, uint8_t value) {
   if (channel < 0 || kMaxDMXPacketSize <= channel) {
     return false;
   }
-  outputBuf_[channel] = value;
+  Lock lock{*this};
+  //{
+    activeBuf_[channel] = value;
+  //}
   return true;
 }
 
@@ -448,8 +452,8 @@ bool Sender::set16Bit(int channel, uint16_t value) {
 
   Lock lock{*this};
   //{
-    outputBuf_[channel] = value >> 8;
-    outputBuf_[channel + 1] = value;
+    activeBuf_[channel] = value >> 8;
+    activeBuf_[channel + 1] = value;
   //}
   return true;
 }
@@ -467,7 +471,7 @@ bool Sender::set(int startChannel, const uint8_t *values, int len) {
 
   Lock lock{*this};
   //{
-    std::copy_n(&values[0], len, &outputBuf_[startChannel]);
+    std::copy_n(&values[0], len, &activeBuf_[startChannel]);
   //}
   return true;
 }
@@ -486,8 +490,8 @@ bool Sender::set16Bit(int startChannel, const uint16_t *values, int len) {
   Lock lock{*this};
   //{
     for (int i = 0; i < len; i++) {
-      outputBuf_[startChannel++] = values[i] >> 8;
-      outputBuf_[startChannel++] = values[i];
+      activeBuf_[startChannel++] = values[i] >> 8;
+      activeBuf_[startChannel++] = values[i];
     }
   //}
   return true;
@@ -496,7 +500,7 @@ bool Sender::set16Bit(int startChannel, const uint16_t *values, int len) {
 void Sender::clear() {
   Lock lock{*this};
   //{
-    std::fill_n(&outputBuf_[0], kMaxDMXPacketSize, uint8_t{0});
+    std::fill_n(&activeBuf_[0], kMaxDMXPacketSize, uint8_t{0});
   //}
 }
 
@@ -557,8 +561,11 @@ bool Sender::isTransmitting() const {
 }
 
 void Sender::completePacket() {
+  // Copy the active buffer into the inactive buffer
+  std::copy_n(&activeBuf_[0], kMaxDMXPacketSize, &inactiveBuf_[0]);
+
   incPacketCount();
-  outputBufIndex_ = 0;
+  inactiveBufIndex_ = 0;
   transmitting_ = false;
   state_ = XmitStates::kIdle;
 
