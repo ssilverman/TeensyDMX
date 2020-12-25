@@ -3,6 +3,9 @@
 
 #include "TextPacketHandler.h"
 
+// Define this here (C++17 doesn't need this but earlier versions do).
+constexpr uint8_t TextPacketHandler::kStartCodes[];
+
 void TextPacketHandler::receivePacket(const uint8_t *buf, int len) {
     // The packet must contain at least 3 bytes (plus the start code)
     if (len < 4) {
