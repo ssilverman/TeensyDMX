@@ -1,5 +1,5 @@
 // This file is part of the TextPacketHandler example in the TeensyDMX library.
-// (c) 2018-2019 Shawn Silverman
+// (c) 2018-2020 Shawn Silverman
 
 #ifndef TEXTPACKETHANDLER_H_
 #define TEXTPACKETHANDLER_H_
@@ -12,11 +12,13 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
-// These functions are defined elsewhere. Note that they could be defined by
-// passing function pointers to the TextPacketHandler object.
+// These functions are defined elsewhere. Note that they
+// could be defined by passing function pointers to the
+// TextPacketHandler object.
 //
 // page: the page number
-// charsPerLine: number of characters per line, for formatting, zero to ignore
+// charsPerLine: number of characters per line, for formatting,
+//               zero to ignore
 // text: the NUL-terminated string
 // len: the string length, not including the terminating NUL
 void setText(uint8_t page, uint8_t charsPerLine, const char *text, int len);

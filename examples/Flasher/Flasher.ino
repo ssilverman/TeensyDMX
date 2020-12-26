@@ -3,7 +3,7 @@
  * the value of a DMX channel.
  *
  * This example is part of the TeensyDMX library.
- * (c) 2017-2019 Shawn Silverman
+ * (c) 2017-2020 Shawn Silverman
  */
 
 #include <TeensyDMX.h>
@@ -73,8 +73,8 @@ void loop() {
       p = 0;
     }
 
-    // Use a wave equation to make the speed-ups and slow-downs smoother using
-    // the offset, phi
+    // Use a wave equation to make the speed-ups and slow-downs
+    // smoother using the offset, phi
     int32_t newPeriod = map(lastValue, 0, 255, kPeriodMax, kPeriodMin);
     if (newPeriod != period) {
       phi = (t*(period - newPeriod) + newPeriod*phi)/period;

@@ -1,9 +1,9 @@
 /*
- * TextPacketHandler shows how to implement a Responder to make use of
- * Text Packets.
+ * TextPacketHandler shows how to implement a Responder
+ * to make use of Text Packets.
  *
  * This example is part of the TeensyDMX library.
- * (c) 2018-2019 Shawn Silverman
+ * (c) 2018-2020 Shawn Silverman
  */
 
 // C++ includes
@@ -49,11 +49,13 @@ void setup() {
 void loop() {
 }
 
-// In this example, TextPacketHandler expects the following functions to be
-// defined. There are other ways to define these functions, for example by
-// giving function pointers to the TextPacketHandler object.
+// In this example, TextPacketHandler expects the following
+// functions to be defined. There are other ways to define
+// these functions, for example by giving function pointers
+// to the TextPacketHandler object.
 
-// Receives a NUL-terminated string plus its length (not including the NUL).
+// Receives a NUL-terminated string plus its length
+// (not including the NUL).
 //
 // If charsPerLine is zero then it should be ignored.
 void setText(uint8_t page, uint8_t charsPerLine, const char *text, int len) {
@@ -76,8 +78,8 @@ void setText(uint8_t page, uint8_t charsPerLine, const char *text, int len) {
   }
 }
 
-// Receives a NUL-terminated UTF-8 string plus its length (not including the
-// NUL).
+// Receives a NUL-terminated UTF-8 string plus its length
+// (not including the NUL).
 //
 // If charsPerLine is zero then it should be ignored.
 void setUTF8Text(uint8_t page, uint8_t charsPerLine,

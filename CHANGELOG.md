@@ -11,6 +11,8 @@ and this project adheres to
 ### Changed
 * DMX TX and RX are now started with new `startRx` and `startTx` convenience
   functions in the `USBProWidget` example.
+* Updated comment layout in the examples to be <= 70 columns to help improve
+  readability, for example for larger fonts.
 
 ### Fixed
 * Fixed `Chaser` example to start the blink and packet correctly.

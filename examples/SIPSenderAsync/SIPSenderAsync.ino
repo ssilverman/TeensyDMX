@@ -3,11 +3,11 @@
  * packet. This is meant as a rudimentary example of SIP and does not
  * use all the features of the packet type.
  *
- * This uses the asynchronous notification approach to determine when to
- * send the next packet.
+ * This uses the asynchronous notification approach to determine when
+ * to send the next packet.
  *
  * This example is part of the TeensyDMX library.
- * (c) 2018-2019 Shawn Silverman
+ * (c) 2018-2020 Shawn Silverman
  */
 
 #include <TeensyDMX.h>
@@ -17,8 +17,8 @@ namespace teensydmx = ::qindesign::teensydmx;
 // The LED pin.
 constexpr uint8_t kLEDPin = LED_BUILTIN;
 
-// Pin for enabling or disabling the transmitter. This may not be needed for
-// your hardware.
+// Pin for enabling or disabling the transmitter.
+// This may not be needed for your hardware.
 constexpr uint8_t kTXPin = 17;
 
 // Create the DMX transmitter on Serial1.
@@ -35,12 +35,13 @@ uint8_t sipData[25]{0};
 
 // SIP state
 uint8_t sipSeqNum = 0;      // Free running
-bool firstSIPSent = false;  // Keep track of whether there's been at least
-                            // one SIP packet, and if there has, count packets
-                            // since then
+bool firstSIPSent = false;  // Keep track of whether there's been at
+                            // least one SIP packet, and if there has,
+                            // count packets since then
 uint16_t packetsSinceLastSIP = 0;
 
 // State machine for type of packet data.
+//
 // The state will be checked after each packet and will indicate
 // what was just sent.
 enum class SIPState {
@@ -118,8 +119,8 @@ void fillRegularData() {
   }
 }
 
-// Fills the current packet with the SIP data. This assumes that the current
-// packet data is in the 'packetData' variable.
+// Fills the current packet with the SIP data. This assumes that
+// the current packet data is in the 'packetData' variable.
 void fillSIPData() {
   digitalWriteFast(kLEDPin, LOW);
 

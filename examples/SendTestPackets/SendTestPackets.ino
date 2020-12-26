@@ -3,7 +3,7 @@
  * See section D3 of the DMX specification.
  *
  * This example is part of the TeensyDMX library.
- * (c) 2019 Shawn Silverman
+ * (c) 2019-2020 Shawn Silverman
  */
 
 #include <TeensyDMX.h>
@@ -13,8 +13,8 @@ namespace teensydmx = ::qindesign::teensydmx;
 // The LED pin.
 constexpr uint8_t kLEDPin = LED_BUILTIN;
 
-// Pin for enabling or disabling the transmitter. This may not be needed for
-// your hardware.
+// Pin for enabling or disabling the transmitter.
+// This may not be needed for your hardware.
 constexpr uint8_t kTXPin = 17;
 
 // Create the DMX transmitter on Serial3.

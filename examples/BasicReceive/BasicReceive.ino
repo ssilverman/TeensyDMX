@@ -1,8 +1,9 @@
 /*
- * A basic toy receive example, demonstrating single- and multi-byte reads.
+ * A basic toy receive example, demonstrating single- and
+ * multi-byte reads.
  *
  * This example is part of the TeensyDMX library.
- * (c) 2019 Shawn Silverman
+ * (c) 2019-2020 Shawn Silverman
  */
 
 #include <cstring>
@@ -43,8 +44,8 @@ void setup() {
   lastValue = dmxRx.get(1);
   Serial.printf("Channel 1: %d\n", lastValue);
 
-  // Note: If this reads < 3 bytes then the other values will stay at zero
-  // (because 'rgb' was initialized to zero, above)
+  // Note: If this reads < 3 bytes then the other values will stay at
+  // zero (because 'rgb' was initialized to zero, above)
   dmxRx.readPacket(rgb, 10, 3);
   Serial.printf("RGB: %d %d %d\n", rgb[0], rgb[1], rgb[2]);
 }
@@ -61,8 +62,9 @@ void loop() {
   }
 
   // Example 2. Read channels 10-12.
-  // A return of -1 means no data, and a value < 3 means that there was data,
-  // but the received packet wasn't large enough to contain channels 10-12
+  // A return of -1 means no data, and a value < 3 means that there
+  // was data, but the received packet wasn't large enough to contain
+  // channels 10-12
   int read = dmxRx.readPacket(packetBuf, 10, 3);
   if (read == 3) {
     if (memcmp(packetBuf, rgb, 3) != 0) {

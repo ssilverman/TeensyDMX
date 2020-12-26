@@ -2,15 +2,15 @@
  * A basic toy send example.
  *
  * This example is part of the TeensyDMX library.
- * (c) 2019 Shawn Silverman
+ * (c) 2019-2020 Shawn Silverman
  */
 
 #include <TeensyDMX.h>
 
 namespace teensydmx = ::qindesign::teensydmx;
 
-// Pin for enabling or disabling the transmitter. This may not be needed for
-// your hardware.
+// Pin for enabling or disabling the transmitter.
+// This may not be needed for your hardware.
 constexpr uint8_t kTXPin = 17;
 
 // Create the DMX sender on Serial1.
@@ -28,9 +28,9 @@ void setup() {
   pinMode(kTXPin, OUTPUT);
   digitalWriteFast(kTXPin, HIGH);
 
-  // Set some channel values. These are being set in setup() to illustrate that
-  // values are 'sticky'. They stay set until changed. There's no special
-  // function to call for each iteration of loop().
+  // Set some channel values. These are being set in setup() to
+  // illustrate that values are 'sticky'. They stay set until changed.
+  // There's no special function to call for each iteration of loop().
 
   // Set channel 1 to 128
   dmxTx.set(1, 128);

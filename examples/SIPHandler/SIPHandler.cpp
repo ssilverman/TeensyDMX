@@ -1,5 +1,5 @@
 // This file is part of the SIPHandler example in the TeensyDMX library.
-// (c) 2018-2019 Shawn Silverman
+// (c) 2018-2020 Shawn Silverman
 
 #include "SIPHandler.h"
 
@@ -35,7 +35,7 @@ void SIPHandler::receivePacket(const uint8_t *buf, int len) {
   if (buf[0] == startCode()) {  // Process a SIP
     if (!checkSIP(buf, len)) {
       // Discard this packet and any held packet
-      // TODO: Is it the right choice to discard the held packet?
+      // TODO: Is it the right choice, to discard the held packet?
       state_ = States::kImmediate;
       held_ = false;
 
@@ -106,7 +106,8 @@ void SIPHandler::receivePacket(const uint8_t *buf, int len) {
     switch(state_) {
       case States::kImmediate:
         break;
-      case States::kHoldNext:  // Hold this regular packet until the next SIP
+      case States::kHoldNext:  // Hold this regular packet until the
+                               // next SIP
         held_ = true;
         state_ = States::kSIPCheck;
         return;
@@ -116,8 +117,8 @@ void SIPHandler::receivePacket(const uint8_t *buf, int len) {
         break;
     }
   } else {  // Another alternate start code
-    // Go back to the immediate state if another packet has come between
-    // a held regular packet and the next SIP.
+    // Go back to the immediate state if another packet has come
+    // between a held regular packet and the next SIP.
     // Note that this logic will never get called if this responder
     // is not registered for other start codes.
     switch (state_) {
@@ -125,13 +126,14 @@ void SIPHandler::receivePacket(const uint8_t *buf, int len) {
         break;
       case States::kHoldNext:
         // We only need to hold regular packets
-        // Keeping the state intact here means that the next regular packet
-        // will be held, even though it doesn't come immediately after the
-        // SIP that requested the packet to be held
+        // Keeping the state intact here means that the next regular
+        // packet will be held, even though it doesn't come
+        // immediately after the SIP that requested the packet to
+        // be held
         break;
       case States::kSIPCheck:
-        // We've held onto the previous packet, so the next packet needs to be
-        // a SIP or regular packet
+        // We've held onto the previous packet, so the next packet
+        // needs to be a SIP or regular packet
         held_ = false;
         state_ = States::kImmediate;
         break;

@@ -1,5 +1,5 @@
 // This file is part of the SIPHandler example in the TeensyDMX library.
-// (c) 2018-2019 Shawn Silverman
+// (c) 2018-2020 Shawn Silverman
 
 #ifndef SIPHANDLER_H_
 #define SIPHANDLER_H_
@@ -30,8 +30,8 @@ struct SIPData {
 // other packets. Retrieve packet information here instead of from the
 // Receiver instance.
 //
-// If requested, regular (NULL start code) packets are held until the next
-// SIP is received and the checksum validated.
+// If requested, regular (NULL start code) packets are held until the
+// next SIP is received and the checksum validated.
 class SIPHandler final : public teensydmx::Responder {
  public:
   static constexpr uint8_t startCode() { return 0xcf; }
@@ -56,15 +56,16 @@ class SIPHandler final : public teensydmx::Responder {
   // is discarded.
   int readPacket(uint8_t *buf, int startChannel, int len);
 
-  // Gets the latest SIP data. This returns false if there is no SIP data
-  // or if the parameter 'sipData' is nullptr. Otherwise, this returns true.
+  // Gets the latest SIP data. This returns false if there is no SIP
+  // data or if the parameter 'sipData' is nullptr. Otherwise, this
+  // returns true.
   bool getSIPData(SIPData *sipData) {
     if (!sipDataValid_ || sipData == nullptr) {
       return false;
     }
 
-    // Ideally, we should define an `operator=` that takes a volatile parameter
-    // instead of using `const_cast`
+    // Ideally, we should define an `operator=` that takes a volatile
+    // parameter instead of using `const_cast`
     *sipData = *const_cast<SIPData *>(&sipData_);
     return true;
   }
@@ -91,7 +92,8 @@ class SIPHandler final : public teensydmx::Responder {
 
   // SIP data
   volatile SIPData sipData_;
-  volatile bool sipDataValid_;  // Indicates that at least one SIP was received
+  volatile bool sipDataValid_;  // Indicates that at least one SIP
+                                // was received
 };
 
 #endif  // SIPHANDLER_H_

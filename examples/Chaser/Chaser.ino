@@ -1,24 +1,25 @@
 /*
- * Demonstrates outputting DMX by chasing values across all the channels.
+ * Demonstrates outputting DMX by chasing values across
+ * all the channels.
  *
  * This example is part of the TeensyDMX library.
- * (c) 2017-2019 Shawn Silverman
+ * (c) 2017-2020 Shawn Silverman
  */
 
 #include <TeensyDMX.h>
 
 namespace teensydmx = ::qindesign::teensydmx;
 
-// Interval between channel value changes. A value of 50ms was chosen
-// so that all we cycle through all 512 channels every
+// Interval between channel value changes. A value of 50ms was
+// chosen so that all we cycle through all 512 channels every
 // 512 * 0.05s = 25.6 seconds.
 constexpr unsigned long kChaseInterval = 50;  // 50ms
 
 // The LED pin.
 constexpr uint8_t kLEDPin = LED_BUILTIN;
 
-// Pin for enabling or disabling the transmitter. This may not be needed for
-// your hardware.
+// Pin for enabling or disabling the transmitter.
+// This may not be needed for your hardware.
 constexpr uint8_t kTXPin = 17;
 
 // Create the DMX transmitter on Serial1.
@@ -59,8 +60,8 @@ void loop() {
   }
   sinceLastChase = 0;
 
-  // Set the current channel to zero, advance it, and then set the new channel
-  // to 255
+  // Set the current channel to zero, advance it, and then set
+  // the new channel to 255
   dmxTx.set(channel, 0);
   channel++;
   if (channel > 512) {

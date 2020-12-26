@@ -38,8 +38,9 @@ enum class DMXStates {
 };
 
 // Labels for different message types.
-enum class Labels : uint8_t {  // Fixed type to avoid undefined behaviour when
-                               // casting to Labels from a uint8_t
+enum class Labels : uint8_t {  // Fixed type to avoid undefined
+                               // behaviour when casting to Labels
+                               // from a uint8_t
   kGetParams          = 3,
   kSetParams          = 4,
   kReceivedDMX        = 5,
@@ -53,7 +54,8 @@ enum class Labels : uint8_t {  // Fixed type to avoid undefined behaviour when
   kDeviceName         = 78,
 };
 
-// Error types passed to the handleError function, for received messages.
+// Error types passed to the handleError function,
+// for received messages.
 enum class Errors {
   kBadLength,
   kBadValue,
@@ -63,7 +65,7 @@ enum class Errors {
 struct Message {
   Labels label;
   uint16_t dataLen;  // The declared data length
-  uint16_t dataEnd;  // The actual end of the data, may be less than dataLen
+  uint16_t dataEnd;  // The actual end of the data, may be < dataLen
   uint8_t data[600];
 };
 
@@ -133,10 +135,12 @@ elapsedMillis lastReadTimer{0};
 // Received message.
 Message recvMsg;
 
-// Buffer for receiving DMX data. This will be processed in the main loop.
+// Buffer for receiving DMX data. This will be processed in
+// the main loop.
 //
-// These are marked volatile because they're accessed asynchronously from an
-// interrupt and we don't want the compiler to optimize anything improperly.
+// These are marked volatile because they're accessed asynchronously
+// from an interrupt and we don't want the compiler to optimize
+// anything improperly.
 volatile int recvDMXLen = 0;
 volatile uint8_t recvDMXBuf[513]{0};
 
@@ -180,7 +184,8 @@ void setup() {
 
 // Main program loop.
 void loop() {
-  // Handle any received DMX data in addition to processing the serial stream
+  // Handle any received DMX data in addition to processing
+  // the serial stream
   processReceivedData();
   processStreamIn();
 
@@ -241,7 +246,8 @@ void startTx() {
 //  Input processing functions
 // ---------------------------------------------------------------------------
 
-// Processes any asynchronously received DMX data and sends it to the host.
+// Processes any asynchronously received DMX data and sends it to
+// the host.
 void processReceivedData() {
   int len = 0;
 
@@ -284,7 +290,8 @@ void processReceivedData() {
     return;
   }
 
-  // If the length doesn't match, assume any additional bytes are reset
+  // If the length doesn't match, assume any additional bytes
+  // are reset
   if (len > lastDMXLen) {
     std::fill_n(&lastDMXBuf[lastDMXLen], len - lastDMXLen, 0);
   }
@@ -441,7 +448,8 @@ void handleMessage(const Message &msg) {
 
       float refreshRate = dmxTx.refreshRate();
       if (refreshRate > 40.0f) {
-        refreshRate = 0.0f;  // Why doesn't the spec allow zero? Send it anyway
+        refreshRate = 0.0f;  // Why doesn't the spec allow zero?
+                             // Send it anyway
       } else if (refreshRate < 1.0f) {
         refreshRate = 1.0f;
       }
@@ -496,7 +504,8 @@ void handleMessage(const Message &msg) {
       }
 
       int len = msg.dataEnd;
-      // Make changing the packet size atomic with setting the new data
+      // Make changing the packet size atomic with setting
+      // the new data
       if (len != dmxTx.packetSize()) {
         dmxTx.pause();
         while (dmxTx.isTransmitting()) {

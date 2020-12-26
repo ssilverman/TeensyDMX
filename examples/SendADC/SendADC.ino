@@ -9,8 +9,8 @@
 
 namespace teensydmx = ::qindesign::teensydmx;
 
-// Pin for enabling or disabling the transmitter. This may not be needed for
-// your hardware.
+// Pin for enabling or disabling the transmitter.
+// This may not be needed for your hardware.
 constexpr uint8_t kTXPin = 17;
 
 // Analog input pin.
@@ -49,10 +49,12 @@ void loop() {
   // The analog read takes approximately 10-15us
   readAnalog();
 
-  // Delay because we only need to sample as quickly as the DMX refresh rate.
-  // The rate depends on the packet size, and whatever's set as the refresh
-  // rate in the API. We want to delay something not greater than the period.
-  delay(22);  // Approximately the duration of a full packet at maximum rate
+  // Delay because we only need to sample as quickly as the DMX
+  // refresh rate. The rate depends on the packet size and whatever's
+  // set as the refresh rate in the API. We want to delay something
+  // not greater than the period.
+  delay(22);  // Approximately the duration of a full packet
+              // at maximum rate
 }
 
 // Performs an analog read and sets the DMX channel with the value.
