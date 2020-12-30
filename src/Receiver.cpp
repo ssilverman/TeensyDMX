@@ -534,6 +534,7 @@ void Receiver::completePacket(RecvStates newState) {
   packetStats_.size = packetSize_ = activeBufIndex_;
   packetStats_.extraSize = 0;
   packetStats_.timestamp = t;
+  packetStats_.breakTimestamp = breakStartTime_;
   packetStats_.packetTime = lastSlotEndTime_ - breakStartTime_;
   packetStats_.breakPlusMABTime = packetStats_.nextBreakPlusMABTime;
   packetStats_.breakTime = packetStats_.nextBreakTime;

@@ -8,6 +8,10 @@ and this project adheres to
 
 ## [4.1.1]
 
+### Added
+* Added a BREAK start timestamp to `PacketStats`, `breakTimestamp`. The value is
+  in microseconds.
+
 ### Changed
 * DMX TX and RX are now started with new `startRx` and `startTx` convenience
   functions in the `USBProWidget` example.

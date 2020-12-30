@@ -324,21 +324,22 @@ Packet statistics are tracked and the latest can be retrieved from a
 2. `isShort`: Whether the last packet was a _short packet_, a packet having a
    duration less than 1196us. Keeping these packets can be enabled with the
    `setKeepShortPackets` function.
-3. `timestamp`: The timestamp of the last packet received. This is set to the
-   time the packet was recognized as a packet and not the end of the last
-   stop bit.
-4. `breakPlusMABTime`: The sum of the BREAK and MAB times. It's not possible to
-   determine where the BREAK ends and the MAB starts without using another pin
-   to watch the RX line. To set up a connected pin, see `setRXWatchPin` and the
-   section above on _RX line monitoring_.
-5. `breakToBreakTime`: The latest measured BREAK-to-BREAK time. Note that this
-   is not collected at the same time as the other variables and only represents
-   the last known duration. This will be out of sync with the rest of the values
-   in the presence of packet errors.
-6. `packetTime`: The duration of the last packet, measured from BREAK start to
-   the end of the last slot.
-7. `breakTime`: The packet's BREAK time.
-8. `mabTime`: The packet's MAB time.
+3. `timestamp`: The timestamp of the last packet received, in milliseconds. This
+   is set to the time the packet was recognized as a packet and not the end of
+   the last stop bit.
+4. `breakPlusMABTime`: The sum of the BREAK and MAB times, in microseconds. It's
+   not possible to determine where the BREAK ends and the MAB starts without
+   using another pin to watch the RX line. To set up a connected pin, see
+   `setRXWatchPin` and the section above on _RX line monitoring_.
+5. `breakToBreakTime`: The latest measured BREAK-to-BREAK time, in microseconds.
+   Note that this is not collected at the same time as the other variables and
+   only represents the last known duration. This will be out of sync with the
+   rest of the values in the presence of packet errors.
+6. `breakTimestamp`: The BREAK start timestamp, in microseconds.
+7. `packetTime`: The duration of the last packet, in microseconds, measured from
+   BREAK start to the end of the last slot.
+8. `breakTime`: The packet's BREAK time.
+9. `mabTime`: The packet's MAB time.
 
 If the RX line is not being monitored, then the BREAK and MAB times will be set
 to zero.
