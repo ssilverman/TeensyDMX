@@ -539,6 +539,9 @@ bool Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
   //{
     resumeCounter_ = n;
     if (paused_) {
+      // Copy the active buffer into the inactive buffer
+      std::copy_n(&activeBuf_[0], kMaxDMXPacketSize, &inactiveBuf_[0]);
+
       if (began_ && !transmitting_) {
         sendHandler_->setActive();
       }
