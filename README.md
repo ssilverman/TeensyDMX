@@ -335,7 +335,7 @@ Packet statistics are tracked and the latest can be retrieved from a
    Note that this is not collected at the same time as the other variables and
    only represents the last known duration. This will be out of sync with the
    rest of the values in the presence of packet errors.
-6. `breakTimestamp`: The BREAK start timestamp, in microseconds.
+6. `frameTimestamp`: The BREAK start timestamp, in microseconds.
 7. `packetTime`: The duration of the last packet, in microseconds, measured from
    BREAK start to the end of the last slot.
 8. `breakTime`: The packet's BREAK time.

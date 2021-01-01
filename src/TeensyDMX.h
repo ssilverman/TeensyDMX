@@ -153,7 +153,7 @@ class Receiver final : public TeensyDMX {
           timestamp(0),
           breakPlusMABTime(0),
           breakToBreakTime(0),
-          breakTimestamp(0),
+          frameTimestamp(0),
           packetTime(0),
           breakTime(0),
           mabTime(0),
@@ -176,7 +176,7 @@ class Receiver final : public TeensyDMX {
     uint32_t timestamp;         // Timestamp at packet completion, in ms
     uint32_t breakPlusMABTime;  // Sum of BREAK and MAB times, in microseconds
     uint32_t breakToBreakTime;  // Time between BREAKs, in microseconds
-    uint32_t breakTimestamp;    // BREAK timestamp, in microseconds
+    uint32_t frameTimestamp;    // BREAK timestamp, in microseconds
     uint32_t packetTime;        // Packet time, from BREAK start to slot end,
                                 // in microseconds
 
@@ -192,7 +192,7 @@ class Receiver final : public TeensyDMX {
           timestamp(other.timestamp),
           breakPlusMABTime(other.breakPlusMABTime),
           breakToBreakTime(other.breakToBreakTime),
-          breakTimestamp(other.breakTimestamp),
+          frameTimestamp(other.frameTimestamp),
           packetTime(other.packetTime),
           breakTime(other.breakTime),
           mabTime(other.mabTime),
@@ -210,7 +210,7 @@ class Receiver final : public TeensyDMX {
       timestamp = other.timestamp;
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
-      breakTimestamp = other.breakTimestamp;
+      frameTimestamp = other.frameTimestamp;
       packetTime = other.packetTime;
       breakTime = other.breakTime;
       mabTime = other.mabTime;
@@ -227,7 +227,7 @@ class Receiver final : public TeensyDMX {
       timestamp = other.timestamp;
       breakPlusMABTime = other.breakPlusMABTime;
       breakToBreakTime = other.breakToBreakTime;
-      breakTimestamp = other.breakTimestamp;
+      frameTimestamp = other.frameTimestamp;
       packetTime = other.packetTime;
       breakTime = other.breakTime;
       mabTime = other.mabTime;

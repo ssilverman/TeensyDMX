@@ -9,7 +9,7 @@ and this project adheres to
 ## [4.1.1]
 
 ### Added
-* Added a BREAK start timestamp to `PacketStats`, `breakTimestamp`. The value is
+* Added a BREAK start timestamp to `PacketStats`, `frameTimestamp`. The value is
   in microseconds.
 
 ### Changed
