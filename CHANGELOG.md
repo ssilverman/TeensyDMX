@@ -11,6 +11,9 @@ and this project adheres to
 ### Added
 * Added a BREAK start timestamp to `PacketStats`, `frameTimestamp`. The value is
   in microseconds.
+* Added `Receiver::rxWatchPin()` for retrieving the RX watch pin number.
+* Added a note to the docs for `Receiver::setRXWatchPin` reminding the caller to
+  configure the pin for input.
 
 ### Changed
 * DMX TX and RX are now started with new `startRx` and `startTx` convenience

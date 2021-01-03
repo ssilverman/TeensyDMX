@@ -470,7 +470,14 @@ class Receiver final : public TeensyDMX {
 
   // Sets the pin that monitors the RX line to determine BREAK and MAB timing.
   // Set to a negative value to unset. The default is unset.
+  //
+  // Don't forget to configure the pin as an input.
   void setRXWatchPin(int pin);
+
+  // Returns the RX monitoring pin. This will return a negative value if unset.
+  int rxWatchPin() const {
+    return rxWatchPin_;
+  }
 
   // Returns whether this is considered to be connected to a DMX transmitter. A
   // connection is considered to have been broken if a timeout was detected or a

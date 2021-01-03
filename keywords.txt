@@ -30,6 +30,7 @@ lastPacketTimestamp	KEYWORD2
 setResponder	KEYWORD2
 setSetTXNotRXFunc	KEYWORD2
 setRXWatchPin	KEYWORD2
+rxWatchPin	KEYWORD2
 connected	KEYWORD2
 onConnectChange	KEYWORD2
 errorStats	KEYWORD2
