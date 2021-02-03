@@ -185,59 +185,6 @@ class Receiver final : public TeensyDMX {
     uint32_t mabTime;    // MAB time, in microseconds
 
    private:
-    // Volatile copy constructor.
-    PacketStats(const volatile PacketStats &other)
-        : size(other.size),
-          isShort(other.isShort),
-          timestamp(other.timestamp),
-          breakPlusMABTime(other.breakPlusMABTime),
-          breakToBreakTime(other.breakToBreakTime),
-          frameTimestamp(other.frameTimestamp),
-          packetTime(other.packetTime),
-          breakTime(other.breakTime),
-          mabTime(other.mabTime),
-          extraSize(other.extraSize),
-          nextBreakPlusMABTime(other.nextBreakPlusMABTime),
-          nextBreakTime(other.nextBreakTime),
-          nextMABTime(other.nextMABTime) {}
-
-    // Volatile assignment operator. This returns void to avoid a warning
-    // of non-use.
-    // See: https://stackoverflow.com/questions/13869318/gcc-warning-about-implicit-dereference
-    void operator=(const PacketStats &other) volatile {
-      size = other.size;
-      isShort = other.isShort;
-      timestamp = other.timestamp;
-      breakPlusMABTime = other.breakPlusMABTime;
-      breakToBreakTime = other.breakToBreakTime;
-      frameTimestamp = other.frameTimestamp;
-      packetTime = other.packetTime;
-      breakTime = other.breakTime;
-      mabTime = other.mabTime;
-      extraSize = other.extraSize;
-      nextBreakPlusMABTime = other.nextBreakPlusMABTime;
-      nextBreakTime = other.nextBreakTime;
-      nextMABTime = other.nextMABTime;
-    }
-
-    // Other-way volatile assignment operator.
-    PacketStats &operator=(const volatile PacketStats &other) {
-      size = other.size;
-      isShort = other.isShort;
-      timestamp = other.timestamp;
-      breakPlusMABTime = other.breakPlusMABTime;
-      breakToBreakTime = other.breakToBreakTime;
-      frameTimestamp = other.frameTimestamp;
-      packetTime = other.packetTime;
-      breakTime = other.breakTime;
-      mabTime = other.mabTime;
-      extraSize = other.extraSize;
-      nextBreakPlusMABTime = other.nextBreakPlusMABTime;
-      nextBreakTime = other.nextBreakTime;
-      nextMABTime = other.nextMABTime;
-      return *this;
-    }
-
     // An accumulator for extra bytes beyond the max. packet length.
     // This is private for now because the value may not be in sync
     // by the time a user retrieves the packet info.
@@ -285,26 +232,6 @@ class Receiver final : public TeensyDMX {
     uint32_t framingErrorCount;
     uint32_t shortPacketCount;
     uint32_t longPacketCount;
-
-   private:
-    // Volatile copy constructor.
-    ErrorStats(const volatile ErrorStats &other)
-        : packetTimeoutCount(other.packetTimeoutCount),
-          framingErrorCount(other.framingErrorCount),
-          shortPacketCount(other.shortPacketCount),
-          longPacketCount(other.longPacketCount) {}
-
-    // Volatile assignment operator. This returns void to avoid a warning
-    // of non-use.
-    // See: https://stackoverflow.com/questions/13869318/gcc-warning-about-implicit-dereference
-    void operator=(const ErrorStats &other) volatile {
-      packetTimeoutCount = other.packetTimeoutCount;
-      framingErrorCount = other.framingErrorCount;
-      shortPacketCount = other.shortPacketCount;
-      longPacketCount = other.longPacketCount;
-    }
-
-    friend class Receiver;
   };
 
   // Creates a new receiver and uses the given UART for communication.
@@ -409,10 +336,7 @@ class Receiver final : public TeensyDMX {
   // Note that the values returned here may not apply to the data read from the
   // most recent or next packet received. Use `readPacket` to retrieve
   // them atomically.
-  PacketStats packetStats() const {
-    Lock lock{*this};
-    return packetStats_;
-  }
+  PacketStats packetStats() const;
 
   // Returns the timestamp of the last received packet. Under the covers,
   // `millis()` is noted when a packet is recognized as a packet and not at the
@@ -434,9 +358,7 @@ class Receiver final : public TeensyDMX {
   // data received would give a value that's later than the true value.
   //
   // This returns the same value as `packetStats().timestamp`.
-  uint32_t lastPacketTimestamp() const {
-    return packetStats_.timestamp;
-  }
+  uint32_t lastPacketTimestamp() const;
 
   // Sets the responder for the supplied start code. This holds on to the
   // pointer, so callers should take care to not free the object before this
@@ -500,10 +422,7 @@ class Receiver final : public TeensyDMX {
   // started or restarted.
   //
   // Please refer to the `ErrorStats` docs for more information.
-  ErrorStats errorStats() const {
-    Lock lock{*this};
-    return errorStats_;
-  }
+  ErrorStats errorStats() const;
 
  private:
   // State that tracks where we are in the receive process.
@@ -627,7 +546,7 @@ class Receiver final : public TeensyDMX {
 
   // Holds statistics about the last packet. This replaces `lastPacketSize_` and
   // `packetTimestamp_`, and adds other information.
-  volatile PacketStats packetStats_;
+  PacketStats packetStats_;
 
   // Current and last BREAK start times, in microseconds. The last start time is
   // zero if we can consider that there's been no prior packet, and the current
@@ -648,7 +567,7 @@ class Receiver final : public TeensyDMX {
   void (*volatile connectChangeFunc_)(Receiver *r);
 
   // Error stats.
-  volatile ErrorStats errorStats_;
+  ErrorStats errorStats_;
 
   // Responders state
   std::unique_ptr<std::shared_ptr<Responder>[]> responders_;

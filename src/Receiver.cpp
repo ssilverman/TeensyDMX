@@ -5,6 +5,7 @@
 
 // C++ includes
 #include <algorithm>
+#include <atomic>
 #include <utility>
 
 #include "Responder.h"
@@ -138,13 +139,11 @@ Receiver::Receiver(HardwareSerial &uart)
       inactiveBuf_(buf2_),
       activeBufIndex_(0),
       packetSize_(0),
-      packetStats_{},
       lastBreakStartTime_(0),
       breakStartTime_(0),
       lastSlotEndTime_(0),
       connected_(false),
       connectChangeFunc_{nullptr},
-      errorStats_{},
       responderCount_(0),
       responderOutBufLen_(0),
       setTXNotRXFunc_(nullptr),
@@ -370,6 +369,7 @@ int Receiver::readPacket(uint8_t *buf, int startChannel, int len,
       packetSize_ = 0;
     }
     if (stats != nullptr) {
+      std::atomic_signal_fence(std::memory_order_acquire);
       *stats = packetStats_;
     }
   //}
@@ -388,6 +388,7 @@ uint8_t Receiver::get(int channel, bool *rangeError) const {
   Lock lock{*this};
   //{
     // Since channel >= 0, lastPacketSize_ > channel implies lastPacketSize_ > 0
+    std::atomic_signal_fence(std::memory_order_acquire);
     if (channel < packetStats_.size) {
       if (rangeError != nullptr) {
         *rangeError = false;
@@ -411,6 +412,7 @@ uint16_t Receiver::get16Bit(int channel, bool *rangeError) const {
   //{
     // Since channel >= 0, lastPacketSize_ - 1 > channel
     // implies lastPacketSize_ - 1 > 0
+    std::atomic_signal_fence(std::memory_order_acquire);
     if (channel < packetStats_.size - 1) {
       if (rangeError != nullptr) {
         *rangeError = false;
@@ -420,6 +422,24 @@ uint16_t Receiver::get16Bit(int channel, bool *rangeError) const {
     }
   //}
   return v;
+}
+
+Receiver::PacketStats Receiver::packetStats() const {
+  Lock lock{*this};
+  std::atomic_signal_fence(std::memory_order_acquire);
+  return packetStats_;
+}
+
+uint32_t Receiver::lastPacketTimestamp() const {
+  Lock lock{*this};
+  std::atomic_signal_fence(std::memory_order_acquire);
+  return packetStats_.timestamp;
+}
+
+Receiver::ErrorStats Receiver::errorStats() const {
+  Lock lock{*this};
+  std::atomic_signal_fence(std::memory_order_acquire);
+  return errorStats_;
 }
 
 std::shared_ptr<Responder> Receiver::setResponder(
@@ -550,6 +570,7 @@ void Receiver::completePacket(RecvStates newState) {
       }
     }
   }
+  std::atomic_signal_fence(std::memory_order_release);
 
   activeBufIndex_ = 0;
 }
@@ -633,6 +654,7 @@ void Receiver::receivePotentialBreak(uint32_t eventTime) {
 void Receiver::receiveBadBreak() {
   // Not a BREAK
   errorStats_.framingErrorCount++;
+  std::atomic_signal_fence(std::memory_order_release);
 
   // Don't keep the packet
   // See: [BREAK timing at the receiver](http://www.rdmprotocol.org/forums/showthread.php?t=1292)
@@ -761,6 +783,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       } else {
         state_ = RecvStates::kIdle;
       }
+      std::atomic_signal_fence(std::memory_order_release);
       return;
 
     case RecvStates::kIdle:
@@ -776,10 +799,12 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
   lastSlotEndTime_ = eopTime;
   if ((eopTime - breakStartTime_) > kMaxDMXPacketTime) {
     errorStats_.packetTimeoutCount++;
+    std::atomic_signal_fence(std::memory_order_release);
     completePacket(RecvStates::kIdle);
     setConnected(false);
     return;
   }
+  std::atomic_signal_fence(std::memory_order_release);
 
   bool packetFull = false;  // Indicates whether the maximum packet size
                             // has been reached.
