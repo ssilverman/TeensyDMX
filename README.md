@@ -30,10 +30,10 @@ Teensy LC, and Teensy 4. It follows the
    3. [Transmission rate](#transmission-rate)
    4. [Synchronous operation by pausing and resuming](#synchronous-operation-by-pausing-and-resuming)
    5. [Choosing BREAK and MAB times](#choosing-break-and-mab-times)
-      1. [Specific BREAK/MAB times](#specific-break/mab-times)
+      1. [Specific BREAK/MAB times](#specific-breakmab-times)
          1. [A note on BREAK timing](#a-note-on-break-timing)
          2. [A note on MAB timing](#a-note-on-mab-timing)
-      2. [BREAK/MAB times using serial parameters](#break/mab-times-using-serial-parameters)
+      2. [BREAK/MAB times using serial parameters](#breakmab-times-using-serial-parameters)
    6. [Error handling in the API](#error-handling-in-the-api)
 6. [Technical notes](#technical-notes)
    1. [Simultaneous transmit and receive](#simultaneous-transmit-and-receive)
@@ -108,9 +108,9 @@ number. The pin cannot be the same as the RX pin.
 These are either in the works or ideas for subsequent versions:
 
 1. Asynchronous responder data. Currently, the data is sent synchronously inside
-   the UART ISR where responders process the packet. This will be easier to add
-   once all the `#define` code is replaced.
-2. Better MAB timing, perhaps by somehow synchronizing with the baud rate clock.
+   the UART ISR where responders process the packet.
+2. Better MAB transmit timing, perhaps by somehow synchronizing with the baud
+   rate clock.
 
 ## How to use
 
