@@ -30,6 +30,30 @@ namespace std {
   }
 }  // namespace std
 
+#if defined(KINETISK)
+extern "C" {
+extern void unused_isr(void);
+
+static void (*oldISRs[4])(void){unused_isr, unused_isr, unused_isr, unused_isr};
+static uint8_t oldPriorities[4]{128, 128, 128, 128};
+}
+#elif defined(KINETISL)
+extern "C" {
+extern void unused_isr(void);
+
+static void (*oldISR)(void) = unused_isr;
+static uint8_t oldPriority = 128;
+}
+#elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
+// For handling an old interrupt vector
+extern "C" {
+extern void unused_interrupt_vector(void);
+
+static void (*oldISR)(void) = unused_interrupt_vector;
+static uint8_t oldPriority = 128;
+}
+#endif
+
 namespace qindesign {
 namespace teensydmx {
 namespace util {
@@ -37,10 +61,10 @@ namespace util {
 static const std::function<void()> nullFunc = []() {};
 
 #if defined(KINETISK)
-void pit0_isr();
-void pit1_isr();
-void pit2_isr();
-void pit3_isr();
+static void my_pit0_isr();
+static void my_pit1_isr();
+static void my_pit2_isr();
+static void my_pit3_isr();
 static constexpr int kNumChannels = 4;
 static std::function<void()> funcs[kNumChannels]{
     nullFunc,
@@ -49,7 +73,7 @@ static std::function<void()> funcs[kNumChannels]{
     nullFunc,
 };
 #elif defined(KINETISL)
-void pit_isr();
+static void my_pit_isr();
 static constexpr int kNumChannels = 2;
 static uint32_t runningFlags = 0;
 static std::function<void()> funcs[kNumChannels]{
@@ -220,31 +244,37 @@ bool PeriodicTimer::beginCycles(std::function<void()> func, uint32_t cycles,
     startFunc();
   }
 #if defined(KINETISK)
+  oldISRs[index] = _VectorsRam[IRQ_PIT_CH0 + index + 16];
+  oldPriorities[index] = NVIC_GET_PRIORITY(IRQ_PIT_CH0 + index);
   switch (index) {
     case 0:
-      attachInterruptVector(IRQ_PIT_CH0, &pit0_isr);
+      attachInterruptVector(IRQ_PIT_CH0, &my_pit0_isr);
       break;
     case 1:
-      attachInterruptVector(IRQ_PIT_CH1, &pit1_isr);
+      attachInterruptVector(IRQ_PIT_CH1, &my_pit1_isr);
       break;
     case 2:
-      attachInterruptVector(IRQ_PIT_CH2, &pit2_isr);
+      attachInterruptVector(IRQ_PIT_CH2, &my_pit2_isr);
       break;
     case 3:
-      attachInterruptVector(IRQ_PIT_CH3, &pit3_isr);
+      attachInterruptVector(IRQ_PIT_CH3, &my_pit3_isr);
       break;
   }
   NVIC_SET_PRIORITY(IRQ_PIT_CH0 + index, priority_);
   NVIC_ENABLE_IRQ(IRQ_PIT_CH0 + index);
 #elif defined(KINETISL)
   priorities[index] = priority_;
-  attachInterruptVector(IRQ_PIT, &pit_isr);
+  oldISR = _VectorsRam[IRQ_PIT + 16];
+  oldPriority = NVIC_GET_PRIORITY(IRQ_PIT);
+  attachInterruptVector(IRQ_PIT, &my_pit_isr);
   NVIC_SET_PRIORITY(IRQ_PIT,
                     *std::min_element(&priorities[0],
                                       &priorities[kNumChannels]));
   NVIC_ENABLE_IRQ(IRQ_PIT);
 #elif defined(__IMXRT1062__) || (__IMXRT1052__)
   priorities[index] = priority_;
+  oldISR = _VectorsRam[IRQ_PIT + 16];
+  oldPriority = NVIC_GET_PRIORITY(IRQ_PIT);
   attachInterruptVector(IRQ_PIT, &pit_isr);
   NVIC_SET_PRIORITY(IRQ_PIT,
                     *std::min_element(&priorities[0],
@@ -265,14 +295,23 @@ void PeriodicTimer::end() {
 #if defined(KINETISK)
   int index = channel_ - KINETISK_PIT_CHANNELS;
   funcs[index] = nullFunc;
-  NVIC_DISABLE_IRQ(IRQ_PIT_CH0 + index);
+  if (oldISRs[index] == unused_isr) {
+    NVIC_DISABLE_IRQ(IRQ_PIT_CH0 + index);
+  }
+  attachInterruptVector(static_cast<IRQ_NUMBER_t>(IRQ_PIT_CH0 + index),
+                        oldISRs[index]);
+  NVIC_SET_PRIORITY(IRQ_PIT_CH0 + index, oldPriorities[index]);
 #elif defined(KINETISL)
   int index = channel_ - KINETISK_PIT_CHANNELS;
   funcs[index] = nullFunc;
   priorities[index] = 255;
   runningFlags &= ~(uint32_t{1} << index);
   if (runningFlags == 0) {
-    NVIC_DISABLE_IRQ(IRQ_PIT);
+    if (oldISR == unused_isr) {
+      NVIC_DISABLE_IRQ(IRQ_PIT);
+    }
+    attachInterruptVector(IRQ_PIT, oldISR);
+    NVIC_SET_PRIORITY(IRQ_PIT, oldPriority);
   } else {
     NVIC_SET_PRIORITY(IRQ_PIT,
                       *std::min_element(&priorities[0],
@@ -284,7 +323,11 @@ void PeriodicTimer::end() {
   priorities[index] = 255;
   runningFlags &= ~(uint32_t{1} << index);
   if (runningFlags == 0) {
-    NVIC_DISABLE_IRQ(IRQ_PIT);
+    if (oldISR == unused_interrupt_vector) {
+      NVIC_DISABLE_IRQ(IRQ_PIT);
+    }
+    attachInterruptVector(IRQ_PIT, oldISR);
+    NVIC_SET_PRIORITY(IRQ_PIT, oldPriority);
   } else {
     NVIC_SET_PRIORITY(IRQ_PIT,
                       *std::min_element(&priorities[0],
@@ -325,54 +368,76 @@ void PeriodicTimer::setPriority(uint8_t n) {
 // ---------------------------------------------------------------------------
 
 #if defined(KINETISK)
-void pit0_isr() {
-  PIT_TFLG0 = 1;
+static void my_pit0_isr() {
   funcs[0]();
+  if (oldISRs[0] != unused_isr) {
+    oldISRs[0]();
+  }
+  PIT_TFLG0 = 1;
 }
 
-void pit1_isr() {
-  PIT_TFLG1 = 1;
+static void my_pit1_isr() {
   funcs[1]();
+  if (oldISRs[1] != unused_isr) {
+    oldISRs[1]();
+  }
+  PIT_TFLG1 = 1;
 }
 
-void pit2_isr() {
-  PIT_TFLG2 = 1;
+static void my_pit2_isr() {
   funcs[2]();
+  if (oldISRs[2] != unused_isr) {
+    oldISRs[2]();
+  }
+  PIT_TFLG2 = 1;
 }
 
-void pit3_isr() {
-  PIT_TFLG3 = 1;
+static void my_pit3_isr() {
   funcs[3]();
+  if (oldISRs[3] != unused_isr) {
+    oldISRs[3]();
+  }
+  PIT_TFLG3 = 1;
 }
 #elif defined(KINETISL)
-void pit_isr() {
+static void my_pit_isr() {
   if (PIT_TFLG0 != 0) {
-    PIT_TFLG0 = 1;
     funcs[0]();
   }
   if (PIT_TFLG1 != 0) {
-    PIT_TFLG1 = 1;
     funcs[1]();
   }
+  if (oldISR != unused_isr) {
+    oldISR();
+  }
+
+  // Clear the interrupts after calling any old ISR
+  PIT_TFLG0 = 1;
+  PIT_TFLG1 = 1;
 }
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
-void pit_isr() {
+static void pit_isr() {
   if (PIT_TFLG0 != 0) {
-    PIT_TFLG0 = 1;
     funcs[0]();
   }
   if (PIT_TFLG1 != 0) {
-    PIT_TFLG1 = 1;
     funcs[1]();
   }
   if (PIT_TFLG2 != 0) {
-    PIT_TFLG2 = 1;
     funcs[2]();
   }
   if (PIT_TFLG3 != 0) {
-    PIT_TFLG3 = 1;
     funcs[3]();
   }
+  if (oldISR != unused_interrupt_vector) {
+    oldISR();
+  }
+
+  // Clear the interrupts after calling any old ISR
+  PIT_TFLG0 = 1;
+  PIT_TFLG1 = 1;
+  PIT_TFLG2 = 1;
+  PIT_TFLG3 = 1;
 }
 #endif  // Processor check
 
