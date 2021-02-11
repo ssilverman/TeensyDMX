@@ -35,7 +35,7 @@
 #include "SendHandler.h"
 #include "UARTReceiveHandler.h"
 #include "UARTSendHandler.h"
-#include "util/IntervalTimerEx.h"
+#include "util/PeriodicTimer.h"
 
 namespace qindesign {
 namespace teensydmx {
@@ -589,7 +589,7 @@ class Receiver final : public TeensyDMX {
   uint32_t mabStartTime_;       // When we've seen the pin rise
 
   // Timer for tracking IDLE timeouts and for timing sending a responder BREAK.
-  util::IntervalTimerEx intervalTimer_;
+  util::PeriodicTimer intervalTimer_;
 
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__) || defined(__MK66FX1M0__)
   friend class LPUARTReceiveHandler;
@@ -707,23 +707,20 @@ class Sender final : public TeensyDMX {
   // internal problem, for example a timer is unavailable, then the BREAK/MAB
   // serial parameters will be used instead.
   //
-  // The BREAK time will be pretty accurate, but, due to the inaccuracy of the
-  // default IntervalTimer API, it won't be exact. (It doesn't allow precisely
-  // starting an action, in this case starting the BREAK.)
+  // The BREAK time will be pretty accurate, but slightly shorter and longer
+  // times have been observed.
   //
   // Note that the specification states that the BREAK time must be at
   // least 92us. See `kMinTXBreakTime`.
   //
   // The default duration is 180us.
-  void setBreakTime(uint32_t t);
+  void setBreakTime(uint32_t t) {
+    breakTime_ = t;
+  }
 
   // Returns this sender's BREAK time, in microseconds. The value returned is
   // dependent on whether a timer or serial parameters are being used to
   // generate the timing.
-  //
-  // If a timer is being used then the actual time may be slightly different,
-  // due to the inaccuracy of the default IntervalTimer API. (It doesn't allow
-  // precisely starting an action, in this case starting the BREAK.)
   //
   // If serial parameters are being used then the actual time will likely match
   // closely with the return value.
@@ -1058,11 +1055,10 @@ class Sender final : public TeensyDMX {
   int inactiveBufIndex_;
 
   // BREAK and MAB times
-  uint32_t breakTime_;
+  volatile uint32_t breakTime_;
   uint32_t mabTime_;
 
   // Adjusted for the real world
-  volatile uint32_t adjustedBreakTime_;
   volatile uint32_t adjustedMABTime_;
 
   // BREAK serial parameters
@@ -1076,7 +1072,7 @@ class Sender final : public TeensyDMX {
 
   // The packet refresh rate, in Hz.
   float refreshRate_;
-  util::IntervalTimerEx intervalTimer_;  // General purpose timer
+  util::PeriodicTimer intervalTimer_;  // General purpose timer
 
   // The BREAK-to-BREAK timing, matching the refresh rate.
   // This is specified in microseconds.
