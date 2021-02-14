@@ -50,7 +50,7 @@ class ReceiveHandler {
       : serialIndex_(serialIndex),
         receiver_(receiver) {}
 
-  int serialIndex_;
+  const int serialIndex_;
   Receiver *receiver_;
 };
 

@@ -52,7 +52,7 @@ class SendHandler {
         sender_(sender),
         breakSerialParamsChanged_(true) {}
 
-  int serialIndex_;
+  const int serialIndex_;
   Sender *sender_;
 
   bool breakSerialParamsChanged_;
