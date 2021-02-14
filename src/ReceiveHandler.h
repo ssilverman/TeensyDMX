@@ -15,10 +15,6 @@ class Receiver;
 // Defines this interface.
 class ReceiveHandler {
  public:
-  ReceiveHandler(int serialIndex, Receiver *receiver)
-      : serialIndex_(serialIndex),
-        receiver_(receiver) {}
-
   virtual ~ReceiveHandler() = default;
 
   // Starts the UART. This calls `begin` with the slots baud rate and format,
@@ -50,6 +46,10 @@ class ReceiveHandler {
   virtual void txBreak(uint32_t breakTime, uint32_t mabTime) const = 0;
 
  protected:
+  ReceiveHandler(int serialIndex, Receiver *receiver)
+      : serialIndex_(serialIndex),
+        receiver_(receiver) {}
+
   int serialIndex_;
   Receiver *receiver_;
 };

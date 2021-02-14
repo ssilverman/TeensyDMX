@@ -15,11 +15,6 @@ class Sender;
 // Defines this interface.
 class SendHandler {
  public:
-  SendHandler(int serialIndex, Sender *sender)
-      : serialIndex_(serialIndex),
-        sender_(sender),
-        breakSerialParamsChanged_(true) {}
-
   virtual ~SendHandler() = default;
 
   // Indicates that the BREAK/MAB serial parameters have changed.
@@ -52,6 +47,11 @@ class SendHandler {
   virtual void irqHandler() = 0;
 
  protected:
+  SendHandler(int serialIndex, Sender *sender)
+      : serialIndex_(serialIndex),
+        sender_(sender),
+        breakSerialParamsChanged_(true) {}
+
   int serialIndex_;
   Sender *sender_;
 

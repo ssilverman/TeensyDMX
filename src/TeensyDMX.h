@@ -65,16 +65,6 @@ class TeensyDMX {
   TeensyDMX(const TeensyDMX &) = delete;
   TeensyDMX &operator=(const TeensyDMX &) = delete;
 
-  virtual ~TeensyDMX() = default;
-
-  // Sets up the system for receiving or transmitting DMX on the specified
-  // serial port.
-  virtual void begin() = 0;
-
-  // Tells the system to stop receiving or transmitting DMX. Call this to
-  // clean up.
-  virtual void end() = 0;
-
   // Returns the total number of packets received or transmitted since the
   // instance was started. This is reset when begin() is called.
   uint32_t packetCount() const {
@@ -85,6 +75,8 @@ class TeensyDMX {
   // Creates a new DMX receiver or transmitter using the given hardware UART.
   // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-explicit
   explicit TeensyDMX(HardwareSerial &uart);
+
+  ~TeensyDMX() = default;
 
   // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-zero
   // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-dtor-virtual
@@ -104,6 +96,14 @@ class TeensyDMX {
   const int serialIndex_;
 
  private:
+  // Sets up the system for receiving or transmitting DMX on the specified
+  // serial port.
+  virtual void begin() = 0;
+
+  // Tells the system to stop receiving or transmitting DMX. Call this to
+  // clean up.
+  virtual void end() = 0;
+
   // The number of packets sent or received. Subclasses must manage this via
   // incPacketCount() and resetPacketCount().
   // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rh-protected
@@ -238,7 +238,7 @@ class Receiver final : public TeensyDMX {
   explicit Receiver(HardwareSerial &uart);
 
   // Destructs Receiver. This calls `end()`.
-  ~Receiver() override;
+  ~Receiver();
 
   // Sets whether to enable or disable the TX driver for the serial port. This
   // can be set anytime. If the receiver is currently in operation, enabling
@@ -692,7 +692,7 @@ class Sender final : public TeensyDMX {
   explicit Sender(HardwareSerial &uart);
 
   // Destructs Sender. This calls `end()`.
-  ~Sender() override;
+  ~Sender();
 
   // Starts up the serial port. This resets all the stats.
   void begin() override;

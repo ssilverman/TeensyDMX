@@ -19,9 +19,6 @@ class Receiver;
 // respond to or process packets having a specific start code.
 class Responder {
  public:
-  Responder() = default;
-  virtual ~Responder() = default;
-
   // Gets the largest possible size that the output buffer can be when any
   // packet processing fills it in. If this is zero then the responder does not
   // respond with any data. This returns zero by default.
@@ -77,7 +74,6 @@ class Responder {
     return true;
   }
 
- protected:
   // Processes single bytes as they are received. This returns a positive value
   // indicating the output buffer size if a response should be sent. It may be
   // assumed that `len` will start at zero and increment monotonically by one
@@ -121,7 +117,9 @@ class Responder {
   // @param len the packet length, greater than zero, includes the start code
   virtual void receivePacket(const uint8_t *buf, int len) {}
 
-  friend Receiver;
+ protected:
+  Responder() = default;
+  ~Responder() = default;
 };
 
 }  // namespace teensydmx

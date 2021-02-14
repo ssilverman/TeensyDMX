@@ -365,8 +365,8 @@ Error statistics are tracked and the latest can be retrieved from an
 
 There is the ability to notify specific instances of `Responder` when packets
 having specific start codes arrive. To implement the simplest form, simply
-extend `Responder`, override the protected `receivePacket` function, and attach
-an instance to one or more start codes using `Receiver::setResponder`.
+extend `Responder`, override the `receivePacket` function, and attach an
+instance to one or more start codes using `Receiver::setResponder`.
 `receivePacket` will be called for each packet received that has one of the
 desired start codes.
 
@@ -382,9 +382,6 @@ class TextHandler : public teensydmx::Responder {
  public:
   static constexpr uint8_t kStartCode = 0x17;
 
-  TextHandler() : teensydmx::Responder() {}
-
- protected:
   void receivePacket(const uint8_t *buf, int len) override {
     // The packet must contain at least 3 bytes (plus the start code)
     if (len < 4) {
