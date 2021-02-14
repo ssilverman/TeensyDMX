@@ -111,13 +111,10 @@ static bool checkMicros(uint32_t micros) {
   return (0 != micros) && (micros <= kMaxPeriod);
 }
 
-// For floats, the expression: (kFreq/1000000.0f)*micros - 0.5f
-// must be >= 1. > zero isn't sufficient because truncation of a
-// number that's < 1 will result in zero.
-//
-// micros >= 1.5f * (1000000.0f / kFreq)
+// Checks float micros. Comparing to zero is sufficient because
+// -0.5 will truncate to zero when converting to a uint32_t.
 static bool checkMicros(float micros) {
-  return (1.5f*(1000000.0f/kFreq) <= micros) && (micros <= kMaxPeriod);
+  return (0.0f <= micros) && (micros <= kMaxPeriod);
 }
 
 bool PeriodicTimer::begin(std::function<void()> func, uint32_t micros,
