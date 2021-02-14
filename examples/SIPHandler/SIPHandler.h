@@ -38,8 +38,7 @@ class SIPHandler final : public teensydmx::Responder {
 
   // Initialize the object.
   SIPHandler()
-      : teensydmx::Responder(),
-        state_{States::kImmediate},
+      : state_{States::kImmediate},
         packet_{0},
         packetSize_(0),
         held_(false),
@@ -70,7 +69,6 @@ class SIPHandler final : public teensydmx::Responder {
     return true;
   }
 
- protected:
   // A packet was just received by the receiver. This is implemented
   // similarly to Receiver::receivePacket.
   void receivePacket(const uint8_t *buf, int len) override;

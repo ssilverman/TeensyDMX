@@ -33,10 +33,6 @@ class TextPacketHandler final : public teensydmx::Responder {
   static constexpr uint8_t kUTF8 = 0x90;
   static constexpr uint8_t kStartCodes[]{kASCII, kUTF8};
 
-  // Constructor, initialize the object.
-  TextPacketHandler() : teensydmx::Responder() {}
-
- protected:
   // A packet was just received by the receiver.
   void receivePacket(const uint8_t *buf, int len) override;
 };

@@ -11,8 +11,5 @@ namespace teensydmx = ::qindesign::teensydmx;
 // Handles received DMX packets.
 class ReceiveHandler : public teensydmx::Responder {
  public:
-  ReceiveHandler() = default;
-
- protected:
   void receivePacket(const uint8_t *buf, int len) override;
 };
