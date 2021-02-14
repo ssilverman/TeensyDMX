@@ -106,9 +106,23 @@ static constexpr uint32_t kMaxPeriod = UINT32_MAX / (kFreq / 1000000);
 static constexpr uint32_t kMinCycles = 17;
 #endif  // Processor check
 
+// Checks uint32_t micros.
+static bool checkMicros(uint32_t micros) {
+  return (0 != micros) && (micros <= kMaxPeriod);
+}
+
+// For floats, the expression: (kFreq/1000000.0f)*micros - 0.5f
+// must be >= 1. > zero isn't sufficient because truncation of a
+// number that's < 1 will result in zero.
+//
+// micros >= 1.5f * (1000000.0f / kFreq)
+static bool checkMicros(float micros) {
+  return (1.5f*(1000000.0f/kFreq) <= micros) && (micros <= kMaxPeriod);
+}
+
 bool PeriodicTimer::begin(std::function<void()> func, uint32_t micros,
                           std::function<void()> startFunc) {
-  if (micros == 0 || kMaxPeriod < micros) {
+  if (!checkMicros(micros)) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000)*micros - 1;
@@ -117,7 +131,7 @@ bool PeriodicTimer::begin(std::function<void()> func, uint32_t micros,
 
 bool PeriodicTimer::begin(std::function<void()> func, float micros,
                           std::function<void()> startFunc) {
-  if (micros <= 0 || kMaxPeriod < micros) {
+  if (!checkMicros(micros)) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000.0f)*micros - 0.5f;
@@ -125,7 +139,7 @@ bool PeriodicTimer::begin(std::function<void()> func, float micros,
 }
 
 bool PeriodicTimer::restart(uint32_t micros) {
-  if (micros == 0 || kMaxPeriod < micros) {
+  if (!checkMicros(micros)) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000)*micros - 1;
@@ -133,7 +147,7 @@ bool PeriodicTimer::restart(uint32_t micros) {
 }
 
 bool PeriodicTimer::restart(float micros) {
-  if (micros <= 0 || kMaxPeriod < micros) {
+  if (!checkMicros(micros)) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000.0f)*micros - 0.5f;
@@ -141,7 +155,7 @@ bool PeriodicTimer::restart(float micros) {
 }
 
 bool PeriodicTimer::update(uint32_t micros) {
-  if (micros == 0 || kMaxPeriod < micros) {
+  if (!checkMicros(micros)) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000)*micros - 1;
@@ -149,7 +163,7 @@ bool PeriodicTimer::update(uint32_t micros) {
 }
 
 bool PeriodicTimer::update(float micros) {
-  if (micros <= 0 || kMaxPeriod < micros) {
+  if (!checkMicros(micros)) {
     return false;
   }
   uint32_t cycles = (kFreq/1000000.0f)*micros - 0.5f;
