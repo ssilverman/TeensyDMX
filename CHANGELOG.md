@@ -8,13 +8,21 @@ and this project adheres to
 
 ## [4.2.0]
 
+### Added
+* New `Sender::fill` function that fills a channel range with a value.
+
 ### Changed
-* No more volatile objects with weird copy constructors and
-  assignment operators. Using atomic fences instead.
-* Replaced use of the Teensy library's `IntervalTimer` with a custom
-  `PeriodicTimer`. This improves BREAK time accuracy (when using a timer and not
-  serial parameters).
+* No more volatile objects with weird copy constructors and assignment
+  operators. Using atomic fences instead.
+* Replaced use of the Teensy library's `IntervalTimer` with the custom
+  `PeriodicTimer` from before. This improves BREAK time accuracy (when using a
+  timer and not serial parameters).
   * This reverts the change from v4.1.0-beta.2.
+  * This time, it can chain calls to previously-set handlers. This should solve
+    some of the interoperability issues with other libraries that use
+    `IntervalTimer`, as long as they're started before anything that
+    uses `PeriodicTimer`.
+* Improved use of public, protected, private, and volatile.
 
 ## [4.1.1]
 
