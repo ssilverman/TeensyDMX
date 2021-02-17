@@ -48,6 +48,7 @@ packetSize	KEYWORD2
 set	KEYWORD2
 set16Bit	KEYWORD2
 clear	KEYWORD2
+fill	KEYWORD2
 setRefreshRate	KEYWORD2
 refreshRate	KEYWORD2
 pause	KEYWORD2
