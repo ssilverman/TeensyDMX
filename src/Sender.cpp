@@ -481,6 +481,24 @@ void Sender::clear() {
   //}
 }
 
+bool Sender::fill(int startChannel, int len, uint8_t value) {
+  if (len < 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
+    return false;
+  }
+  if (len == 0) {
+    return true;
+  }
+  if (startChannel + len <= 0 || kMaxDMXPacketSize < startChannel + len) {
+    return false;
+  }
+
+  Lock lock{*this};
+  //{
+    std::fill_n(&activeBuf_[startChannel], len, value);
+  //}
+  return true;
+}
+
 bool Sender::setRefreshRate(float rate) {
   if ((rate != rate) || rate < 0.0f) {  // NaN or negative
     return false;

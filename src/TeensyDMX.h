@@ -879,6 +879,14 @@ class Sender final : public TeensyDMX {
   // Clears all channels to zero. The behaviour is atomic.
   void clear();
 
+  // Fills all channels in the specified range to the given value.
+  // The behaviour is atomic.
+  //
+  // This returns `false` if any part of the channel range is not in the range
+  // 0-512, or if the length is negative. Otherwise, this returns `true`. The
+  // upper limit is equal to `kDMXMaxPacketSize-1`.
+  bool fill(int startChannel, int len, uint8_t value);
+
   // Sets the packet refresh rate. This returns `false` for negative and NaN
   // values, and `true` otherwise. The default is INFINITY, indicating "as fast
   // as possible".
