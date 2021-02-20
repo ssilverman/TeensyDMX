@@ -10,6 +10,8 @@ and this project adheres to
 
 ### Added
 * New `Sender::fill` function that fills a channel range with a value.
+* Added NULL checking for the `values` pointer in `Sender::set`
+  and `Sender::set16Bit`.
 
 ### Changed
 * No more volatile objects with weird copy constructors and assignment

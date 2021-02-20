@@ -445,6 +445,9 @@ bool Sender::set(int startChannel, const uint8_t *values, int len) {
   if (startChannel + len <= 0 || kMaxDMXPacketSize < startChannel + len) {
     return false;
   }
+  if (values == nullptr) {
+    return false;
+  }
 
   Lock lock{*this};
   //{
@@ -461,6 +464,9 @@ bool Sender::set16Bit(int startChannel, const uint16_t *values, int len) {
     return true;
   }
   if (startChannel + len*2 <= 0 || kMaxDMXPacketSize < startChannel + len*2) {
+    return false;
+  }
+  if (values == nullptr) {
     return false;
   }
 

@@ -862,8 +862,8 @@ class Sender final : public TeensyDMX {
   // called once.
   //
   // This returns `false` if any part of the channel range is not in the range
-  // 0-512, or if the length is negative. Otherwise, this returns `true`. The
-  // upper limit is equal to `kDMXMaxPacketSize-1`.
+  // 0-512, if the length is negative, or if `values` is NULL. Otherwise, this
+  // returns `true`. The upper limit is equal to `kDMXMaxPacketSize-1`.
   //
   // See the other 'set' function for more information about setting
   // values outside the range of the current packet size (if the size
