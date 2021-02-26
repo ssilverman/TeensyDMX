@@ -800,17 +800,11 @@ class Sender final : public TeensyDMX {
   // slots 1-24 containing the remainder of the packet data.
   //
   // The default size is 513.
-  bool setPacketSize(int size) {
-    if (size < 0 || kMaxDMXPacketSize < size) {
-      return false;
-    }
-    packetSize_ = size;
-    return true;
-  }
+  bool setPacketSize(int size);
 
   // Returns the current packet size.
   int packetSize() const {
-    return packetSize_;
+    return activePacketSize_;
   }
 
   // Sets a channel's value. Channel zero represents the start code. The start
@@ -1059,8 +1053,8 @@ class Sender final : public TeensyDMX {
 
   // Output buffers
   volatile uint8_t activeBuf_[kMaxDMXPacketSize];
-  uint8_t inactiveBuf_[kMaxDMXPacketSize];
-  int inactiveBufIndex_;
+  volatile uint8_t inactiveBuf_[kMaxDMXPacketSize];
+  volatile int inactiveBufIndex_;
 
   // BREAK and MAB times
   volatile uint32_t breakTime_;
@@ -1076,7 +1070,8 @@ class Sender final : public TeensyDMX {
                                  // for BREAK/MAB times
 
   // The size of the packet to be sent.
-  volatile int packetSize_;
+  volatile int activePacketSize_;
+  volatile int inactivePacketSize_;
 
   // The packet refresh rate, in Hz.
   float refreshRate_;

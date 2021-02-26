@@ -141,18 +141,18 @@ void LPUARTSendHandler::irqHandler() {
       case Sender::XmitStates::kData:
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)
         do {
-          if (sender_->inactiveBufIndex_ >= sender_->packetSize_) {
+          if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
             setCompleting();
             break;
           }
           port_->DATA = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
         } while (((port_->WATER >> 8) & 0x07) < fifoSize_);  // TXCOUNT
 #else  // No FIFO
-        if (sender_->inactiveBufIndex_ >= sender_->packetSize_) {
+        if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
           setCompleting();
         } else {
           port_->DATA = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
-          if (sender_->inactiveBufIndex_ >= sender_->packetSize_) {
+          if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
             setCompleting();
           }
         }

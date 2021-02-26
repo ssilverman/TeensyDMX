@@ -136,7 +136,8 @@ Sender::Sender(HardwareSerial &uart)
       breakBaud_(kDefaultBreakBaud),
       breakFormat_(kDefaultBreakFormat),
       breakUseTimer_(false),
-      packetSize_(kMaxDMXPacketSize),
+      activePacketSize_(kMaxDMXPacketSize),
+      inactivePacketSize_(kMaxDMXPacketSize),
       refreshRate_(std::numeric_limits<float>::infinity()),
       breakToBreakTime_(0),
       breakStartTime_(0),
@@ -411,6 +412,14 @@ bool Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
   return true;
 }
 
+bool Sender::setPacketSize(int size) {
+  if (size < 0 || kMaxDMXPacketSize < size) {
+    return false;
+  }
+  activePacketSize_ = size;
+  return true;
+}
+
 bool Sender::set(int channel, uint8_t value) {
   if (channel < 0 || kMaxDMXPacketSize <= channel) {
     return false;
@@ -542,6 +551,7 @@ bool Sender::resumeFor(int n, void (*doneTXFunc)(Sender *s)) {
     if (paused_) {
       // Copy the active buffer into the inactive buffer
       std::copy_n(&activeBuf_[0], kMaxDMXPacketSize, &inactiveBuf_[0]);
+      inactivePacketSize_ = activePacketSize_;
 
       if (began_ && !transmitting_) {
         sendHandler_->setActive();
@@ -567,6 +577,7 @@ bool Sender::isTransmitting() const {
 void Sender::completePacket() {
   // Copy the active buffer into the inactive buffer
   std::copy_n(&activeBuf_[0], kMaxDMXPacketSize, &inactiveBuf_[0]);
+  inactivePacketSize_ = activePacketSize_;
 
   incPacketCount();
   inactiveBufIndex_ = 0;

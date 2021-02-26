@@ -26,6 +26,9 @@ and this project adheres to
     uses `PeriodicTimer`.
 * Improved use of public, protected, private, and volatile.
 
+### Fixed
+* Ensure the packet size can't be changed in the middle of sending a packet.
+
 ## [4.1.1]
 
 ### Added
