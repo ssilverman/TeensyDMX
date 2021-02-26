@@ -507,13 +507,10 @@ void handleMessage(const Message &msg) {
       // Make changing the packet size atomic with setting
       // the new data
       if (len != dmxTx.packetSize()) {
-        dmxTx.pause();
-        while (dmxTx.isTransmitting()) {
-          yield();
-        }
+        __disable_irq();
         dmxTx.setPacketSize(len);
         dmxTx.set(0, msg.data, len);
-        dmxTx.resume();
+        __enable_irq();
       } else {
         dmxTx.set(0, msg.data, len);
       }
