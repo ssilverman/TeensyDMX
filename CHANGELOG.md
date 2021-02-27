@@ -25,6 +25,8 @@ and this project adheres to
     `IntervalTimer`, as long as they're started before anything that
     uses `PeriodicTimer`.
 * Improved use of public, protected, private, and volatile.
+* `Sender::setPacketSize` now disallows sizes of zero. The new allowed range
+  is 1-513.
 
 ### Fixed
 * Ensure the packet size can't be changed in the middle of sending a packet.

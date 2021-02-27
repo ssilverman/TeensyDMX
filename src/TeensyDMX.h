@@ -785,8 +785,8 @@ class Sender final : public TeensyDMX {
   }
 
   // Sets the transmit packet size, in number of channels plus the start code.
-  // This returns `false` if the size is greater than 513 or negative.
-  // Otherwise, this returns `true`.
+  // This returns `false` if the size is not in the range 1-513. Otherwise, this
+  // returns `true`.
   //
   // When the maximum refresh rate is used, the packet size should be >= 25 so
   // that the total packet time does not fall below 1204us, per the ANSI E1.11

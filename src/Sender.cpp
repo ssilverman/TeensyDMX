@@ -413,7 +413,7 @@ bool Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
 }
 
 bool Sender::setPacketSize(int size) {
-  if (size < 0 || kMaxDMXPacketSize < size) {
+  if (size <= 0 || kMaxDMXPacketSize < size) {
     return false;
   }
   activePacketSize_ = size;
