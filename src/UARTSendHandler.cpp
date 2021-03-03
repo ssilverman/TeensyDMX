@@ -66,6 +66,14 @@ void UARTSendHandler::setActive() const {
   port_->C2 = UART_C2_TX_ACTIVE;
 }
 
+void UARTSendHandler::setInactive() const {
+  port_->C2 = UART_C2_TX_INACTIVE;
+}
+
+void UARTSendHandler::setCompleting() const {
+  port_->C2 = UART_C2_TX_COMPLETING;
+}
+
 void UARTSendHandler::setIRQsEnabled(bool flag) const {
   if (flag) {
     NVIC_ENABLE_IRQ(irq_);
@@ -106,27 +114,27 @@ void UARTSendHandler::irqHandler() {
                   }
                   sender_->intervalTimer_.end();
                   sender_->state_ = Sender::XmitStates::kData;
-                  port_->C2 = UART_C2_TX_ACTIVE;
+                  setActive();
                 },
                 sender_->breakTime_,
                 [&]() {
                   // Invert the line as close as possible to the timer start
                   port_->C3 |= UART_C3_TXINV;
-                  port_->C2 = UART_C2_TX_INACTIVE;
+                  setInactive();
                   sender_->breakStartTime_ = micros();
                 })) {
           // Not using a timer or starting it failed;
           // revert to the original way
           breakSerialParams_.apply(serialIndex_, port_);
           port_->D = 0;
-          port_->C2 = UART_C2_TX_COMPLETING;
+          setCompleting();
           sender_->breakStartTime_ = micros();
         }
         break;
 
       case Sender::XmitStates::kMAB:  // Shouldn't be needed
         sender_->state_ = Sender::XmitStates::kData;
-        port_->C2 = UART_C2_TX_ACTIVE;
+        setActive();
         break;
 
       case Sender::XmitStates::kData:
@@ -134,7 +142,7 @@ void UARTSendHandler::irqHandler() {
         if (fifoSize_ > 1) {
           do {
             if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-              port_->C2 = UART_C2_TX_COMPLETING;
+              setCompleting();
               break;
             }
             port_->S1;
@@ -142,11 +150,11 @@ void UARTSendHandler::irqHandler() {
           } while (port_->TCFIFO < fifoSize_);  // Transmit Count
         } else {  // No FIFO
           if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-            port_->C2 = UART_C2_TX_COMPLETING;
+            setCompleting();
           } else {
             port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
             if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-              port_->C2 = UART_C2_TX_COMPLETING;
+              setCompleting();
             }
           }
         }
@@ -165,7 +173,7 @@ void UARTSendHandler::irqHandler() {
       case Sender::XmitStates::kIdle: {
         // Pause management
         if (sender_->paused_) {
-          port_->C2 = UART_C2_TX_INACTIVE;
+          setInactive();
           return;
         }
         if (sender_->resumeCounter_ > 0) {
@@ -180,22 +188,22 @@ void UARTSendHandler::irqHandler() {
         // Delay so that we can achieve the specified refresh rate
         uint32_t timeSinceBreak = micros() - sender_->breakStartTime_;
         if (timeSinceBreak < sender_->breakToBreakTime_) {
-          port_->C2 = UART_C2_TX_INACTIVE;
+          setInactive();
           if (sender_->breakToBreakTime_ != UINT32_MAX) {
             // Non-infinite break time
             if (!sender_->intervalTimer_.begin(
                     [&]() {
                       sender_->intervalTimer_.end();
-                      port_->C2 = UART_C2_TX_ACTIVE;
+                      setActive();
                     },
                     sender_->breakToBreakTime_ - timeSinceBreak)) {
               // If starting the timer failed
-              port_->C2 = UART_C2_TX_ACTIVE;
+              setActive();
             }
           }
         } else {
           // No delay necessary
-          port_->C2 = UART_C2_TX_ACTIVE;
+          setActive();
         }
         break;
       }
@@ -228,7 +236,7 @@ void UARTSendHandler::irqHandler() {
       default:
         break;
     }
-    port_->C2 = UART_C2_TX_ACTIVE;
+    setActive();
   }
 }
 

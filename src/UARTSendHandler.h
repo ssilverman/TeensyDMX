@@ -85,6 +85,10 @@ class UARTSendHandler final : public SendHandler {
     }
   };
 
+  // Set CTRL states
+  void setInactive() const;
+  void setCompleting() const;
+
   KINETISK_UART_t *port_;
 #if defined(KINETISK)
   bool fifoSizeSet_;
