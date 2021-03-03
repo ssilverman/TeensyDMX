@@ -652,6 +652,8 @@ void Receiver::receivePotentialBreak(uint32_t eventTime) {
 }
 
 void Receiver::receiveBadBreak() {
+  intervalTimer_.end();
+
   // Not a BREAK
   errorStats_.framingErrorCount++;
   std::atomic_signal_fence(std::memory_order_release);
