@@ -265,7 +265,7 @@ void loop() {
     lastPacketTimer = 0;
   }
 
-  if (lastPacketTimer <= kTimeout) {
+  if (lastPacketTimer < kTimeout) {
     // Do work
   } else {
     // No connection
@@ -281,7 +281,7 @@ timestamp. For example:
 constexpr uint32_t kTimeout = 1000;  // In milliseconds
 
 void loop() {
-  if (millis() - dmxRx.lastPacketTimestamp() > kTimeout) {
+  if (millis() - dmxRx.lastPacketTimestamp() >= kTimeout) {
     // Respond to the timeout
   }
   // Do work

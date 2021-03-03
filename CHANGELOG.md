@@ -27,6 +27,10 @@ and this project adheres to
 * Improved use of public, protected, private, and volatile.
 * `Sender::setPacketSize` now disallows sizes of zero. The new allowed range
   is 1-513.
+* Timeout detection in Flasher, USBProWidget, and the README now compare using
+  strictly less than the timeout value so that the timeout value itself can be
+  used to manually trigger a timeout, instead of having to use an arbitrary
+  value greater than the timeout value.
 
 ### Fixed
 * Ensure the packet size can't be changed in the middle of sending a packet.

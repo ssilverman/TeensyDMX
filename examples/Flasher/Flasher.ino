@@ -82,7 +82,7 @@ void loop() {
     }
   }
 
-  if (lastFrameTimer <= kDMXTimeout) {
+  if (lastFrameTimer < kDMXTimeout) {
     int32_t v = (t - phi)%period;
     if (v < period/2) {
       digitalWriteFast(kLEDPin, HIGH);

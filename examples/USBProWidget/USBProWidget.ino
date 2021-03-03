@@ -195,7 +195,7 @@ void loop() {
   // LED blinking
 
   if (dmxState != DMXStates::kTx) {
-    bool timedOut = millis() - dmxRx.lastPacketTimestamp() > kRxTimeout;
+    bool timedOut = millis() - dmxRx.lastPacketTimestamp() >= kRxTimeout;
     if (timedOut) {
       if (ledState) {
         digitalWriteFast(kLEDPin, LOW);
@@ -387,7 +387,7 @@ void processStreamIn() {
     }
   }  // While there's data
 
-  if (parseState != ParseStates::kStart && lastReadTimer > kReadTimeout) {
+  if (parseState != ParseStates::kStart && lastReadTimer >= kReadTimeout) {
     parseState = ParseStates::kStart;
   }
 }
