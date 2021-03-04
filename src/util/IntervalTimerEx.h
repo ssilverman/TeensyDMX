@@ -15,6 +15,7 @@
 #include <Arduino.h>
 
 namespace qindesign {
+namespace teensydmx {
 namespace util {
 
 #if defined(KINETISK)
@@ -105,6 +106,7 @@ class IntervalTimerEx final {
 };
 
 }  // namespace util
+}  // namespace teensydmx
 }  // namespace qindesign
 
 #endif  // TEENSYDMX_UTIL_INTERVALTIMEREX_H_

@@ -5,6 +5,7 @@
 #include "IntervalTimerEx.h"
 
 namespace qindesign {
+namespace teensydmx {
 namespace util {
 
 std::function<void()> IntervalTimerEx::callbacks_[kNumChannels]{nullptr};
@@ -42,4 +43,5 @@ void IntervalTimerEx::end() {
 }
 
 }  // namespace util
+}  // namespace teensydmx
 }  // namespace qindesign
