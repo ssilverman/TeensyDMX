@@ -58,7 +58,14 @@ namespace qindesign {
 namespace teensydmx {
 namespace util {
 
-static const std::function<void()> nullFunc = []() {};
+// Note: When we use a std::function (Null Pattern) instead of
+//       nullptr, replacing the function during end(), when called in
+//       the lambda seems to also replace the local 'this' pointer to
+//       the containing code, if the end() call isn't the last call in
+//       the lambda. Perhaps the 'swap' operation ('operator=' calls
+//       'swap') does something funky? Is this expected or is it a
+//       compiler issue?
+// static const std::function<void()> nullFunc = []() {};
 
 #if defined(KINETISK)
 static void my_pit0_isr();
@@ -67,18 +74,18 @@ static void my_pit2_isr();
 static void my_pit3_isr();
 static constexpr int kNumChannels = 4;
 static std::function<void()> funcs[kNumChannels]{
-    nullFunc,
-    nullFunc,
-    nullFunc,
-    nullFunc,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
 };
 #elif defined(KINETISL)
 static void my_pit_isr();
 static constexpr int kNumChannels = 2;
 static uint32_t runningFlags = 0;
 static std::function<void()> funcs[kNumChannels]{
-    nullFunc,
-    nullFunc,
+    nullptr,
+    nullptr,
 };
 static uint8_t priorities[kNumChannels]{255, 255};
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
@@ -86,10 +93,10 @@ static void pit_isr();
 static constexpr int kNumChannels = 4;
 static uint32_t runningFlags = 0;
 static std::function<void()> funcs[kNumChannels] __attribute((aligned(32))){
-    nullFunc,
-    nullFunc,
-    nullFunc,
-    nullFunc,
+    nullptr,
+    nullptr,
+    nullptr,
+    nullptr,
 };
 static uint8_t priorities[kNumChannels]{255, 255, 255, 255};
 #endif  // Processor check
@@ -248,7 +255,7 @@ bool PeriodicTimer::beginCycles(std::function<void()> func, uint32_t cycles,
   int index = channel_ - IMXRT_PIT_CHANNELS;
   runningFlags |= (uint32_t{1} << index);
 #endif  // Processor check
-  funcs[index] = (func == nullptr) ? nullFunc : func;
+  funcs[index] = func;
   channel_->LDVAL = cycles;
   channel_->TCTRL = PIT_TCTRL_TIE | PIT_TCTRL_TEN;
   if (startFunc != nullptr) {
@@ -305,7 +312,7 @@ void PeriodicTimer::end() {
 
 #if defined(KINETISK)
   int index = channel_ - KINETISK_PIT_CHANNELS;
-  funcs[index] = nullFunc;
+  funcs[index] = nullptr;
   if (oldISRs[index] == unused_isr) {
     NVIC_DISABLE_IRQ(IRQ_PIT_CH0 + index);
   }
@@ -314,7 +321,7 @@ void PeriodicTimer::end() {
   NVIC_SET_PRIORITY(IRQ_PIT_CH0 + index, oldPriorities[index]);
 #elif defined(KINETISL)
   int index = channel_ - KINETISK_PIT_CHANNELS;
-  funcs[index] = nullFunc;
+  funcs[index] = nullptr;
   priorities[index] = 255;
   runningFlags &= ~(uint32_t{1} << index);
   if (runningFlags == 0) {
@@ -330,7 +337,7 @@ void PeriodicTimer::end() {
   }
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
   int index = channel_ - IMXRT_PIT_CHANNELS;
-  funcs[index] = nullFunc;
+  funcs[index] = nullptr;
   priorities[index] = 255;
   runningFlags &= ~(uint32_t{1} << index);
   if (runningFlags == 0) {
@@ -380,43 +387,63 @@ void PeriodicTimer::setPriority(uint8_t n) {
 
 #if defined(KINETISK)
 static void my_pit0_isr() {
-  funcs[0]();
+  if (funcs[0] != nullptr) {
+    funcs[0]();
+  }
   if (oldISRs[0] != unused_isr) {
     oldISRs[0]();
   }
+
+  // Clear the interrupt after calling any old ISR
   PIT_TFLG0 = 1;
 }
 
 static void my_pit1_isr() {
-  funcs[1]();
+  if (funcs[1] != nullptr) {
+    funcs[1]();
+  }
   if (oldISRs[1] != unused_isr) {
     oldISRs[1]();
   }
+
+  // Clear the interrupt after calling any old ISR
   PIT_TFLG1 = 1;
 }
 
 static void my_pit2_isr() {
-  funcs[2]();
+  if (funcs[2] != nullptr) {
+    funcs[2]();
+  }
   if (oldISRs[2] != unused_isr) {
     oldISRs[2]();
   }
+
+  // Clear the interrupt after calling any old ISR
   PIT_TFLG2 = 1;
 }
 
 static void my_pit3_isr() {
-  funcs[3]();
+  if (funcs[3] != nullptr) {
+    funcs[3]();
+  }
   if (oldISRs[3] != unused_isr) {
     oldISRs[3]();
   }
+
+  // Clear the interrupt after calling any old ISR
   PIT_TFLG3 = 1;
 }
 #elif defined(KINETISL)
 static void my_pit_isr() {
   if (PIT_TFLG0 != 0) {
-    funcs[0]();
+    if (funcs[0] != nullptr) {
+      funcs[0]();
+    }
   }
   if (PIT_TFLG1 != 0) {
-    funcs[1]();
+    if (funcs[1] != nullptr) {
+      funcs[1]();
+    }
   }
   if (oldISR != unused_isr) {
     oldISR();
@@ -429,16 +456,24 @@ static void my_pit_isr() {
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
 static void pit_isr() {
   if (PIT_TFLG0 != 0) {
-    funcs[0]();
+    if (funcs[0] != nullptr) {
+      funcs[0]();
+    }
   }
   if (PIT_TFLG1 != 0) {
-    funcs[1]();
+    if (funcs[1] != nullptr) {
+      funcs[1]();
+    }
   }
   if (PIT_TFLG2 != 0) {
-    funcs[2]();
+    if (funcs[2] != nullptr) {
+      funcs[2]();
+    }
   }
   if (PIT_TFLG3 != 0) {
-    funcs[3]();
+    if (funcs[3] != nullptr) {
+      funcs[3]();
+    }
   }
   if (oldISR != unused_interrupt_vector) {
     oldISR();
