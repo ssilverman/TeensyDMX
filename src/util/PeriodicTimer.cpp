@@ -62,9 +62,10 @@ namespace util {
 //       nullptr, replacing the function during end(), when called in
 //       the lambda seems to also replace the local 'this' pointer to
 //       the containing code, if the end() call isn't the last call in
-//       the lambda. Perhaps the 'swap' operation ('operator=' calls
-//       'swap') does something funky? Is this expected or is it a
-//       compiler issue?
+//       the lambda. Perhaps the 'operator=' operation does something
+//       funky? Is this expected or is it a compiler issue?
+//       Changing the API to use 'const std::function' doesn't seem
+//       to help.
 // static const std::function<void()> nullFunc = []() {};
 
 #if defined(KINETISK)
