@@ -40,7 +40,7 @@ class IntervalTimerEx final {
   // successfully started or restarted. This version of the function replaces
   // the callback if the timer was already started.
   template <typename period_t>
-  bool begin(std::function<void()> callback, period_t period) {
+  bool begin(const std::function<void()> &callback, period_t period) {
     // Find a free slot, if not already started
     if (!started_) {
       for (int i = 0; i < kNumChannels; i++) {
