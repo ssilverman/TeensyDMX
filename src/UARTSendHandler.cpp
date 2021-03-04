@@ -94,8 +94,8 @@ void UARTSendHandler::irqHandler() {
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
-        if (!sender_->breakUseTimer_ ||
-            !sender_->intervalTimer_.begin(
+        if (sender_->breakUseTimer_ &&
+            sender_->intervalTimer_.begin(
                 [&]() {
                   if (sender_->state_ == Sender::XmitStates::kBreak) {
                     port_->C3 &= ~UART_C3_TXINV;
@@ -116,13 +116,12 @@ void UARTSendHandler::irqHandler() {
                   sender_->state_ = Sender::XmitStates::kData;
                   setActive();
                 },
-                sender_->breakTime_,
-                [&]() {
-                  // Invert the line as close as possible to the timer start
-                  port_->C3 |= UART_C3_TXINV;
-                  setInactive();
-                  sender_->breakStartTime_ = micros();
-                })) {
+                sender_->adjustedBreakTime_)) {
+          // Invert the line as close as possible to the timer start
+          port_->C3 |= UART_C3_TXINV;
+          setInactive();
+          sender_->breakStartTime_ = micros();
+        } else {
           // Not using a timer or starting it failed;
           // revert to the original way
           breakSerialParams_.apply(serialIndex_, port_);

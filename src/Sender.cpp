@@ -38,6 +38,22 @@ constexpr uint32_t kDefaultMABTime   = 20;   // In us
 constexpr uint32_t kSerialFormatRXINVBit = 0x10;
 constexpr uint32_t kSerialFormatTXINVBit = 0x20;
 
+// Empirically observed BREAK generation adjustment constants, for 180us. The
+// timer adjust values are added to the requested BREAK to get the actual BREAK.
+#if defined(__MK20DX128__) || defined(__MK20DX256__)
+constexpr uint32_t kBreakTimerAdjust = 1;
+#elif defined(__MKL26Z64__)
+constexpr uint32_t kBreakTimerAdjust = 5;
+#elif defined(__MK64FX512__)
+constexpr uint32_t kBreakTimerAdjust = 1;
+#elif defined(__MK66FX1M0__)
+constexpr uint32_t kBreakTimerAdjust = 1;
+#elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
+constexpr uint32_t kBreakTimerAdjust = 0;
+#else
+constexpr uint32_t kBreakTimerAdjust = 0;
+#endif
+
 // Empirically observed MAB generation adjustment constants, for 20us. The timer
 // adjust values are subtracted from the requested MAB to get the actual MAB.
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
@@ -132,6 +148,7 @@ Sender::Sender(HardwareSerial &uart)
       inactiveBufIndex_(0),
       breakTime_(kDefaultBreakTime),
       mabTime_(kDefaultMABTime),
+      adjustedBreakTime_(breakTime_),
       adjustedMABTime_(mabTime_),
       breakBaud_(kDefaultBreakBaud),
       breakFormat_(kDefaultBreakFormat),
@@ -145,6 +162,7 @@ Sender::Sender(HardwareSerial &uart)
       resumeCounter_(0),
       transmitting_(false),
       doneTXFunc_{nullptr} {
+  setBreakTime(breakTime_);
   setMABTime(mabTime_);
 
   switch(serialIndex_) {
@@ -300,6 +318,11 @@ void Sender::end() {
   if (txInstances[serialIndex_] == this) {
     txInstances[serialIndex_] = nullptr;
   }
+}
+
+void Sender::setBreakTime(uint32_t t) {
+  breakTime_ = t;
+  adjustedBreakTime_ = t + kBreakTimerAdjust;
 }
 
 uint32_t Sender::breakTime() const {

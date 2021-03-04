@@ -579,14 +579,19 @@ The BREAK will be transmitted with a duration reasonably close to the specified
 value, but the actual MAB time may be larger than requested. This has to do with
 how the UARTs on the chip work.
 
-This feature uses one of the _PIT_ timers via `PeriodicTimer`, but if none are
-available, then the transmitter will fall back on using the baud rate generator
-with the specified serial port parameters.
+This feature uses one of the _PIT_ timers via the `IntervalTimer` API, but if
+none are available, then the transmitter will fall back on using the baud rate
+generator with the specified serial port parameters.
 
 ##### A note on BREAK timing
 
-The BREAK timing is pretty accurate, but slightly shorter and longer times have
-been observed.
+The BREAK timing is pretty accurate, but there's some inaccuracy due to the
+default `IntervalTimer` API. It doesn't provide a way to execute an action (in
+this case, starting a BREAK) just before the timer starts. Instead, the timer
+will have already started and some time elapsed before the BREAK can start.
+
+Efforts have been made to make the BREAK time be at least the amount requested,
+but it likely won't be exactly the requested duration.
 
 ##### A note on MAB timing
 

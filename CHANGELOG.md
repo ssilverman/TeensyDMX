@@ -16,14 +16,6 @@ and this project adheres to
 ### Changed
 * No more volatile objects with weird copy constructors and assignment
   operators. Using atomic fences instead.
-* Replaced use of the Teensy library's `IntervalTimer` with the custom
-  `PeriodicTimer` from before. This improves BREAK time accuracy (when using a
-  timer and not serial parameters).
-  * This reverts the change from v4.1.0-beta.2.
-  * This time, it can chain calls to previously-set handlers. This should solve
-    some of the interoperability issues with other libraries that use
-    `IntervalTimer`, as long as they're started before anything that
-    uses `PeriodicTimer`.
 * Improved use of public, protected, private, and volatile.
 * `Sender::setPacketSize` now disallows sizes of zero. The new allowed range
   is 1-513.
