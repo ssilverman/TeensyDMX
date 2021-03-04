@@ -116,6 +116,10 @@ void UARTReceiveHandler::setIRQsEnabled(bool flag) const {
 #endif
 }
 
+int UARTReceiveHandler::priority() const {
+  return NVIC_GET_PRIORITY(irq_);
+}
+
 void UARTReceiveHandler::irqHandler() const {
   uint8_t status = port_->S1;
 

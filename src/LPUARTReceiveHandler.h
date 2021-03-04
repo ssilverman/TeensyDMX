@@ -43,6 +43,7 @@ class LPUARTReceiveHandler final : public ReceiveHandler {
   void setTXEnabled(bool flag) const override;
   void setILT(bool flag) const override;
   void setIRQsEnabled(bool flag) const override;
+  int priority() const override;
   void irqHandler() const override;
   void txData(const uint8_t *b, int len) const override;
   void txBreak(uint32_t breakTime, uint32_t mabTime) const override;

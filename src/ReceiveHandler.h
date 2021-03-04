@@ -36,6 +36,9 @@ class ReceiveHandler {
   // Enables or disables the UART IRQ(s).
   virtual void setIRQsEnabled(bool flag) const = 0;
 
+  // Returns the priority of the internal IRQ.
+  virtual int priority() const = 0;
+
   // Handles interrupts.
   virtual void irqHandler() const = 0;
 

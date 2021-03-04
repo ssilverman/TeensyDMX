@@ -315,6 +315,8 @@ void Receiver::begin() {
   setConnected(false);
 
   receiveHandler_->start();
+  intervalTimer_.setPriority(receiveHandler_->priority());
+  // Also set the interval timer priority to match the UART priority
 
   // Enable receive
   setTXNotRX(false);

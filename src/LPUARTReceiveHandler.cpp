@@ -81,6 +81,10 @@ void LPUARTReceiveHandler::setIRQsEnabled(bool flag) const {
   }
 }
 
+int LPUARTReceiveHandler::priority() const {
+  return NVIC_GET_PRIORITY(irq_);
+}
+
 void LPUARTReceiveHandler::irqHandler() const {
   uint32_t status = port_->STAT;
 
