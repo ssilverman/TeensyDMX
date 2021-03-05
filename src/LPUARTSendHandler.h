@@ -43,7 +43,7 @@ class LPUARTSendHandler final : public SendHandler {
   void setActive() const override;
   void setIRQsEnabled(bool flag) const override;
   int priority() const override;
-  void irqHandler() override;
+  void irqHandler() const override;
 
  private:
   // Stored LPUART parameters for quickly setting the baud rate between BREAK

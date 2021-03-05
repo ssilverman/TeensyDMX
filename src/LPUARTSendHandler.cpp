@@ -119,7 +119,7 @@ void LPUARTSendHandler::rateTimerCallback() const {
   setActive();
 }
 
-void LPUARTSendHandler::irqHandler() {
+void LPUARTSendHandler::irqHandler() const {
   uint32_t status = port_->STAT;
   uint32_t control = port_->CTRL;
 

@@ -44,7 +44,7 @@ class SendHandler {
   virtual void setActive() const = 0;
 
   // Handles interrupts.
-  virtual void irqHandler() = 0;
+  virtual void irqHandler() const = 0;
 
  protected:
   SendHandler(int serialIndex, Sender *sender)

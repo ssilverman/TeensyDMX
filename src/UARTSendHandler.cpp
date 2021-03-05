@@ -118,7 +118,7 @@ void UARTSendHandler::rateTimerCallback() const {
   setActive();
 }
 
-void UARTSendHandler::irqHandler() {
+void UARTSendHandler::irqHandler() const {
   uint8_t status = port_->S1;
   uint8_t control = port_->C2;
 
