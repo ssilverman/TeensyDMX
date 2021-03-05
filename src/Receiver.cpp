@@ -577,6 +577,12 @@ void Receiver::completePacket(RecvStates newState) {
   activeBufIndex_ = 0;
 }
 
+void Receiver::idleTimerCallback() {
+  intervalTimer_.end();
+  completePacket(RecvStates::kIdle);
+  setConnected(false);
+}
+
 void Receiver::receiveIdle(uint32_t eventTime) {
   switch (state_) {
     case RecvStates::kBreak:
@@ -621,13 +627,8 @@ void Receiver::receiveIdle(uint32_t eventTime) {
   }
 
   // Start a timer watching for disconnection/packet end
-  intervalTimer_.begin(
-      [&]() {
-        intervalTimer_.end();
-        completePacket(RecvStates::kIdle);
-        setConnected(false);
-      },
-      kMaxDMXIdleTime - kCharTime);
+  intervalTimer_.begin([this]() { idleTimerCallback(); },
+                       kMaxDMXIdleTime - kCharTime);
 }
 
 void Receiver::receivePotentialBreak(uint32_t eventTime) {

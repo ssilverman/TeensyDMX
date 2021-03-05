@@ -481,6 +481,9 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void completePacket(RecvStates newState);
 
+  // Called when the idle timer expires.
+  void idleTimerCallback();
+
   // Look for potential packet timeouts when an IDLE condition was detected.
   // This is called from an ISR.
   void receiveIdle(uint32_t eventTime);

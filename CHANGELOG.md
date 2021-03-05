@@ -26,6 +26,7 @@ and this project adheres to
 
 ### Fixed
 * Ensure the packet size can't be changed in the middle of sending a packet.
+* Improved lambda hygiene.
 
 ## [4.1.1]
 

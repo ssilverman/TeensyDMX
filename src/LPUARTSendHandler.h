@@ -70,6 +70,11 @@ class LPUARTSendHandler final : public SendHandler {
   void setInactive() const;
   void setCompleting() const;
 
+  // Timer handling
+  void breakTimerCallback() const;     // Called when the timer triggers
+  void breakTimerPreCallback() const;  // Called just before the timer starts
+  void rateTimerCallback() const;      // Called after the MBB delay
+
   PortType *port_;
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)
   bool fifoSizeSet_;

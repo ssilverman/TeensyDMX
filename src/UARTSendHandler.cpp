@@ -86,6 +86,38 @@ int UARTSendHandler::priority() const {
   return NVIC_GET_PRIORITY(irq_);
 }
 
+void UARTSendHandler::breakTimerCallback() const {
+  if (sender_->state_ == Sender::XmitStates::kBreak) {
+    port_->C3 &= ~UART_C3_TXINV;
+    sender_->state_ = Sender::XmitStates::kMAB;
+    if (sender_->intervalTimer_.restart(sender_->adjustedMABTime_)) {
+      return;
+    }
+    // The restart shouldn't fail because the timer is already
+    // active, but we need to check it because the return value
+    // is part of the API
+    //
+    // We shouldn't delay as an alternative because that might
+    // mean we delay too long, however the MAB is most likely to
+    // be too short in this case
+  }
+  sender_->intervalTimer_.end();
+  sender_->state_ = Sender::XmitStates::kData;
+  setActive();
+}
+
+void UARTSendHandler::breakTimerPreCallback() const {
+  // Invert the line as close as possible to the timer start
+  port_->C3 |= UART_C3_TXINV;
+  setInactive();
+  sender_->breakStartTime_ = micros();
+}
+
+void UARTSendHandler::rateTimerCallback() const {
+  sender_->intervalTimer_.end();
+  setActive();
+}
+
 void UARTSendHandler::irqHandler() {
   uint8_t status = port_->S1;
   uint8_t control = port_->C2;
@@ -95,32 +127,9 @@ void UARTSendHandler::irqHandler() {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
         if (sender_->breakUseTimer_ &&
-            sender_->intervalTimer_.begin(
-                [&]() {
-                  if (sender_->state_ == Sender::XmitStates::kBreak) {
-                    port_->C3 &= ~UART_C3_TXINV;
-                    sender_->state_ = Sender::XmitStates::kMAB;
-                    if (sender_->intervalTimer_.restart(
-                            sender_->adjustedMABTime_)) {
-                      return;
-                    }
-                    // The restart shouldn't fail because the timer is already
-                    // active, but we need to check it because the return value
-                    // is part of the API
-                    //
-                    // We shouldn't delay as an alternative because that might
-                    // mean we delay too long, however the MAB is most likely to
-                    // be too short in this case
-                  }
-                  sender_->intervalTimer_.end();
-                  sender_->state_ = Sender::XmitStates::kData;
-                  setActive();
-                },
-                sender_->adjustedBreakTime_)) {
-          // Invert the line as close as possible to the timer start
-          port_->C3 |= UART_C3_TXINV;
-          setInactive();
-          sender_->breakStartTime_ = micros();
+            sender_->intervalTimer_.begin([this]() { breakTimerCallback(); },
+                                          sender_->adjustedBreakTime_)) {
+          breakTimerPreCallback();
         } else {
           // Not using a timer or starting it failed;
           // revert to the original way
@@ -191,10 +200,7 @@ void UARTSendHandler::irqHandler() {
           if (sender_->breakToBreakTime_ != UINT32_MAX) {
             // Non-infinite break time
             if (!sender_->intervalTimer_.begin(
-                    [&]() {
-                      sender_->intervalTimer_.end();
-                      setActive();
-                    },
+                    [this]() { rateTimerCallback(); },
                     sender_->breakToBreakTime_ - timeSinceBreak)) {
               // If starting the timer failed
               setActive();

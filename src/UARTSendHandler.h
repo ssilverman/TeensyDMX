@@ -89,6 +89,11 @@ class UARTSendHandler final : public SendHandler {
   void setInactive() const;
   void setCompleting() const;
 
+  // Timer handling
+  void breakTimerCallback() const;     // Called when the timer triggers
+  void breakTimerPreCallback() const;  // Called just before the timer starts
+  void rateTimerCallback() const;      // Called after the MBB delay
+
   KINETISK_UART_t *port_;
 #if defined(KINETISK)
   bool fifoSizeSet_;
