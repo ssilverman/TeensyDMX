@@ -444,8 +444,7 @@ Receiver::ErrorStats Receiver::errorStats() const {
   return errorStats_;
 }
 
-std::shared_ptr<Responder> Receiver::setResponder(
-    uint8_t startCode, std::shared_ptr<Responder> r) {
+Responder *Receiver::setResponder(uint8_t startCode, Responder *r) {
   // For a null responder, delete any current one for this start code
   if (r == nullptr) {
     Lock lock{*this};
@@ -455,7 +454,7 @@ std::shared_ptr<Responder> Receiver::setResponder(
     }
 
     // Replace any previous responder
-    std::shared_ptr<Responder> old{responders_[startCode]};
+    Responder *old = responders_[startCode];
     if (old != nullptr) {
       responderCount_--;
     }
@@ -475,7 +474,7 @@ std::shared_ptr<Responder> Receiver::setResponder(
   // reallocated, and so letting that be the last thing deleted avoids
   // potential fragmentation.
   if (responders_ == nullptr) {
-    responders_.reset(new std::shared_ptr<Responder>[256]);
+    responders_.reset(new Responder *[256]);
     // Allocation may have failed on small systems
     if (responders_ == nullptr) {
       return nullptr;
@@ -498,12 +497,8 @@ std::shared_ptr<Responder> Receiver::setResponder(
 
   // If a responder is already set then the output buffer should be the
   // correct size
-  std::shared_ptr<Responder> old{responders_[startCode]};
-  // Using std::move avoids two atomic operations since the `r` parameter has
-  // been copy-constructed
-  // See:
-  // https://stackoverflow.com/questions/41871115/why-would-i-stdmove-an-stdshared-ptr
-  responders_[startCode] = std::move(r);
+  Responder *old = responders_[startCode];
+  responders_[startCode] = r;
   if (old == nullptr) {
     responderCount_++;
   }
@@ -564,7 +559,7 @@ void Receiver::completePacket(RecvStates newState) {
 
   // Let the responder, if any, process the packet
   if (responders_ != nullptr) {
-    Responder *r = responders_[inactiveBuf_[0]].get();
+    Responder *r = responders_[inactiveBuf_[0]];
     if (r != nullptr) {
       r->receivePacket(inactiveBuf_, packetSize_);
       if (r->eatPacket()) {
@@ -823,7 +818,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
   // See if a responder needs to process the byte and respond
   Responder *r = nullptr;
   if (responders_ != nullptr) {
-    r = responders_[activeBuf_[0]].get();
+    r = responders_[activeBuf_[0]];
   }
   if (r == nullptr) {
     if (packetFull) {

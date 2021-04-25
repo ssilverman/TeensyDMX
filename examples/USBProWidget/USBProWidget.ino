@@ -151,7 +151,7 @@ uint8_t msgBuf[5 + 1 + 513]{0};  // Largest possible message has
 // DMX
 teensydmx::Sender dmxTx{kDMXSerial};
 teensydmx::Receiver dmxRx{kDMXSerial};
-auto receiveHandler = std::make_shared<ReceiveHandler>();
+ReceiveHandler receiveHandler{};
 DMXStates dmxState = DMXStates::kRx;
 
 // Track DMX packet changes
@@ -173,7 +173,7 @@ void setup() {
   pinMode(kTxPin, OUTPUT);
 
   // Set up DMX
-  dmxRx.setResponder(SC_NULL, receiveHandler);
+  dmxRx.setResponder(SC_NULL, &receiveHandler);
   dmxTx.setBreakUseTimerNotSerial(true);
   if (dmxState == DMXStates::kTx) {
     startTx();

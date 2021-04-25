@@ -23,6 +23,7 @@ and this project adheres to
   strictly less than the timeout value so that the timeout value itself can be
   used to manually trigger a timeout, instead of having to use an arbitrary
   value greater than the timeout value.
+* Changed uses of `std::shared_ptr` to regular pointers.
 
 ### Fixed
 * Ensure the packet size can't be changed in the middle of sending a packet.

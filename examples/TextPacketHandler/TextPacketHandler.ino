@@ -22,7 +22,7 @@ constexpr uint8_t kLEDPin = LED_BUILTIN;
 teensydmx::Receiver dmxRx{Serial1};
 
 // Holds a TextPacketHandler instance.
-auto textPacketHandler = std::make_shared<TextPacketHandler>();
+TextPacketHandler textPacketHandler{};
 
 void setup() {
   // Initialize the serial port
@@ -40,7 +40,7 @@ void setup() {
   // In this case, the handler accepts several packet types
   // This is just for illustration purposes
   for (uint8_t sc : TextPacketHandler::kStartCodes) {
-    dmxRx.setResponder(sc, textPacketHandler);
+    dmxRx.setResponder(sc, &textPacketHandler);
   }
 
   dmxRx.begin();

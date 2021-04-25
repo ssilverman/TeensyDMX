@@ -379,8 +379,7 @@ class Receiver final : public TeensyDMX {
   // happens.
   //
   // Responder functions are called from an ISR.
-  std::shared_ptr<Responder> setResponder(uint8_t startCode,
-                                          std::shared_ptr<Responder> r);
+  Responder *setResponder(uint8_t startCode, Responder *r);
 
   // Sets the `setTXNotRX` implementation function. This should be called before
   // calling `begin()`.
@@ -573,7 +572,7 @@ class Receiver final : public TeensyDMX {
   ErrorStats errorStats_;
 
   // Responders state
-  std::unique_ptr<std::shared_ptr<Responder>[]> responders_;
+  std::unique_ptr<Responder *[]> responders_;
   int responderCount_;
   std::unique_ptr<uint8_t[]> responderOutBuf_;
   int responderOutBufLen_;
