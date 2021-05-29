@@ -8,7 +8,6 @@
 
 // C++ includes
 #include <cstdint>
-#include <memory>
 
 #include <TeensyDMX.h>
 #include "SIPHandler.h"

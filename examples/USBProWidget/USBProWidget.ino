@@ -10,7 +10,6 @@
 #include <cstdint>
 #include <cstring>
 #include <limits>
-#include <memory>
 
 #include <TeensyDMX.h>
 #include "ReceiveHandler.h"
