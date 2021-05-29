@@ -3,7 +3,7 @@
  * System Information Packets (SIP).
  *
  * This example is part of the TeensyDMX library.
- * (c) 2018-2019 Shawn Silverman
+ * (c) 2018-2021 Shawn Silverman
  */
 
 // C++ includes

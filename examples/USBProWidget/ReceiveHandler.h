@@ -1,5 +1,5 @@
 // This file is part of the USBProWidget example in the TeensyDMX library.
-// (c) 2019-2020 Shawn Silverman
+// (c) 2019-2021 Shawn Silverman
 
 // C++ includes
 #include <cstdint>

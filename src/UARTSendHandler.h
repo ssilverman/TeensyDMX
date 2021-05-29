@@ -1,5 +1,5 @@
 // This file is part of the TeensyDMX library.
-// (c) 2019 Shawn Silverman
+// (c) 2019-2021 Shawn Silverman
 
 #if defined(__MK20DX128__) || defined(__MK20DX256__) || \
     defined(__MKL26Z64__) || defined(__MK64FX512__) || defined(__MK66FX1M0__)

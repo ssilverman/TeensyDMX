@@ -3,7 +3,7 @@
  * to make use of Text Packets.
  *
  * This example is part of the TeensyDMX library.
- * (c) 2018-2020 Shawn Silverman
+ * (c) 2018-2021 Shawn Silverman
  */
 
 // C++ includes

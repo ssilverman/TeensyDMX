@@ -769,4 +769,4 @@ Inspirations for this library:
 
 ---
 
-Copyright (c) 2017-2020 Shawn Silverman
+Copyright (c) 2017-2021 Shawn Silverman

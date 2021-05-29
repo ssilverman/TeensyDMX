@@ -1,6 +1,6 @@
 // IntervalTimerEx.cpp implements IntervalTimerEx.
 // This file is part of the TeensyDMX library.
-// (c) 2020 Shawn Silverman
+// (c) 2020-2021 Shawn Silverman
 
 #include "IntervalTimerEx.h"
 
