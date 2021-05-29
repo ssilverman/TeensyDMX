@@ -403,7 +403,7 @@ TextHandler textHandler;
 
 void setup() {
   // ...
-  dmxRx.setResponder(TextHandler::kStartCode, textHandler)
+  dmxRx.setResponder(TextHandler::kStartCode, &textHandler)
   // ...
 
   dmxRx.begin();
