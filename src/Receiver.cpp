@@ -8,6 +8,7 @@
 #include <atomic>
 #include <utility>
 
+#include <util/atomic.h>
 #include "Responder.h"
 
 namespace qindesign {
@@ -901,8 +902,7 @@ void Receiver::setIRQState(bool flag) const {
 // ---------------------------------------------------------------------------
 
 void Receiver::setRXWatchPin(int pin) {
-  __disable_irq();
-  //{
+  ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
     if (pin < 0) {
       if (rxWatchPin_ >= 0) {
         detachInterrupt(rxWatchPin_);
@@ -916,8 +916,7 @@ void Receiver::setRXWatchPin(int pin) {
         seenMABStart_ = false;
       }
     }
-  //}
-  __enable_irq();
+  }
 }
 
 void Receiver::rxPinRose_isr() {

@@ -8,6 +8,11 @@ and this project adheres to
 
 ## [4.2.1]
 
+### Changed
+* Changed relevant `__disable_irq()`/`__enable_irq()` pairs to
+  `ATOMIC_BLOCK(ATOMIC_RESTORESTATE)` so that interrupts are not enabled
+  inappropriately, for example if the calling program had disabled them.
+
 ## [4.2.0]
 
 ### Added

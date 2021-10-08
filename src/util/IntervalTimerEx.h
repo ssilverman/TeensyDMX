@@ -13,6 +13,7 @@
 #include <functional>
 
 #include <Arduino.h>
+#include <util/atomic.h>
 
 namespace qindesign {
 namespace teensydmx {
@@ -49,24 +50,22 @@ class IntervalTimerEx final {
         }
 
         // Make begin and setting the callback atomic
-        __disable_irq();
-        if (intervalTimer_.begin(relays_[i], period)) {
-          callbacks_[i] = callback;
-          cbIndex_ = i;
-          started_ = true;
-          __enable_irq();
-          return true;
+        ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+          if (intervalTimer_.begin(relays_[i], period)) {
+            callbacks_[i] = callback;
+            cbIndex_ = i;
+            started_ = true;
+            return true;
+          }
         }
-        __enable_irq();
       }
     } else {
-      __disable_irq();
-      if (intervalTimer_.begin(relays_[cbIndex_], period)) {
-        callbacks_[cbIndex_] = callback;
-        __enable_irq();
-        return true;
+      ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+        if (intervalTimer_.begin(relays_[cbIndex_], period)) {
+          callbacks_[cbIndex_] = callback;
+          return true;
+        }
       }
-      __enable_irq();
       end();
     }
 

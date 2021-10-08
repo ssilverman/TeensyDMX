@@ -9,6 +9,8 @@
 // C++ includes
 #include <cstdint>
 
+#include <util/atomic.h>
+
 namespace qindesign {
 namespace teensydmx {
 
@@ -97,15 +99,15 @@ void UARTReceiveHandler::setILT(bool flag) const {
 void UARTReceiveHandler::setIRQState(bool flag) const {
 #if defined(KINETISK)
   if (flag) {
-    __disable_irq();
-    NVIC_ENABLE_IRQ(irq_);
-    NVIC_ENABLE_IRQ(errorIRQ_);
-    __enable_irq();
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+      NVIC_ENABLE_IRQ(irq_);
+      NVIC_ENABLE_IRQ(errorIRQ_);
+    }
   } else {
-    __disable_irq();
-    NVIC_DISABLE_IRQ(irq_);
-    NVIC_DISABLE_IRQ(errorIRQ_);
-    __enable_irq();
+    ATOMIC_BLOCK(ATOMIC_RESTORESTATE) {
+      NVIC_DISABLE_IRQ(irq_);
+      NVIC_DISABLE_IRQ(errorIRQ_);
+    }
   }
 #else
   if (flag) {
