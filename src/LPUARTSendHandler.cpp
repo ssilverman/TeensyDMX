@@ -75,7 +75,7 @@ void LPUARTSendHandler::setCompleting() const {
       (port_->CTRL | (LPUART_CTRL_TE | LPUART_CTRL_TCIE)) & ~LPUART_CTRL_TIE;
 }
 
-void LPUARTSendHandler::setIRQsEnabled(bool flag) const {
+void LPUARTSendHandler::setIRQState(bool flag) const {
   if (flag) {
     NVIC_ENABLE_IRQ(irq_);
   } else {

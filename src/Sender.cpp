@@ -619,18 +619,11 @@ void Sender::completePacket() {
 //  IRQ management
 // ---------------------------------------------------------------------------
 
-void Sender::disableIRQs() const {
+void Sender::setIRQState(bool flag) const {
   if (!began_) {
     return;
   }
-  sendHandler_->setIRQsEnabled(false);
-}
-
-void Sender::enableIRQs() const {
-  if (!began_) {
-    return;
-  }
-  sendHandler_->setIRQsEnabled(true);
+  sendHandler_->setIRQState(flag);
 }
 
 // ---------------------------------------------------------------------------

@@ -74,7 +74,7 @@ void UARTSendHandler::setCompleting() const {
   port_->C2 = UART_C2_TX_COMPLETING;
 }
 
-void UARTSendHandler::setIRQsEnabled(bool flag) const {
+void UARTSendHandler::setIRQState(bool flag) const {
   if (flag) {
     NVIC_ENABLE_IRQ(irq_);
   } else {

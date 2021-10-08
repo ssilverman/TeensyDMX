@@ -41,7 +41,7 @@ class LPUARTSendHandler final : public SendHandler {
   void start() override;
   void end() const override;
   void setActive() const override;
-  void setIRQsEnabled(bool flag) const override;
+  void setIRQState(bool flag) const override;
   int priority() const override;
   void irqHandler() const override;
 

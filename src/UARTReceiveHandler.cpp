@@ -94,7 +94,7 @@ void UARTReceiveHandler::setILT(bool flag) const {
   }
 }
 
-void UARTReceiveHandler::setIRQsEnabled(bool flag) const {
+void UARTReceiveHandler::setIRQState(bool flag) const {
 #if defined(KINETISK)
   if (flag) {
     __disable_irq();

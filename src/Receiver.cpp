@@ -889,18 +889,11 @@ void Receiver::setConnected(bool flag) {
 //  IRQ management
 // ---------------------------------------------------------------------------
 
-void Receiver::disableIRQs() const {
+void Receiver::setIRQState(bool flag) const {
   if (!began_) {
     return;
   }
-  receiveHandler_->setIRQsEnabled(false);
-}
-
-void Receiver::enableIRQs() const {
-  if (!began_) {
-    return;
-  }
-  receiveHandler_->setIRQsEnabled(true);
+  receiveHandler_->setIRQState(flag);
 }
 
 // ---------------------------------------------------------------------------

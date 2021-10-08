@@ -437,11 +437,11 @@ class Receiver final : public TeensyDMX {
   class Lock final {
    public:
     explicit Lock(const Receiver &r) : r_(r) {
-      r_.disableIRQs();
+      r_.setIRQState(false);
     }
 
     ~Lock() {
-      r_.enableIRQs();
+      r_.setIRQState(true);
     }
 
    private:
@@ -460,13 +460,11 @@ class Receiver final : public TeensyDMX {
   // in microseconds, exclusive.
   static constexpr uint32_t kMaxDMXIdleTime = 1000000;
 
-  // Disables all the UART IRQs so that variables can be accessed concurrently.
-  // The IRQs are not disabled if `began_` is `false`.
-  void disableIRQs() const;
-
-  // Enables all the UART IRQs.
-  // The IRQs are not enabled if `began_` is `false`.
-  void enableIRQs() const;
+  // If the flag is false, disables all the UART IRQs so that variables can be
+  // accessed concurrently. Otherwise, enables all the UART IRQs.
+  //
+  // This does nothing if `began_` is `false`.
+  void setIRQState(bool flag) const;
 
   // Called when the connection state changes.
   // This may be called from an ISR.
@@ -1019,11 +1017,11 @@ class Sender final : public TeensyDMX {
   class Lock final {
    public:
     explicit Lock(const Sender &s) : s_(s) {
-      s_.disableIRQs();
+      s_.setIRQState(false);
     }
 
     ~Lock() {
-      s_.enableIRQs();
+      s_.setIRQState(true);
     }
 
    private:
@@ -1036,13 +1034,11 @@ class Sender final : public TeensyDMX {
   // or BREAK to BREAK, in microseconds.
   static constexpr uint32_t kMinDMXPacketTime = 1204;
 
-  // Disables all the UART IRQs so that variables can be accessed concurrently.
-  // The IRQs are not disabled if `began_` is `false`.
-  void disableIRQs() const;
-
-  // Enables all the UART IRQs.
-  // The IRQs are not enabled if `began_` is `false`.
-  void enableIRQs() const;
+  // If the flag is false, disables all the UART IRQs so that variables can be
+  // accessed concurrently. Otherwise, enables all the UART IRQs.
+  //
+  // This does nothing if `began_` is `false`.
+  void setIRQState(bool flag) const;
 
   // Completes a sent packet. This increments the packet count, resets the
   // output buffer index, and sets the state to `kIdle`.

@@ -73,7 +73,7 @@ void LPUARTReceiveHandler::setILT(bool flag) const {
   }
 }
 
-void LPUARTReceiveHandler::setIRQsEnabled(bool flag) const {
+void LPUARTReceiveHandler::setIRQState(bool flag) const {
   if (flag) {
     NVIC_ENABLE_IRQ(irq_);
   } else {
