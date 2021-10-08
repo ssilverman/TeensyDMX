@@ -11,7 +11,7 @@
     "type": "git",
     "url": "https://github.com/ssilverman/TeensyDMX"
   },
-  "version": "4.2.0",
+  "version": "4.2.1-snapshot",
   "license": "BSD-3-Clause-Clear",
   "homepage": "https://github.com/ssilverman/TeensyDMX",
   "frameworks": "arduino",
