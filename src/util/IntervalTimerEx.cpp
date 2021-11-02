@@ -2,6 +2,8 @@
 // This file is part of the TeensyDMX library.
 // (c) 2020-2021 Shawn Silverman
 
+#ifdef USE_INTERVALTIMER
+
 #include "IntervalTimerEx.h"
 
 namespace qindesign {
@@ -45,3 +47,5 @@ void IntervalTimerEx::end() {
 }  // namespace util
 }  // namespace teensydmx
 }  // namespace qindesign
+
+#endif  // USE_INTERVALTIMER

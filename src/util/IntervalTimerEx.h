@@ -6,6 +6,8 @@
 // See also https://github.com/luni64/TeensyHelpers for luni64's take on
 // improved IntervalTimer usage.
 
+#ifdef USE_INTERVALTIMER
+
 #ifndef TEENSYDMX_UTIL_INTERVALTIMEREX_H_
 #define TEENSYDMX_UTIL_INTERVALTIMEREX_H_
 
@@ -109,3 +111,5 @@ class IntervalTimerEx final {
 }  // namespace qindesign
 
 #endif  // TEENSYDMX_UTIL_INTERVALTIMEREX_H_
+
+#endif  // USE_INTERVALTIMER
