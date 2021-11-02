@@ -8,10 +8,26 @@ and this project adheres to
 
 ## [4.3.0]
 
+### Added
+* Added a way to internally use the `IntervalTimer` API instead of our own PIT
+  timer API (`PeriodicTimer`) to avoid conflicts with other libraries:
+  define `USE_INTERVALTIMER` when building the library.
+
 ### Changed
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to
   `ATOMIC_BLOCK(ATOMIC_RESTORESTATE)` so that interrupts are not enabled
   inappropriately, for example if the calling program had disabled them.
+* Replaced use of the Teensy library's `IntervalTimer` with the custom
+  `PeriodicTimer` from before. This improves transmitted BREAK time accuracy
+  (when using a timer and not serial parameters). This time, however, it's
+  possible, via a `USE_INTERVALTIMER` define, to use the `IntervalTimer`
+  internally to avoid PIT timer conflicts with other libraries.
+  * This reverts the change from v4.1.0-beta.2.
+  * This time, it can chain calls to previously-set handlers. This might solve
+    some of the interoperability issues with other libraries that use
+    `IntervalTimer`, as long as they're started before anything that
+    uses `PeriodicTimer`. The fallback is to define `USE_INTERVALTIMER` when
+    building the project.
 
 ## [4.2.0]
 

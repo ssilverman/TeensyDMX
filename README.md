@@ -43,6 +43,7 @@ Teensy LC, and Teensy 4. It follows the
    5. [Dynamic memory allocation failures](#dynamic-memory-allocation-failures)
    6. [Hardware connection](#hardware-connection)
    7. [`Receiver` and driving the TX pin](#receiver-and-driving-the-tx-pin)
+   8. [Potential PIT timer conflicts](#potential-pit-timer-conflicts)
 7. [Code style](#code-style)
 8. [References](#references)
 9. [Acknowledgements](#acknowledgements)
@@ -579,19 +580,23 @@ The BREAK will be transmitted with a duration reasonably close to the specified
 value, but the actual MAB time may be larger than requested. This has to do with
 how the UARTs on the chip work.
 
-This feature uses one of the _PIT_ timers via the `IntervalTimer` API, but if
-none are available, then the transmitter will fall back on using the baud rate
-generator with the specified serial port parameters.
+This feature uses one of the _PIT_ timers via `PeriodicTimer` (or, optionally,
+the `IntervalTimer` API), but if none are available, then the transmitter will
+fall back on using the baud rate generator with the specified serial
+port parameters.
 
 ##### A note on BREAK timing
 
-The BREAK timing is pretty accurate, but there's some inaccuracy due to the
-default `IntervalTimer` API. It doesn't provide a way to execute an action (in
-this case, starting a BREAK) just before the timer starts. Instead, the timer
-will have already started and some time elapsed before the BREAK can start.
+The BREAK timing is pretty accurate, but slightly shorter and longer times have
+been observed.
+
+(If using the `IntervalTimer` API, there's some inaccuracy. It doesn't provide a
+way to execute an action (in this case, starting a BREAK) just before the timer
+starts. Instead, the timer will have already started and some time elapsed
+before the BREAK can start.
 
 Efforts have been made to make the BREAK time be at least the amount requested,
-but it likely won't be exactly the requested duration.
+but it likely won't be exactly the requested duration.)
 
 ##### A note on MAB timing
 
@@ -734,6 +739,15 @@ operation or outside a `begin` and `end` pair.
 Be aware that if the receiver is currently in operation, enabling the
 transmitter will cause an 11-bit idle character to be queued for output and the
 line to remain high after that.
+
+### Potential PIT timer conflicts
+
+This library internally uses PIT timers via a custom API (`PeriodicTimer`).
+While attempts have been made to reduce the chances of a conflict, a conflict
+might still occur with other libraries' use of the `IntervalTimer` API to
+control the PIT timers. If that happens, define `USE_INTERVALTIMER` when
+building, and the library will revert to using the compatible API, at the
+expense of reduced transmitted BREAK timing.
 
 ## Code style
 
