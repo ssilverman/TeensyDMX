@@ -487,6 +487,7 @@ static void pit_isr() {
   PIT_TFLG1 = 1;
   PIT_TFLG2 = 1;
   PIT_TFLG3 = 1;
+  asm("dsb");
 }
 #endif  // Processor check
 

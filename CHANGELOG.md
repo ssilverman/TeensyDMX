@@ -12,6 +12,8 @@ and this project adheres to
 * Added a way to internally use the `IntervalTimer` API instead of our own PIT
   timer API (`PeriodicTimer`) to avoid conflicts with other libraries:
   define `USE_INTERVALTIMER` when building the library.
+* Added "dsb" instruction when clearing interrupts on Teensy 4. This guarantees
+  that the interrupt flags are cleared before exiting the ISR.
 
 ### Changed
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to
