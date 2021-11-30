@@ -2,6 +2,8 @@
 // This file is part of the TeensyDMX library.
 // (c) 2019-2021 Shawn Silverman
 
+#ifndef USE_INTERVALTIMER
+
 #include "PeriodicTimer.h"
 
 // C++ includes
@@ -491,3 +493,5 @@ static void pit_isr() {
 }  // namespace util
 }  // namespace teensydmx
 }  // namespace qindesign
+
+#endif  // !USE_INTERVALTIMER
