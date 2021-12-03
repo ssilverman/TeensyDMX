@@ -12,7 +12,7 @@ namespace teensydmx {
 
 // Notes on transmit timing:
 // According to https://en.wikipedia.org/wiki/DMX512,
-// the minimum BREAK and Mark after BREAK (MAB) times are
+// the minimum BREAK and MARK after BREAK (MAB) times are
 // 92us and 12us, respectively.
 //
 // If we assume 12us is the length of a stop bit, then 1/12us ≈ 83333 baud.

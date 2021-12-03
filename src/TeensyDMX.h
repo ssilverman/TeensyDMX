@@ -406,7 +406,7 @@ class Receiver final : public TeensyDMX {
 
   // Returns whether this is considered to be connected to a DMX transmitter. A
   // connection is considered to have been broken if a timeout was detected or a
-  // BREAK plus Mark after BREAK (MAB) was too short.
+  // BREAK plus MARK after BREAK (MAB) was too short.
   bool connected() const {
     return connected_;
   }
@@ -431,7 +431,7 @@ class Receiver final : public TeensyDMX {
   // State that tracks where we are in the receive process.
   enum class RecvStates {
     kBreak,     // BREAK
-    kMAB,       // Mark after BREAK
+    kMAB,       // MARK after BREAK
     kData,      // Packet data
     kDataIdle,  // Received data is beyond the max. packet size
     kIdle,      // The end of data for one packet has been reached
@@ -460,7 +460,7 @@ class Receiver final : public TeensyDMX {
   // BREAK to BREAK, in microseconds.
   static constexpr uint32_t kMinDMXPacketTime = 1196;
 
-  // The maximum allowed IDLE and Mark before BREAK (MBB) time,
+  // The maximum allowed IDLE and MARK before BREAK (MBB) time,
   // in microseconds, exclusive.
   static constexpr uint32_t kMaxDMXIdleTime = 1000000;
 
@@ -757,7 +757,7 @@ class Sender final : public TeensyDMX {
   // The default duration is 20us.
   void setMABTime(uint32_t t);
 
-  // Returns this sender's Mark after BREAK (MAB) time, in microseconds. The
+  // Returns this sender's MARK after BREAK (MAB) time, in microseconds. The
   // value returned is dependent on whether a timer or serial parameters are
   // being used to generate the timing. In both cases, the actual time will
   // likely be larger than the return value due to some UART intricacies.
@@ -1105,7 +1105,7 @@ class Sender final : public TeensyDMX {
   volatile bool breakUseTimer_;  // Whether to use a timer or serial parameters
                                  // for BREAK/MAB times
 
-  // Mark time between slots
+  // MARK time between slots
   volatile uint32_t interSlotTime_;
   volatile uint32_t adjustedInterSlotTime_;
 

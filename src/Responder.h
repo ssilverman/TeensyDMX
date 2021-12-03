@@ -31,7 +31,7 @@ class Responder {
     return 0;
   }
 
-  // Gets the Mark after BREAK time, in microseconds. This returns zero
+  // Gets the MARK after BREAK time, in microseconds. This returns zero
   // by default. The actual MAB time may be slightly longer.
   virtual uint32_t mabTime() const {
     return 0;
