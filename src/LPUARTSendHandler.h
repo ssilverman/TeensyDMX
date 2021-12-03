@@ -71,9 +71,10 @@ class LPUARTSendHandler final : public SendHandler {
   void setCompleting() const;
 
   // Timer handling
-  void breakTimerCallback() const;     // Called when the timer triggers
-  void breakTimerPreCallback() const;  // Called just before the timer starts
-  void rateTimerCallback() const;      // Called after the MBB delay
+  void breakTimerCallback() const;      // When the timer triggers
+  void breakTimerPreCallback() const;   // Just before the timer starts
+  void interSlotTimerCallback() const;  // When the timer triggers
+  void rateTimerCallback() const;       // After the MBB delay
 
   PortType *port_;
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)

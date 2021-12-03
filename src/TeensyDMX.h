@@ -802,6 +802,18 @@ class Sender final : public TeensyDMX {
     return breakUseTimer_;
   }
 
+  // Sets the inter-slot MARK time, in microseconds. If a timer is unavailable
+  // then no inter-slot delay will be applied.
+  //
+  // Due to some system timing, the actual time may be longer.
+  //
+  // The default is zero.
+  void setInterSlotTime(uint32_t t);
+
+  // Returns the inter-slot MARK time, in microseconds.  The actual time will
+  // likely be larger than the return value due to some UART intricacies.
+  uint32_t interSlotTime() const;
+
   // Sets the transmit packet size, in number of channels plus the start code.
   // This returns `false` if the size is not in the range 1-513. Otherwise, this
   // returns `true`.
@@ -1022,10 +1034,11 @@ class Sender final : public TeensyDMX {
  private:
   // State that tracks what to transmit and when.
   enum class XmitStates {
-    kBreak,  // Need to transmit a BREAK
-    kMAB,    // Need to transmit a MAB
-    kData,   // Need to transmit data
-    kIdle,   // The end of data for one packet has been reached
+    kBreak,      // Need to transmit a BREAK
+    kMAB,        // Need to transmit a MAB
+    kData,       // Need to transmit data
+    kInterSlot,  // May need to wait for inter-slot time
+    kIdle,       // The end of data for one packet has been reached
   };
 
   // Interrupt lock that uses RAII to disable and enable the UART interrupts.
@@ -1091,6 +1104,10 @@ class Sender final : public TeensyDMX {
   uint32_t breakFormat_;
   volatile bool breakUseTimer_;  // Whether to use a timer or serial parameters
                                  // for BREAK/MAB times
+
+  // Mark time between slots
+  volatile uint32_t interSlotTime_;
+  volatile uint32_t adjustedInterSlotTime_;
 
   // The size of the packet to be sent.
   volatile int activePacketSize_;

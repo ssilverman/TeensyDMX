@@ -114,6 +114,12 @@ void LPUARTSendHandler::breakTimerPreCallback() const {
   sender_->breakStartTime_ = micros();
 }
 
+void LPUARTSendHandler::interSlotTimerCallback() const {
+  sender_->intervalTimer_.end();
+  sender_->state_ = Sender::XmitStates::kData;
+  setActive();
+}
+
 void LPUARTSendHandler::rateTimerCallback() const {
   sender_->intervalTimer_.end();
   setActive();
@@ -156,19 +162,37 @@ void LPUARTSendHandler::irqHandler() const {
 
       case Sender::XmitStates::kData:
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)
-        do {
+        if (sender_->interSlotTime_ == 0) {
+          do {
+            if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
+              setCompleting();
+              break;
+            }
+            port_->DATA = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
+          } while (((port_->WATER >> 8) & 0x07) < fifoSize_);  // TXCOUNT
+        } else {
+          // Don't use the FIFO
           if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
             setCompleting();
-            break;
+          } else {
+            port_->DATA = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
+            if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
+              setCompleting();
+            } else {
+              sender_->state_ = Sender::XmitStates::kInterSlot;
+              setCompleting();
+            }
           }
-          port_->DATA = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
-        } while (((port_->WATER >> 8) & 0x07) < fifoSize_);  // TXCOUNT
+        }
 #else  // No FIFO
         if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
           setCompleting();
         } else {
           port_->DATA = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
           if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
+            setCompleting();
+          } else if (sender_->interSlotTime_ != 0) {
+            sender_->state_ = Sender::XmitStates::kInterSlot;
             setCompleting();
           }
         }
@@ -230,6 +254,16 @@ void LPUARTSendHandler::irqHandler() const {
 
       case Sender::XmitStates::kData:
         sender_->completePacket();
+        break;
+
+      case Sender::XmitStates::kInterSlot:
+        setInactive();
+        if (sender_->intervalTimer_.begin(
+                [this]() { interSlotTimerCallback(); },
+                sender_->adjustedInterSlotTime_)) {
+          return;
+        }
+        sender_->state_ = Sender::XmitStates::kData;
         break;
 
       case Sender::XmitStates::kIdle:

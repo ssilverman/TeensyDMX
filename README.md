@@ -34,7 +34,8 @@ Teensy LC, and Teensy 4. It follows the
          1. [A note on BREAK timing](#a-note-on-break-timing)
          2. [A note on MAB timing](#a-note-on-mab-timing)
       2. [BREAK/MAB times using serial parameters](#breakmab-times-using-serial-parameters)
-   6. [Error handling in the API](#error-handling-in-the-api)
+   6. [Inter-slot MARK time](#inter-slot-mark-time)
+   7. [Error handling in the API](#error-handling-in-the-api)
 6. [Technical notes](#technical-notes)
    1. [Simultaneous transmit and receive](#simultaneous-transmit-and-receive)
    2. [Transmission rate](#transmission-rate)
@@ -640,6 +641,13 @@ one full character.
 
 This mode is also used as a fallback if the system doesn't have the
 timers available.
+
+### Inter-slot MARK time
+
+The inter-slot MARK time can be set with the `setInterSlotTime` function and
+retrieved using the `interSlotTime()` function. Note that the MARK time should
+be accurate to within one or two bit times due to internal UART details. See
+[A note on MAB timing](#a-note-on-mab-timing) for more information.
 
 ### Error handling in the API
 

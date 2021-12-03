@@ -72,6 +72,23 @@ constexpr uint32_t kMABTimerAdjust = 1;
 constexpr uint32_t kMABTimerAdjust = 0;
 #endif  // Which chip?
 
+// Empirically observed inter-slot timer adjustment constants, for 40us. The
+// timer adjust values are subtracted from the requested value to get the
+// actual value.
+#if defined(__MK20DX128__) || defined(__MK20DX256__)
+constexpr uint32_t kInterSlotTimerAdjust = 9;
+#elif defined(__MKL26Z64__)
+constexpr uint32_t kInterSlotTimerAdjust = 23;
+#elif defined(__MK64FX512__)
+constexpr uint32_t kInterSlotTimerAdjust = 9;
+#elif defined(__MK66FX1M0__)
+constexpr uint32_t kInterSlotTimerAdjust = 6;
+#elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
+constexpr uint32_t kInterSlotTimerAdjust = 2;
+#else
+constexpr uint32_t kInterSlotTimerAdjust = 0;
+#endif  // Which chip?
+
 // TX ISR routines
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
 void uart0_tx_isr();
@@ -157,6 +174,8 @@ Sender::Sender(HardwareSerial &uart)
       breakBaud_(kDefaultBreakBaud),
       breakFormat_(kDefaultBreakFormat),
       breakUseTimer_(false),
+      interSlotTime_(0),
+      adjustedInterSlotTime_(0),
       activePacketSize_(kMaxDMXPacketSize),
       inactivePacketSize_(kMaxDMXPacketSize),
       refreshRate_(std::numeric_limits<float>::infinity()),
@@ -366,7 +385,7 @@ uint32_t Sender::breakTime() const {
 
 void Sender::setMABTime(uint32_t t) {
   mabTime_ = t;
-  if (t < kMABTimerAdjust) {
+  if (t <= kMABTimerAdjust) {
     adjustedMABTime_ = 0;
   } else {
     adjustedMABTime_ = t - kMABTimerAdjust;
@@ -441,6 +460,19 @@ bool Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
   breakFormat_ = format;
   sendHandler_->breakSerialParamsChanged();
   return true;
+}
+
+void Sender::setInterSlotTime(uint32_t t) {
+  interSlotTime_ = t;
+  if (t <= kInterSlotTimerAdjust) {
+    adjustedInterSlotTime_ = 0;
+  } else {
+    adjustedInterSlotTime_ = t - kInterSlotTimerAdjust;
+  }
+}
+
+uint32_t Sender::interSlotTime() const {
+  return interSlotTime_;
 }
 
 bool Sender::setPacketSize(int size) {

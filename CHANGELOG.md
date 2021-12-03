@@ -14,6 +14,8 @@ and this project adheres to
   define `USE_INTERVALTIMER` when building the library.
 * Added "dsb" instruction when clearing interrupts on Teensy 4. This guarantees
   that the interrupt flags are cleared before exiting the ISR.
+* Added a way to set the inter-slot MARK time. See `Sender::setInterSlotTime`
+  and `Sender::interSlotTime()`.
 
 ### Changed
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to

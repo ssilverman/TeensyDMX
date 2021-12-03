@@ -113,6 +113,12 @@ void UARTSendHandler::breakTimerPreCallback() const {
   sender_->breakStartTime_ = micros();
 }
 
+void UARTSendHandler::interSlotTimerCallback() const {
+  sender_->intervalTimer_.end();
+  sender_->state_ = Sender::XmitStates::kData;
+  setActive();
+}
+
 void UARTSendHandler::rateTimerCallback() const {
   sender_->intervalTimer_.end();
   setActive();
@@ -155,7 +161,7 @@ void UARTSendHandler::irqHandler() const {
 
       case Sender::XmitStates::kData:
 #if defined(KINETISK)
-        if (fifoSize_ > 1) {
+        if (fifoSize_ > 1 && sender_->interSlotTime_ == 0) {
           do {
             if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
               setCompleting();
@@ -164,12 +170,15 @@ void UARTSendHandler::irqHandler() const {
             port_->S1;
             port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
           } while (port_->TCFIFO < fifoSize_);  // Transmit Count
-        } else {  // No FIFO
+        } else {  // No FIFO or don't use the FIFO
           if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
             setCompleting();
           } else {
             port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
             if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
+              setCompleting();
+            } else if (sender_->interSlotTime_ != 0) {
+              sender_->state_ = Sender::XmitStates::kInterSlot;
               setCompleting();
             }
           }
@@ -180,6 +189,9 @@ void UARTSendHandler::irqHandler() const {
         } else {
           port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
           if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
+            setCompleting();
+          } else if (sender_->interSlotTime_ != 0) {
+            sender_->state_ = Sender::XmitStates::kInterSlot;
             setCompleting();
           }
         }
@@ -242,6 +254,17 @@ void UARTSendHandler::irqHandler() const {
       case Sender::XmitStates::kData:
         sender_->completePacket();
         break;
+
+      case Sender::XmitStates::kInterSlot: {
+        setInactive();
+        if (sender_->intervalTimer_.begin(
+                [this]() { interSlotTimerCallback(); },
+                sender_->adjustedInterSlotTime_)) {
+          return;
+        }
+        sender_->state_ = Sender::XmitStates::kData;
+        break;
+      }
 
       case Sender::XmitStates::kIdle:
         break;

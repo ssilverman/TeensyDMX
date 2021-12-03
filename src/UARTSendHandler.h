@@ -90,9 +90,10 @@ class UARTSendHandler final : public SendHandler {
   void setCompleting() const;
 
   // Timer handling
-  void breakTimerCallback() const;     // Called when the timer triggers
-  void breakTimerPreCallback() const;  // Called just before the timer starts
-  void rateTimerCallback() const;      // Called after the MBB delay
+  void breakTimerCallback() const;      // When the timer triggers
+  void breakTimerPreCallback() const;   // Just before the timer starts
+  void interSlotTimerCallback() const;  // When the timer triggers
+  void rateTimerCallback() const;       // After the MBB delay
 
   KINETISK_UART_t *port_;
 #if defined(KINETISK)
