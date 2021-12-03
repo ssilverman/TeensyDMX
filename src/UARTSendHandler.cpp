@@ -138,7 +138,7 @@ void UARTSendHandler::irqHandler() const {
                 [this]() { breakTimerCallback(); },
                 sender_->breakTime_,
                 [this]() { breakTimerPreCallback(); })) {
-#endif
+#endif  // USE_INTERVALTIMER
           // Not using a timer or starting it failed;
           // revert to the original way
           breakSerialParams_.apply(serialIndex_, port_);
@@ -183,7 +183,7 @@ void UARTSendHandler::irqHandler() const {
             setCompleting();
           }
         }
-#endif
+#endif  // KINETISK
         break;
 
       case Sender::XmitStates::kIdle: {

@@ -225,7 +225,7 @@ int freeRAM() {
 #else
   int v;
   intptr_t end = reinterpret_cast<intptr_t>(&v);
-#endif
+#endif  // __IMXRT1062__ || __IMXRT1052__
   return end - reinterpret_cast<intptr_t>(_sbrk(0));
 }
 

@@ -54,7 +54,7 @@ extern void unused_interrupt_vector(void);
 static void (*oldISR)(void) = unused_interrupt_vector;
 static uint8_t oldPriority = 128;
 }
-#endif
+#endif  // Which chip?
 
 namespace qindesign {
 namespace teensydmx {

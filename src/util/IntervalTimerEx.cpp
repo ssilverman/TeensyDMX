@@ -24,7 +24,7 @@ void (*IntervalTimerEx::relays_[4])(void){
     []() { if (callbacks_[2] != nullptr) { callbacks_[2](); } },
     []() { if (callbacks_[3] != nullptr) { callbacks_[3](); } },
 };
-#endif
+#endif  // KINETISL
 
 IntervalTimerEx::~IntervalTimerEx() {
   end();

@@ -66,7 +66,7 @@ void UARTReceiveHandler::start() {
   // can set to the same priority.
   NVIC_SET_PRIORITY(errorIRQ_, NVIC_GET_PRIORITY(irq_));
   NVIC_ENABLE_IRQ(errorIRQ_);
-#endif
+#endif  // KINETISK
 }
 
 #undef UART_C2_RX_ENABLE
@@ -77,7 +77,7 @@ void UARTReceiveHandler::end() const {
 #if defined(KINETISK)
   port_->C3 &= ~UART_C3_FEIE;
   NVIC_DISABLE_IRQ(errorIRQ_);
-#endif
+#endif  // KINETISK
 }
 
 void UARTReceiveHandler::setTXEnabled(bool flag) const {
@@ -115,7 +115,7 @@ void UARTReceiveHandler::setIRQState(bool flag) const {
   } else {
     NVIC_DISABLE_IRQ(irq_);
   }
-#endif
+#endif  // KINETISK
 }
 
 int UARTReceiveHandler::priority() const {
@@ -142,7 +142,7 @@ void UARTReceiveHandler::irqHandler() const {
       // because it's read next
       // port_->D;
     }
-#endif
+#endif  // KINETISL
 
 #if defined(KINETISK)
     if (rxFIFOSize_ > 1) {
@@ -159,7 +159,7 @@ void UARTReceiveHandler::irqHandler() const {
         }
       }
     }
-#endif
+#endif  // KINETISK
 
     if (port_->D == 0) {
       receiver_->receivePotentialBreak(eventTime);
@@ -198,7 +198,7 @@ void UARTReceiveHandler::irqHandler() const {
         // In the NOTE part.
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
         bool errFlag = false;
-#endif
+#endif  // __MK20DX128__ || __MK20DX256__
         while (--avail > 0) {
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
           // Check that the 9th bit is high; used as the first stop bit
@@ -206,7 +206,7 @@ void UARTReceiveHandler::irqHandler() const {
             errFlag = true;
             receiver_->receiveBadBreak();
           }
-#endif
+#endif  // __MK20DX128__ || __MK20DX256__
           receiver_->receiveByte(port_->D, timestamp += kCharTime);
         }
         port_->S1;
@@ -214,7 +214,7 @@ void UARTReceiveHandler::irqHandler() const {
         if (!errFlag && (port_->C3 & UART_C3_R8) == 0) {
           receiver_->receiveBadBreak();
         }
-#endif
+#endif  // __MK20DX128__ || __MK20DX256__
         receiver_->receiveByte(port_->D, timestamp + kCharTime);
         if (idle) {  // Also capture any IDLE event
           receiver_->receiveIdle(eventTime);
@@ -230,7 +230,7 @@ void UARTReceiveHandler::irqHandler() const {
       if ((port_->C3 & UART_C3_R8) == 0) {
         receiver_->receiveBadBreak();
       }
-#endif
+#endif  // __MK20DX128__ || __MK20DX256__
       receiver_->receiveByte(port_->D, eventTime);
     } else if ((status & UART_S1_IDLE) != 0) {
       receiver_->receiveIdle(eventTime);
@@ -251,7 +251,7 @@ void UARTReceiveHandler::irqHandler() const {
       port_->D;
     }
   }
-#endif
+#endif  // KINETISK
 }
 
 void UARTReceiveHandler::txData(const uint8_t *b, int len) const {
@@ -275,7 +275,7 @@ void UARTReceiveHandler::txData(const uint8_t *b, int len) const {
         len--;
       }
     }
-#endif
+#endif // KINETISK
   }
 
   while ((port_->S1 & UART_S1_TC) == 0) {
@@ -290,7 +290,7 @@ void UARTReceiveHandler::txBreak(uint32_t breakTime, uint32_t mabTime) const {
       // Wait for the FIFO to drain
     }
   }
-#endif
+#endif  // KINETISK
 
   while ((port_->S1 & UART_S1_TC) == 0) {
     // Wait until we can transmit

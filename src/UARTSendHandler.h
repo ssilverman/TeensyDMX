@@ -25,7 +25,7 @@ class UARTSendHandler final : public SendHandler {
 #if defined(KINETISK)
         fifoSizeSet_(false),
         fifoSize_(1),
-#endif
+#endif  // KINETISK
         irq_(irq),
         irqHandler_(irqHandler),
         slotsSerialParamsSet_(false) {}
@@ -66,7 +66,7 @@ class UARTSendHandler final : public SendHandler {
       }
 #else
       c4 = port->C4;
-#endif
+#endif  // __MKL26Z64__
     }
 
     void apply(int serialIndex, KINETISK_UART_t *port) const {
@@ -81,7 +81,7 @@ class UARTSendHandler final : public SendHandler {
       }
 #else
       port->C4 = c4;
-#endif
+#endif  // __MKL26Z64__
     }
   };
 
@@ -98,7 +98,7 @@ class UARTSendHandler final : public SendHandler {
 #if defined(KINETISK)
   bool fifoSizeSet_;
   uint8_t fifoSize_;
-#endif
+#endif  // KINETISK
   IRQ_NUMBER_t irq_;
   void (*irqHandler_)();
 

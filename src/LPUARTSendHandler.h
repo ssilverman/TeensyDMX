@@ -12,7 +12,7 @@ using PortType = IMXRT_LPUART_t;
 #elif defined(__MK66FX1M0__)
 #include <kinetis.h>
 using PortType = KINETISK_LPUART_t;
-#endif
+#endif  // Which chip?
 
 #include "SendHandler.h"
 

@@ -172,7 +172,7 @@ void LPUARTSendHandler::irqHandler() const {
             setCompleting();
           }
         }
-#endif
+#endif  // __IMXRT1062__ || __IMXRT1052__
         break;
 
       case Sender::XmitStates::kIdle: {

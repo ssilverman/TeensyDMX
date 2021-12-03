@@ -22,7 +22,7 @@ class UARTReceiveHandler final : public ReceiveHandler {
                      IRQ_NUMBER_t irq,
 #if defined(KINETISK)
                      IRQ_NUMBER_t errorIRQ,
-#endif
+#endif  // KINETISK
                      void (*irqHandler)())
       : ReceiveHandler(serialIndex, receiver),
         port_(port),
@@ -30,11 +30,11 @@ class UARTReceiveHandler final : public ReceiveHandler {
         fifoSizesSet_(false),
         rxFIFOSize_(1),
         txFIFOSize_(1),
-#endif
+#endif  // KINETISK
         irq_(irq),
 #if defined(KINETISK)
         errorIRQ_(errorIRQ),
-#endif
+#endif  // KINETISK
         irqHandler_(irqHandler) {}
 
   ~UARTReceiveHandler() override = default;
@@ -55,11 +55,11 @@ class UARTReceiveHandler final : public ReceiveHandler {
   bool fifoSizesSet_;
   uint8_t rxFIFOSize_;
   uint8_t txFIFOSize_;
-#endif
+#endif  // KINETISK
   IRQ_NUMBER_t irq_;
 #if defined(KINETISK)
   IRQ_NUMBER_t errorIRQ_;
-#endif
+#endif  // KINETISK
   void (*irqHandler_)();
 };
 

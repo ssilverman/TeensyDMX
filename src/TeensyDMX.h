@@ -601,10 +601,10 @@ class Receiver final : public TeensyDMX {
 
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__) || defined(__MK66FX1M0__)
   friend class LPUARTReceiveHandler;
-#endif
+#endif  // __IMXRT1062__ || __IMXRT1052__ || __MK66FX1M0__
 #if defined(KINETISK) || defined(KINETISL)
   friend class UARTReceiveHandler;
-#endif
+#endif  // KINETISK || KINETISL
 
   // RX pin change ISRs
   friend void rxPinFellSerial0_isr();
@@ -624,7 +624,7 @@ class Receiver final : public TeensyDMX {
 #if defined(__IMXRT1062__)
   friend void rxPinFellSerial7_isr();
   friend void rxPinRoseSerial7_isr();
-#endif
+#endif  // __IMXRT1062__
 
   // These error ISRs need to access private functions
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
@@ -730,7 +730,7 @@ class Sender final : public TeensyDMX {
   void setBreakTime(uint32_t t) {
     breakTime_ = t;
   }
-#endif
+#endif  // USE_INTERVALTIMER
 
   // Returns this sender's BREAK time, in microseconds. The value returned is
   // dependent on whether a timer or serial parameters are being used to
@@ -1123,10 +1123,10 @@ class Sender final : public TeensyDMX {
 
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__) || defined(__MK66FX1M0__)
   friend class LPUARTSendHandler;
-#endif
+#endif  // __IMXRT1062__ || __IMXRT1052__ || __MK66FX1M0__
 #if defined(KINETISK) || defined(KINETISL)
   friend class UARTSendHandler;
-#endif
+#endif  // KINETISK || KINETISL
 
   // These error ISRs need to access private functions
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)

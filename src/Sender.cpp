@@ -53,7 +53,7 @@ constexpr uint32_t kBreakTimerAdjust = 1;
 constexpr uint32_t kBreakTimerAdjust = 0;
 #else
 constexpr uint32_t kBreakTimerAdjust = 0;
-#endif
+#endif  // Which chip?
 #endif  // USE_INTERVALTIMER
 
 // Empirically observed MAB generation adjustment constants, for 20us. The timer
@@ -70,7 +70,7 @@ constexpr uint32_t kMABTimerAdjust = 4;
 constexpr uint32_t kMABTimerAdjust = 1;
 #else
 constexpr uint32_t kMABTimerAdjust = 0;
-#endif
+#endif  // Which chip?
 
 // TX ISR routines
 #if defined(HAS_KINETISK_UART0) || defined(HAS_KINETISL_UART0)
@@ -350,13 +350,13 @@ uint32_t Sender::breakTime() const {
     defined(__IMXRT1062__) || defined(__IMXRT1052__)
     case SERIAL_8E2: t = 10; break;
     case SERIAL_8O2: t = 9; break;
-#endif
+#endif  // Serial 8E2- and 8O2-supporting chips
     case SERIAL_7O1: t = 8; break;
 #ifdef SERIAL_9BIT_SUPPORT
     case SERIAL_9N1:
     case SERIAL_9O1: t = 10; break;
     case SERIAL_9E1: t = 11; break;
-#endif
+#endif  // SERIAL_9BIT_SUPPORT
     default:
       return kDefaultBreakTime;
   }
@@ -391,12 +391,12 @@ uint32_t Sender::mabTime() const {
     defined(__IMXRT1062__) || defined(__IMXRT1052__)
     case SERIAL_8E2: t = 2; break;
     case SERIAL_8O2: t = 3; break;
-#endif
+#endif  // Serial 8E2- and 8O2-supporting chips
 #ifdef SERIAL_9BIT_SUPPORT
     case SERIAL_9N1:
     case SERIAL_9E1: t = 1; break;
     case SERIAL_9O1: t = 2; break;
-#endif
+#endif  // SERIAL_9BIT_SUPPORT
     default:
       return kDefaultMABTime;
   }
@@ -425,12 +425,12 @@ bool Sender::setBreakSerialParams(uint32_t baud, uint32_t format) {
     defined(__IMXRT1062__) || defined(__IMXRT1052__)
     case SERIAL_8E2:
     case SERIAL_8O2:
-#endif
+#endif  // Serial 8E2- and 8O2-supporting chips
 #ifdef SERIAL_9BIT_SUPPORT
     case SERIAL_9N1:
     case SERIAL_9E1:
     case SERIAL_9O1:
-#endif
+#endif  // SERIAL_9BIT_SUPPORT
       break;
 
     default:

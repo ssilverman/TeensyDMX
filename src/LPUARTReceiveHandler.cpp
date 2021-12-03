@@ -111,7 +111,7 @@ void LPUARTReceiveHandler::irqHandler() const {
         receiver_->receiveByte(port_->DATA, timestamp += kCharTime);
       }
     }
-#endif
+#endif  // __IMXRT1062__ || __IMXRT1052__
 
     // 32-bit data, so only look at the bottom 8 bits
     if ((port_->DATA & 0xff) == 0) {
@@ -156,7 +156,7 @@ void LPUARTReceiveHandler::irqHandler() const {
     receiver_->receiveIdle(eventTime);
     port_->STAT |= LPUART_STAT_IDLE;  // Clear the flag
   }
-#endif
+#endif  // __IMXRT1062__ || __IMXRT1052__
 }
 
 void LPUARTReceiveHandler::txData(const uint8_t *b, int len) const {
@@ -177,7 +177,7 @@ void LPUARTReceiveHandler::txData(const uint8_t *b, int len) const {
       port_->DATA = *(b++);
       len--;
     }
-#endif
+#endif  // __IMXRT1062__ || __IMXRT1052__
   }
 
   while ((port_->STAT & LPUART_STAT_TC) == 0) {
@@ -190,7 +190,7 @@ void LPUARTReceiveHandler::txBreak(uint32_t breakTime, uint32_t mabTime) const {
   while (((port_->WATER >> 8) & 0x07) > 0) {  // TXCOUNT
     // Wait for the FIFO to drain
   }
-#endif
+#endif  // __IMXRT1062__ || __IMXRT1052__
 
   while ((port_->STAT & LPUART_STAT_TC) == 0) {
     // Wait until we can transmit
