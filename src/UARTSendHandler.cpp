@@ -176,11 +176,11 @@ void UARTSendHandler::irqHandler() const {
         }
 #else  // No FIFO
         if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-          port_->C2 = UART_C2_TX_COMPLETING;
+          setCompleting();
         } else {
           port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
           if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-            port_->C2 = UART_C2_TX_COMPLETING;
+            setCompleting();
           }
         }
 #endif
