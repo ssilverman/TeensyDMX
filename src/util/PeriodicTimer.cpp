@@ -326,7 +326,12 @@ void PeriodicTimer::end() {
   }
   attachInterruptVector(static_cast<IRQ_NUMBER_t>(IRQ_PIT_CH0 + index),
                         oldISRs[index]);
-  NVIC_SET_PRIORITY(IRQ_PIT_CH0 + index, oldPriorities[index]);
+  if (oldISRs[index] != unused_isr) {
+    // TODO: Somehow re-setting the priority to the old one does something
+    //       odd if we don't have this check and we re-use the timer. I don't
+    //       understand why.
+    NVIC_SET_PRIORITY(IRQ_PIT_CH0 + index, oldPriorities[index]);
+  }
 #elif defined(KINETISL)
   int index = channel_ - KINETISK_PIT_CHANNELS;
   funcs[index] = nullptr;
