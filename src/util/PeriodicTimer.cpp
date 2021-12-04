@@ -33,11 +33,23 @@ namespace std {
 }  // namespace std
 
 #if defined(KINETISK)
+static constexpr int kNumChannels = 4;
+
 extern "C" {
 extern void unused_isr(void);
 
-static void (*oldISRs[4])(void){unused_isr, unused_isr, unused_isr, unused_isr};
-static uint8_t oldPriorities[4]{128, 128, 128, 128};
+static void (*oldISRs[kNumChannels])(void){
+    unused_isr,
+    unused_isr,
+    unused_isr,
+    unused_isr,
+};
+static uint8_t oldPriorities[kNumChannels]{
+    128,
+    128,
+    128,
+    128,
+};
 }
 #elif defined(KINETISL)
 extern "C" {
@@ -75,7 +87,12 @@ static void my_pit0_isr();
 static void my_pit1_isr();
 static void my_pit2_isr();
 static void my_pit3_isr();
-static constexpr int kNumChannels = 4;
+static void (*myISRs[kNumChannels])(){
+    my_pit0_isr,
+    my_pit1_isr,
+    my_pit2_isr,
+    my_pit3_isr,
+};
 static std::function<void()> funcs[kNumChannels]{
     nullptr,
     nullptr,
@@ -267,20 +284,8 @@ bool PeriodicTimer::beginCycles(std::function<void()> func, uint32_t cycles,
 #if defined(KINETISK)
   oldISRs[index] = _VectorsRam[IRQ_PIT_CH0 + index + 16];
   oldPriorities[index] = NVIC_GET_PRIORITY(IRQ_PIT_CH0 + index);
-  switch (index) {
-    case 0:
-      attachInterruptVector(IRQ_PIT_CH0, &my_pit0_isr);
-      break;
-    case 1:
-      attachInterruptVector(IRQ_PIT_CH1, &my_pit1_isr);
-      break;
-    case 2:
-      attachInterruptVector(IRQ_PIT_CH2, &my_pit2_isr);
-      break;
-    case 3:
-      attachInterruptVector(IRQ_PIT_CH3, &my_pit3_isr);
-      break;
-  }
+  attachInterruptVector(static_cast<IRQ_NUMBER_t>(IRQ_PIT_CH0 + index),
+                        myISRs[index]);
   NVIC_SET_PRIORITY(IRQ_PIT_CH0 + index, priority_);
   NVIC_ENABLE_IRQ(IRQ_PIT_CH0 + index);
 #elif defined(KINETISL)
