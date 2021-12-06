@@ -911,6 +911,24 @@ class Sender final : public TeensyDMX {
   // upper limit is equal to `kDMXMaxPacketSize-1`.
   bool fill(int startChannel, int len, uint8_t value);
 
+  // Sets the MBB time, in microseconds. If a timer is unavailable then no MBB
+  // delay will be applied. Note that there will always be some minimum
+  // transmitted MBB due to how the code and UART interact.
+  //
+  // If the refresh rate is set as well then the actual MBB time will be
+  // whichever makes the packet larger. For example, if the MBB is set to 100us,
+  // but adding this to the packet would result in a rate that's slower than
+  // specified, then 100us is used. On the other hand, if adding the same MBB
+  // would make the specified rate faster, then enough additional time will be
+  // added so that the rate is correct.
+  //
+  // The default duration is zero.
+  void setMBBTime(uint32_t t);
+
+  // Returns this sender's MARK before BREAK (MBB) time, in microseconds. The
+  // default value is zero.
+  uint32_t mbbTime() const;
+
   // Sets the packet refresh rate. This returns `false` for negative and NaN
   // values, and `true` otherwise. The default is INFINITY, indicating "as fast
   // as possible".
@@ -934,6 +952,11 @@ class Sender final : public TeensyDMX {
   // ~44.099Hz. The minimum allowed BREAK-to-BREAK time is 1204us, so for a
   // packet having all minimum timings, this means that a minimum 25-slot packet
   // can be sent at a refresh rate of ~830.56Hz.
+  //
+  // If the MBB time is also specified and it would conflict with the desired
+  // rate, then the larger of the two possible MBB times will be used to achieve
+  // either the specified rate or the specified MBB. See `setMBBTime` for
+  // more information.
   bool setRefreshRate(float rate);
 
   // Returns the packet refresh rate. The default is INFINITY, indicating
@@ -1112,6 +1135,10 @@ class Sender final : public TeensyDMX {
   // The size of the packet to be sent.
   volatile int activePacketSize_;
   volatile int inactivePacketSize_;
+
+  // MBB
+  volatile uint32_t mbbTime_;
+  volatile uint32_t adjustedMBBTime_;
 
   // The packet refresh rate, in Hz.
   float refreshRate_;

@@ -35,7 +35,8 @@ Teensy LC, and Teensy 4. It follows the
          2. [A note on MAB timing](#a-note-on-mab-timing)
       2. [BREAK/MAB times using serial parameters](#breakmab-times-using-serial-parameters)
    6. [Inter-slot MARK time](#inter-slot-mark-time)
-   7. [Error handling in the API](#error-handling-in-the-api)
+   7. [MBB time](#mbb-time)
+   8. [Error handling in the API](#error-handling-in-the-api)
 6. [Technical notes](#technical-notes)
    1. [Simultaneous transmit and receive](#simultaneous-transmit-and-receive)
    2. [Transmission rate](#transmission-rate)
@@ -501,6 +502,11 @@ about 44Hz, no matter how high it's set. The default is, in fact, `INFINITY`.
 
 This can be changed at any time.
 
+If the MBB time is also specified and it would conflict with the desired rate,
+then the larger of the two possible MBB times will be used to achieve either the
+specified rate or the specified MBB. See [MBB time](#mbb-time) for
+more information.
+
 ### Synchronous operation by pausing and resuming
 
 `Sender` is an asynchronous packet transmitter; packets are always being sent.
@@ -648,6 +654,23 @@ The inter-slot MARK time can be set with the `setInterSlotTime` function and
 retrieved using the `interSlotTime()` function. Note that the MARK time should
 be accurate to within one or two bit times due to internal UART details. See
 [A note on MAB timing](#a-note-on-mab-timing) for more information.
+
+### MBB time
+
+The MARK before BREAK (MBB) time can be set with the `setMBBTime` function and
+retrieved using the `mbbTime()` function. Note that the time should be accurate
+to within one or two bit times due to internal UART details. See
+[A note on MAB timing](#a-note-on-mab-timing) for more information.
+
+Note also that there will always be some minimum transmitted MBB due to how the
+code and UART interact.
+
+If the refresh rate is set as well then the actual MBB time will be whichever
+makes the packet larger. For example, if the MBB is set to 100us, but adding
+this to the packet would result in a rate that's slower than specified, then
+100us is used. On the other hand, if adding the same MBB would make the
+specified rate faster, then enough additional time will be added so that the
+rate is correct.
 
 ### Error handling in the API
 

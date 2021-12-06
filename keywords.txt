@@ -51,6 +51,8 @@ set	KEYWORD2
 set16Bit	KEYWORD2
 clear	KEYWORD2
 fill	KEYWORD2
+setMBBTime	KEYWORD2
+mbbTime	KEYWORD2
 setRefreshRate	KEYWORD2
 refreshRate	KEYWORD2
 pause	KEYWORD2

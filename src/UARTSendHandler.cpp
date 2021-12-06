@@ -214,22 +214,27 @@ void UARTSendHandler::irqHandler() const {
         sender_->state_ = Sender::XmitStates::kBreak;
 
         // Delay so that we can achieve the specified refresh rate
+        // including the MBB
         uint32_t timeSinceBreak = micros() - sender_->breakStartTime_;
-        if (timeSinceBreak < sender_->breakToBreakTime_) {
+        if (sender_->breakToBreakTime_ == UINT32_MAX) {
+          // Infinite BREAK time
           setInactive();
-          if (sender_->breakToBreakTime_ != UINT32_MAX) {
-            // Non-infinite break time
-            if (!sender_->intervalTimer_.begin(
-                    [this]() { rateTimerCallback(); },
-                    sender_->breakToBreakTime_ - timeSinceBreak)) {
-              // If starting the timer failed
-              setActive();
-            }
-          }
-        } else {
-          // No delay necessary
-          setActive();
+          return;
         }
+        uint32_t delay = sender_->adjustedMBBTime_;
+        if (timeSinceBreak + delay < sender_->breakToBreakTime_) {
+          delay = sender_->breakToBreakTime_ - timeSinceBreak;
+        }
+        if (delay > 0) {
+          setInactive();
+          if (sender_->intervalTimer_.begin(
+                  [this]() { rateTimerCallback(); },
+                  delay)) {
+            return;
+          }
+        }
+        // Starting the timer failed or no delay is necessary
+        setActive();
         break;
       }
 

@@ -16,6 +16,8 @@ and this project adheres to
   that the interrupt flags are cleared before exiting the ISR.
 * Added a way to set the inter-slot MARK time. See `Sender::setInterSlotTime`
   and `Sender::interSlotTime()`.
+* Added a way to set the MARK before BREAK (MBB) time. See `Sender::setMBBTime`
+  and `Sender::mbbTime()`.
 
 ### Changed
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to
