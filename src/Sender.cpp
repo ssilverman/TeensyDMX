@@ -91,22 +91,34 @@ constexpr uint32_t kInterSlotTimerAdjust = 0;
 
 // Empirically observed MBB timer adjustment constants. The timer adjust values
 // are subtracted from the requested value to get the actual value.
+// kMBBTimerMin: When the delay is zero
+// kMBBTimerMinAdjusted: Minimum delay for there not to be an error
+//     Some delays don't cause a delay for some reason. Perhaps this is because
+//     the timer is reused too quickly? Or maybe it's due to the design
+//     of PeriodicTimer?
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
-// Min = 24
+constexpr uint32_t kMBBTimerMin = 24;
+constexpr uint32_t kMBBTimerMinAdjusted = 1;
 constexpr uint32_t kMBBTimerAdjust = 29;
 #elif defined(__MKL26Z64__)
-// Min = 119
+constexpr uint32_t kMBBTimerMin = 119;
+constexpr uint32_t kMBBTimerMinAdjusted = 4;
 constexpr uint32_t kMBBTimerAdjust = 133;  // At 4us
 #elif defined(__MK64FX512__)
-// Min = 19
+constexpr uint32_t kMBBTimerMin = 19;
+constexpr uint32_t kMBBTimerMinAdjusted = 2;
 constexpr uint32_t kMBBTimerAdjust = 22;
 #elif defined(__MK66FX1M0__)
-// Min = 11
+constexpr uint32_t kMBBTimerMin = 11;
+constexpr uint32_t kMBBTimerMinAdjusted = 1;
 constexpr uint32_t kMBBTimerAdjust = 13;
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
-// Min = 2
+constexpr uint32_t kMBBTimerMin = 2;
+constexpr uint32_t kMBBTimerMinAdjusted = 1;
 constexpr uint32_t kMBBTimerAdjust = 4;
 #else
+constexpr uint32_t kMBBTimerMin = 0;
+constexpr uint32_t kMBBTimerMinAdjusted = 0;
 constexpr uint32_t kMBBTimerAdjust = 0;
 #endif  // Which chip?
 
@@ -602,8 +614,10 @@ bool Sender::fill(int startChannel, int len, uint8_t value) {
 
 void Sender::setMBBTime(uint32_t t) {
   mbbTime_ = t;
-  if (t <= kMBBTimerAdjust) {
+  if (t <= kMBBTimerMin) {
     adjustedMBBTime_ = 0;
+  } else if (t <= kMBBTimerMinAdjusted + kMBBTimerAdjust) {
+    adjustedMBBTime_ = kMBBTimerMinAdjusted;
   } else {
     adjustedMBBTime_ = t - kMBBTimerAdjust;
   }
