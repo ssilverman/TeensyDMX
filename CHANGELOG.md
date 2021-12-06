@@ -9,9 +9,11 @@ and this project adheres to
 ## [4.3.0]
 
 ### Added
-* Added a way to internally use the `IntervalTimer` API instead of our own PIT
-  timer API (`PeriodicTimer`) to avoid conflicts with other libraries:
-  define `USE_INTERVALTIMER` when building the library.
+* Provided an option to replace internal use of the Teensy library's
+  `IntervalTimer` API with our own custom `PeriodicTimer` API (see
+  v4.1.0-beta.2). This improves transmitted BREAK time accuracy (when using a
+  timer and not serial parameters). Set the global `USE_PERIODICTIMER` define
+  when building to use this timer API instead.
 * Added "dsb" instruction when clearing interrupts on Teensy 4. This guarantees
   that the interrupt flags are cleared before exiting the ISR.
 * Added a way to set the inter-slot MARK time. See `Sender::setInterSlotTime`
@@ -23,12 +25,6 @@ and this project adheres to
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to
   `ATOMIC_BLOCK(ATOMIC_RESTORESTATE)` so that interrupts are not enabled
   inappropriately, for example if the calling program had disabled them.
-* Replaced use of the Teensy library's `IntervalTimer` with the custom
-  `PeriodicTimer` from before. This improves transmitted BREAK time accuracy
-  (when using a timer and not serial parameters). This time, however, it's
-  possible, via a `USE_INTERVALTIMER` define, to use the `IntervalTimer`
-  internally to avoid PIT timer conflicts with other libraries.
-  * This reverts the change from v4.1.0-beta.2.
 
 ## [4.2.0]
 

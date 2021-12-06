@@ -132,7 +132,7 @@ void UARTSendHandler::irqHandler() const {
   if ((control & UART_C2_TIE) != 0 && (status & UART_S1_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
-#ifdef USE_INTERVALTIMER
+#ifndef USE_PERIODICTIMER
         if (sender_->breakUseTimer_ &&
             sender_->intervalTimer_.begin(
                 [this]() { breakTimerCallback(); },
@@ -144,7 +144,7 @@ void UARTSendHandler::irqHandler() const {
                 [this]() { breakTimerCallback(); },
                 sender_->breakTime_,
                 [this]() { breakTimerPreCallback(); })) {
-#endif  // USE_INTERVALTIMER
+#endif  // !USE_PERIODICTIMER
         } else {
           // Not using a timer or starting it failed;
           // revert to the original way
