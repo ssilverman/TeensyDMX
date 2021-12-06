@@ -134,17 +134,18 @@ void UARTSendHandler::irqHandler() const {
       case Sender::XmitStates::kBreak:
 #ifdef USE_INTERVALTIMER
         if (sender_->breakUseTimer_ &&
-            sender_->intervalTimer_.begin([this]() { breakTimerCallback(); },
-                                          sender_->adjustedBreakTime_)) {
+            sender_->intervalTimer_.begin(
+                [this]() { breakTimerCallback(); },
+                sender_->adjustedBreakTime_)) {
           breakTimerPreCallback();
-        } else {
 #else
-        if (!sender_->breakUseTimer_ ||
-            !sender_->intervalTimer_.begin(
+        if (sender_->breakUseTimer_ &&
+            sender_->intervalTimer_.begin(
                 [this]() { breakTimerCallback(); },
                 sender_->breakTime_,
                 [this]() { breakTimerPreCallback(); })) {
 #endif  // USE_INTERVALTIMER
+        } else {
           // Not using a timer or starting it failed;
           // revert to the original way
           breakSerialParams_.apply(serialIndex_, port_);
@@ -171,30 +172,24 @@ void UARTSendHandler::irqHandler() const {
             port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
           } while (port_->TCFIFO < fifoSize_);  // Transmit Count
         } else {  // No FIFO or don't use the FIFO
-          if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-            setCompleting();
-          } else {
+          if (sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) {
             port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
-            if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-              setCompleting();
-            } else if (sender_->interSlotTime_ != 0) {
+            if ((sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) &&
+                (sender_->interSlotTime_ != 0)) {
               sender_->state_ = Sender::XmitStates::kInterSlot;
-              setCompleting();
             }
           }
+          setCompleting();
         }
 #else  // No FIFO
-        if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-          setCompleting();
-        } else {
+        if (sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) {
           port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
-          if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
-            setCompleting();
-          } else if (sender_->interSlotTime_ != 0) {
+          if ((sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) &&
+              (sender_->interSlotTime_ != 0)) {
             sender_->state_ = Sender::XmitStates::kInterSlot;
-            setCompleting();
           }
         }
+        setCompleting();
 #endif  // KINETISK
         break;
 
@@ -217,7 +212,7 @@ void UARTSendHandler::irqHandler() const {
         // including the MBB
         uint32_t timeSinceBreak = micros() - sender_->breakStartTime_;
         if (sender_->breakToBreakTime_ == UINT32_MAX) {
-          // Infinite BREAK time
+          // Infinite BREAK to BREAK time
           setInactive();
           return;
         }
