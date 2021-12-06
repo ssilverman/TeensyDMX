@@ -750,9 +750,8 @@ line to remain high after that.
 
 ### Potential PIT timer conflicts
 
-This library internally uses PIT timers via a custom API (`PeriodicTimer`).
-While attempts have been made to reduce the chances of a conflict, a conflict
-might still occur with other libraries' use of the `IntervalTimer` API to
+This library internally uses PIT timers via a custom API (`PeriodicTimer`). A
+conflict might occur with other libraries' use of the `IntervalTimer` API to
 control the PIT timers. If that happens, define `USE_INTERVALTIMER` when
 building, and the library will revert to using the compatible API, at the
 expense of reduced transmitted BREAK timing.

@@ -30,10 +30,6 @@ namespace util {
 // limited number of them, so they are first come first served.
 //
 // This class is not safe in the presence of concurrency.
-//
-// This knows how to chain PIT timers created using IntervalTimer. The
-// caveat is that PeriodicTimer must be used after any IntervalTimer
-// uses. Similarly, PeriodicTimers must be destroyed first.
 class PeriodicTimer final {
  public:
   constexpr PeriodicTimer()

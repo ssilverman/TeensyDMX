@@ -27,11 +27,6 @@ and this project adheres to
   possible, via a `USE_INTERVALTIMER` define, to use the `IntervalTimer`
   internally to avoid PIT timer conflicts with other libraries.
   * This reverts the change from v4.1.0-beta.2.
-  * This time, it can chain calls to previously-set handlers. This might solve
-    some of the interoperability issues with other libraries that use
-    `IntervalTimer`, as long as they're started before anything that
-    uses `PeriodicTimer`. The fallback is to define `USE_INTERVALTIMER` when
-    building the project.
 
 ## [4.2.0]
 
