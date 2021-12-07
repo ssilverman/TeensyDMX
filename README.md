@@ -10,6 +10,7 @@ Teensy LC, and Teensy 4. It follows the
 
 1. [Features](#features)
    1. [Receiver timing limitations and RX line monitoring](#receiver-timing-limitations-and-rx-line-monitoring)
+   2. [Transmitter timing limitations](#transmitter-timing-limitations)
 2. [The TODO list](#the-todo-list)
 3. [How to use](#how-to-use)
    1. [Examples](#examples)
@@ -67,8 +68,8 @@ Some notable features of this library:
    adjacent to other packets. In other words, the asynchronous transmitter can
    be used synchronously. For example, System Information Packets (SIP) require
    this. See Annex D5 of ANSI E1.11.
-6. The transmitter BREAK and MAB times can be specified (where the actual MAB
-   time is something slightly larger than requested).
+6. The transmitter timing parameters can be specified: BREAK, MAB, inter-slot
+   MARK time, and MBB.
 7. The receiver checks for timeouts according to the DMX specification. It
    knows of the concept of being disconnected from a DMX transmitter when
    timeouts or bad BREAKs are encountered in the data stream.
@@ -106,6 +107,22 @@ This limitation does not exist if the RX line is monitored. To monitor the line,
 connect it to a digital I/O-capable pin and call `setRXWatchPin` with the pin
 number. The pin cannot be the same as the RX pin.
 
+### Transmitter timing limitations
+
+The transmitter uses a UART to control all the output. On the Teensy, the UART
+runs independently. This means that any specified timings won't necessarily be
+precise. They will often be accurate to within one or maybe two bit times. An
+effort has been made, however, to make sure that transmitted timings are at
+least as long as the requested timings.
+
+For example, if a 100us MAB is requested, the actual MAB may be 102 or 103us. If
+a 40us inter-slot time is requested, the actual time may be 44us. And so on.
+
+Additionally, certain timings will have a minimum length that can't be
+shortened, for example the MBB. This is simply due to code execution time
+interacting with the interrupt and UART subsystems. For example, on a Teensy LC,
+the minimum MBB is about 119us, even if the requested value is 0us.
+
 ## The TODO list
 
 These are either in the works or ideas for subsequent versions:
@@ -114,6 +131,7 @@ These are either in the works or ideas for subsequent versions:
    the UART ISR where responders process the packet.
 2. Better MAB transmit timing, perhaps by somehow synchronizing with the baud
    rate clock.
+3. Explore much more precise transmitter timings by not using the UART.
 
 ## How to use
 
