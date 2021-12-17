@@ -160,6 +160,10 @@ Examples that show how to use a synchronous packet handler in a receiver:
 * `SIPHandler`: Understands System Information Packets (SIP) (start code CFh)
 * `TextPacketHandler`: Understands text packets (start codes 17h and 90h)
 
+Transmitter timing examples:
+* `RegenerateDMX`: Regenerates received DMX onto a different serial port and
+  with different timings
+
 A more complex example showing how to behave as a DMX USB Pro Widget is
 in `USBProWidget`.
 
