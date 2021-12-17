@@ -164,6 +164,9 @@ Transmitter timing examples:
 * `RegenerateDMX`: Regenerates received DMX onto a different serial port and
   with different timings
 
+Other examples:
+* `FastLEDController`: Demonstrates DMX pixel output using FastLED
+
 A more complex example showing how to behave as a DMX USB Pro Widget is
 in `USBProWidget`.
 

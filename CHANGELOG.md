@@ -21,6 +21,7 @@ and this project adheres to
 * Added a way to set the MARK before BREAK (MBB) time. See `Sender::setMBBTime`
   and `Sender::mbbTime()`.
 * New `RegenerateDMX` example.
+* New `FastLEDController` example.
 
 ### Changed
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to
