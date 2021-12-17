@@ -50,8 +50,7 @@ namespace teensydmx = ::qindesign::teensydmx;
 // something smaller.
 //
 // The packet size template parameter includes the start code.
-template <HardwareSerial &UART,
-          int START_CHANNEL = 1,
+template <int START_CHANNEL = 1,
           EOrder RGB_ORDER = RGB,
           int PACKET_SIZE = 513>
 class CTeensyDMXLEDController : public CPixelLEDController<RGB_ORDER> {
@@ -70,10 +69,11 @@ class CTeensyDMXLEDController : public CPixelLEDController<RGB_ORDER> {
   // Recall that valid channels are 1-based.
   static constexpr int kMaxPixelChannel = START_CHANNEL + (kMaxPixels - 1)*3;
 
-  // Creates a new controller.
-  CTeensyDMXLEDController()
+  // Creates a new controller and connects it to the specified
+  // serial port.
+  CTeensyDMXLEDController(HardwareSerial &uart)
       : CPixelLEDController<RGB_ORDER>(),
-        dmxTx_{UART} {}
+        dmxTx_{uart} {}
 
   ~CTeensyDMXLEDController() {
     dmxTx_.end();

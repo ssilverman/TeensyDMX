@@ -14,7 +14,7 @@ static constexpr int kNumLEDs = 3;  // 3 pixels
 CRGB leds[kNumLEDs];  // LED array
 
 // TX on Serial3, start channel=1, RGB order, packet size=513
-CTeensyDMXLEDController<Serial3> controller{};
+CTeensyDMXLEDController<> controller{Serial3};
 
 void setup() {
   // Serial initialization, for printing things (optional)
