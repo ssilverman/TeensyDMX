@@ -7,8 +7,13 @@
 #ifndef TEENSYDMX_UARTSENDHANDLER_H_
 #define TEENSYDMX_UARTSENDHANDLER_H_
 
+// C++ includes
+#include <cstdint>
+
 #include <kinetis.h>
+
 #include "SendHandler.h"
+#include "TeensyDMX.h"
 
 namespace qindesign {
 namespace teensydmx {

@@ -6,6 +6,9 @@
 #ifndef TEENSYDMX_LPUARTRECEIVEHANDLER_H_
 #define TEENSYDMX_LPUARTRECEIVEHANDLER_H_
 
+// C++ includes
+#include <cstdint>
+
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)
 #include <imxrt.h>
 using PortType = IMXRT_LPUART_t;

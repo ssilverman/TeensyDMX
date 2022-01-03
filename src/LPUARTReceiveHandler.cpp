@@ -5,8 +5,7 @@
 
 #include "LPUARTReceiveHandler.h"
 
-// C++ includes
-#include <cstdint>
+#include <core_pins.h>
 
 namespace qindesign {
 namespace teensydmx {

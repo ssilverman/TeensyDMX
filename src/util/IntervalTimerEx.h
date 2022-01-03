@@ -14,7 +14,7 @@
 // C++ includes
 #include <functional>
 
-#include <Arduino.h>
+#include <IntervalTimer.h>
 #include <util/atomic.h>
 
 namespace qindesign {

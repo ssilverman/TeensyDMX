@@ -6,9 +6,7 @@
 
 #include "UARTReceiveHandler.h"
 
-// C++ includes
-#include <cstdint>
-
+#include <core_pins.h>
 #include <util/atomic.h>
 
 namespace qindesign {

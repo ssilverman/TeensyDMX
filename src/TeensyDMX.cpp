@@ -3,9 +3,6 @@
 
 #include "TeensyDMX.h"
 
-// Other includes
-#include <HardwareSerial.h>
-
 namespace qindesign {
 namespace teensydmx {
 

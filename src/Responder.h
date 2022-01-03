@@ -13,8 +13,6 @@
 namespace qindesign {
 namespace teensydmx {
 
-class Receiver;
-
 // Responder defines an interface to a generic message responder that can
 // respond to or process packets having a specific start code.
 class Responder {

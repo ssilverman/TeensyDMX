@@ -6,6 +6,9 @@
 #ifndef TEENSYDMX_LPUARTSENDHANDLER_H_
 #define TEENSYDMX_LPUARTSENDHANDLER_H_
 
+// C++ includes
+#include <cstdint>
+
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)
 #include <imxrt.h>
 using PortType = IMXRT_LPUART_t;
@@ -15,6 +18,7 @@ using PortType = KINETISK_LPUART_t;
 #endif  // Which chip?
 
 #include "SendHandler.h"
+#include "TeensyDMX.h"
 
 namespace qindesign {
 namespace teensydmx {

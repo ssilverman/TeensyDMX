@@ -8,7 +8,9 @@
 #include <atomic>
 #include <utility>
 
+#include <core_pins.h>
 #include <util/atomic.h>
+
 #include "Responder.h"
 
 namespace qindesign {

@@ -5,6 +5,7 @@
 #ifndef TEENSYDMX_RECEIVEHANDLER_H_
 #define TEENSYDMX_RECEIVEHANDLER_H_
 
+// C++ includes
 #include <cstdint>
 
 namespace qindesign {

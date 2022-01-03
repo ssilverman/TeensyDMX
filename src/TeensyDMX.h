@@ -24,10 +24,8 @@
 #include <cstdint>
 #include <memory>
 
-// Other includes
-#include <Arduino.h>
+#include <HardwareSerial.h>
 
-// Project includes
 #include "LPUARTReceiveHandler.h"
 #include "LPUARTSendHandler.h"
 #include "ReceiveHandler.h"

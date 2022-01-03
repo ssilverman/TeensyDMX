@@ -5,11 +5,7 @@
 
 #include "LPUARTSendHandler.h"
 
-// C++ includes
-#include <cstdint>
-
-#include <Arduino.h>
-#include "TeensyDMX.h"
+#include <core_pins.h>
 
 namespace qindesign {
 namespace teensydmx {

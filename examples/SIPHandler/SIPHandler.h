@@ -7,7 +7,6 @@
 // C++ includes
 #include <cstdint>
 
-// Other includes
 #include <TeensyDMX.h>
 
 namespace teensydmx = ::qindesign::teensydmx;

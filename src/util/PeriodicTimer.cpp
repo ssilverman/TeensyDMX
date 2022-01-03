@@ -8,7 +8,6 @@
 
 // C++ includes
 #include <algorithm>
-#include <functional>
 
 #include <Arduino.h>
 

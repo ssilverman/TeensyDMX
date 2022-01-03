@@ -7,7 +7,11 @@
 #ifndef TEENSYDMX_UARTRECEIVEHANDLER_H_
 #define TEENSYDMX_UARTRECEIVEHANDLER_H_
 
+// C++ includes
+#include <cstdint>
+
 #include <kinetis.h>
+
 #include "ReceiveHandler.h"
 #include "TeensyDMX.h"
 
