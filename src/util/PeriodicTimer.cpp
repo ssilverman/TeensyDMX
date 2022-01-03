@@ -1,6 +1,6 @@
 // PeriodicTimer.cpp implements PeriodicTimer.
 // This file is part of the TeensyDMX library.
-// (c) 2019-2021 Shawn Silverman
+// (c) 2019-2022 Shawn Silverman
 
 #ifdef USE_PERIODICTIMER
 

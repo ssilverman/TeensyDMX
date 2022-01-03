@@ -1,5 +1,5 @@
 // This file is part of the SIPHandler example in the TeensyDMX library.
-// (c) 2018-2021 Shawn Silverman
+// (c) 2018-2022 Shawn Silverman
 
 #ifndef SIPHANDLER_H_
 #define SIPHANDLER_H_

@@ -1,7 +1,7 @@
 // IntervalTimerEx.h defines an interface to the Periodic Interrupt Timers by
 // extending the Teensy library's IntervalTimer with proper callbacks.
 // This file is part of the TeensyDMX library.
-// (c) 2020-2021 Shawn Silverman
+// (c) 2020-2022 Shawn Silverman
 
 // See also https://github.com/luni64/TeensyHelpers for luni64's take on
 // improved IntervalTimer usage.
