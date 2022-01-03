@@ -1,5 +1,5 @@
 // ReceiveHandler.h defines the base class for the code that handles RX things.
-// This file is part of the TeensyDMX lirary.
+// This file is part of the TeensyDMX library.
 // (c) 2019-2021 Shawn Silverman
 
 #ifndef TEENSYDMX_RECEIVEHANDLER_H_
