@@ -9,27 +9,13 @@
 // C++ includes
 #include <algorithm>
 
-#include <Arduino.h>
+#include <core_pins.h>
 
 // Global variables:
 // * Running states
 // * Functions
 // * Function states
 // * Priorities
-
-// This is defined so that calling a std::function<void()> can compile
-// when size optimization is enabled. Teensy LC has "Smallest Code"
-// set by default, for example.
-namespace std {
-  void __throw_bad_function_call() __attribute__((weak));
-  [[noreturn]] void __throw_bad_function_call() {
-    Serial.println("EXCEPTION: Bad function call!");
-    while (true) {
-      // Don't return
-      yield();
-    }
-  }
-}  // namespace std
 
 namespace qindesign {
 namespace teensydmx {
