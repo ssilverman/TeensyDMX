@@ -4,7 +4,7 @@
 // (c) 2020-2022 Shawn Silverman
 
 // See also https://github.com/luni64/TeensyHelpers for luni64's take on
-// improved IntervalTimer usage.
+// improved IntervalTimer usage; it was the basis for this code.
 
 #ifndef USE_PERIODICTIMER
 
