@@ -99,8 +99,6 @@ void LPUARTReceiveHandler::irqHandler() const {
     port_->STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
 
 #if defined(__IMXRT1062__) || (__IMXRT1052__)
-    asm("dsb");
-
     // Flush anything in the buffer
     uint8_t avail = (port_->WATER >> 24) & 0x07;  // RXCOUNT
     if (avail > 1) {
@@ -118,6 +116,8 @@ void LPUARTReceiveHandler::irqHandler() const {
     } else {
       receiver_->receiveBadBreak();
     }
+
+    asm volatile("dsb");
     return;
   }
 
@@ -129,7 +129,6 @@ void LPUARTReceiveHandler::irqHandler() const {
       receiver_->receiveIdle(eventTime);
       if ((status & LPUART_STAT_IDLE) != 0) {
         port_->STAT |= LPUART_STAT_IDLE;  // Clear the flag
-        asm("dsb");
       }
     } else {
       bool idle = ((status & LPUART_STAT_IDLE) != 0);
@@ -143,7 +142,6 @@ void LPUARTReceiveHandler::irqHandler() const {
       if (idle) {  // Also capture any IDLE event
         receiver_->receiveIdle(eventTime);
         port_->STAT |= LPUART_STAT_IDLE;  // Clear the flag
-        asm("dsb");
       }
     }
   }
@@ -156,6 +154,8 @@ void LPUARTReceiveHandler::irqHandler() const {
     port_->STAT |= LPUART_STAT_IDLE;  // Clear the flag
   }
 #endif  // __IMXRT1062__ || __IMXRT1052__
+
+  asm volatile("dsb");
 }
 
 void LPUARTReceiveHandler::txData(const uint8_t *b, int len) const {

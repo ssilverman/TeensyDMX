@@ -193,6 +193,7 @@ void LPUARTSendHandler::irqHandler() const {
         // Pause management
         if (sender_->paused_) {
           setInactive();
+          asm volatile("dsb");
           return;
         }
         if (sender_->resumeCounter_ > 0) {
@@ -210,6 +211,7 @@ void LPUARTSendHandler::irqHandler() const {
         if (sender_->breakToBreakTime_ == UINT32_MAX) {
           // Infinite BREAK to BREAK time
           setInactive();
+          asm volatile("dsb");
           return;
         }
         uint32_t delay = sender_->adjustedMBBTime_;
@@ -221,6 +223,7 @@ void LPUARTSendHandler::irqHandler() const {
           if (sender_->intervalTimer_.begin(
                   [this]() { rateTimerCallback(); },
                   delay)) {
+            asm volatile("dsb");
             return;
           }
         }
@@ -232,6 +235,8 @@ void LPUARTSendHandler::irqHandler() const {
       default:
         break;
     }
+
+    asm volatile("dsb");
   }
 
   // If transmission is complete

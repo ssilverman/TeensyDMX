@@ -164,6 +164,7 @@ void UARTReceiveHandler::irqHandler() const {
     } else {
       receiver_->receiveBadBreak();
     }
+    asm volatile("dsb");
     return;
   }
 
@@ -250,6 +251,8 @@ void UARTReceiveHandler::irqHandler() const {
     }
   }
 #endif  // KINETISK
+
+  asm volatile("dsb");
 }
 
 void UARTReceiveHandler::txData(const uint8_t *b, int len) const {

@@ -330,6 +330,7 @@ static void my_pit0_isr() {
   if (funcs[0] != nullptr) {
     funcs[0]();
   }
+  asm volatile("dsb");
 }
 
 static void my_pit1_isr() {
@@ -337,6 +338,7 @@ static void my_pit1_isr() {
   if (funcs[1] != nullptr) {
     funcs[1]();
   }
+  asm volatile("dsb");
 }
 
 static void my_pit2_isr() {
@@ -344,6 +346,7 @@ static void my_pit2_isr() {
   if (funcs[2] != nullptr) {
     funcs[2]();
   }
+  asm volatile("dsb");
 }
 
 static void my_pit3_isr() {
@@ -351,6 +354,7 @@ static void my_pit3_isr() {
   if (funcs[3] != nullptr) {
     funcs[3]();
   }
+  asm volatile("dsb");
 }
 #elif defined(KINETISL)
 static void my_pit_isr() {
@@ -366,6 +370,8 @@ static void my_pit_isr() {
       funcs[1]();
     }
   }
+
+  asm volatile("dsb");
 }
 #elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
 static void pit_isr() {
@@ -394,7 +400,7 @@ static void pit_isr() {
     }
   }
 
-  asm("dsb");
+  asm volatile("dsb");
 }
 #endif  // Processor check
 
