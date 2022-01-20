@@ -193,7 +193,6 @@ void UARTSendHandler::irqHandler() const {
         // Pause management
         if (sender_->paused_) {
           setInactive();
-          asm volatile("dsb");
           return;
         }
         if (sender_->resumeCounter_ > 0) {
@@ -211,7 +210,6 @@ void UARTSendHandler::irqHandler() const {
         if (sender_->breakToBreakTime_ == UINT32_MAX) {
           // Infinite BREAK to BREAK time
           setInactive();
-          asm volatile("dsb");
           return;
         }
         uint32_t delay = sender_->adjustedMBBTime_;
@@ -223,7 +221,6 @@ void UARTSendHandler::irqHandler() const {
           if (sender_->intervalTimer_.begin(
                   [this]() { rateTimerCallback(); },
                   delay)) {
-            asm volatile("dsb");
             return;
           }
         }
@@ -259,7 +256,6 @@ void UARTSendHandler::irqHandler() const {
         if (sender_->intervalTimer_.begin(
                 [this]() { interSlotTimerCallback(); },
                 sender_->adjustedInterSlotTime_)) {
-          asm volatile("dsb");
           return;
         }
         sender_->state_ = Sender::XmitStates::kData;
@@ -274,8 +270,6 @@ void UARTSendHandler::irqHandler() const {
     }
     setActive();
   }
-
-  asm volatile("dsb");
 }
 
 #undef UART_C2_TX_ENABLE

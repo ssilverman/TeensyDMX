@@ -116,8 +116,6 @@ void LPUARTReceiveHandler::irqHandler() const {
     } else {
       receiver_->receiveBadBreak();
     }
-
-    asm volatile("dsb");
     return;
   }
 
@@ -154,8 +152,6 @@ void LPUARTReceiveHandler::irqHandler() const {
     port_->STAT |= LPUART_STAT_IDLE;  // Clear the flag
   }
 #endif  // __IMXRT1062__ || __IMXRT1052__
-
-  asm volatile("dsb");
 }
 
 void LPUARTReceiveHandler::txData(const uint8_t *b, int len) const {

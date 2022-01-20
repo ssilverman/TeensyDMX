@@ -14,8 +14,6 @@ and this project adheres to
   v4.1.0-beta.2). This improves transmitted BREAK time accuracy (when using a
   timer and not serial parameters). Set the global `USE_PERIODICTIMER` define
   when building to use this timer API instead.
-* Added "dsb" instruction before exiting all ISRs that clear interrupts or
-  change state. This guarantees interrupts won't fire more than once.
 * Added a way to set the inter-slot MARK time. See `Sender::setInterSlotTime`
   and `Sender::interSlotTime()`.
 * Added a way to set the MARK before BREAK (MBB) time. See `Sender::setMBBTime`
