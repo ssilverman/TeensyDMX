@@ -47,8 +47,8 @@ constexpr int kMaxDMXPacketSize = 513;
 
 // The minimum size of a DMX packet, including the start code. This value is
 // used for senders and is a guideline for how many slots will fit in a packet,
-// assuming full-speed transmission. This value ensures that the packet
-// transmission time does not exceed 1204us.
+// assuming full-speed transmission and minimum BREAK and MAB times. This value
+// ensures that the packet transmission time does not exceed 1204us.
 constexpr int kMinDMXPacketSize = 25;
 
 // The minimum BREAK time allowed by the specification for transmitters,
@@ -816,12 +816,15 @@ class Sender final : public TeensyDMX {
   // This returns `false` if the size is not in the range 1-513. Otherwise, this
   // returns `true`.
   //
-  // When the maximum refresh rate is used, the packet size should be >= 25 so
-  // that the total packet time does not fall below 1204us, per the ANSI E1.11
-  // DMX specification. However, smaller packets can be sent if the refresh rate
-  // is decreased.
+  // When the maximum refresh rate and minimum BREAK and MAB times are used, the
+  // packet size should be >= 25 so that the total packet time does not fall
+  // below 1204us, per the ANSI E1.11 DMX specification. However, smaller
+  // packets can be sent if the refresh rate is decreased or the BREAK or MAB
+  // time (or both) is increased.
   //
-  // These limits are contained in `kMaxDMXPacketSize` and `kMinDMXPacketSize`.
+  // The equation is: Packet Size >= max{(1204us - BREAK - MAB)/44us, 0}
+  //
+  // See `kMaxDMXPacketSize` and `kMinDMXPacketSize`.
   //
   // For example, if the packet size is set to 25, then the channels can range
   // from 0 to 24, inclusive, with channel zero containing the start code and

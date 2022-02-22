@@ -25,6 +25,7 @@ and this project adheres to
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to
   `ATOMIC_BLOCK(ATOMIC_RESTORESTATE)` so that interrupts are not enabled
   inappropriately, for example if the calling program had disabled them.
+* Clarified some details about minimum packet size.
 
 ## [4.2.0]
 
