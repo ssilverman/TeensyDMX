@@ -5,7 +5,7 @@
 // This file is part of the TeensyDMX library.
 // (c) 2019-2021 Shawn Silverman
 
-#ifdef USE_PERIODICTIMER
+#ifdef TEENSYDMX_USE_PERIODICTIMER
 
 #ifndef TEENSYDMX_UTIL_PERIODICTIMER_H_
 #define TEENSYDMX_UTIL_PERIODICTIMER_H_
@@ -126,4 +126,4 @@ class PeriodicTimer final {
 
 #endif  // TEENSYDMX_UTIL_PERIODICTIMER_H_
 
-#endif  // USE_PERIODICTIMER
+#endif  // TEENSYDMX_USE_PERIODICTIMER

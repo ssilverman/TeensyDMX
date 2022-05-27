@@ -38,7 +38,7 @@ constexpr uint32_t kDefaultMABTime   = 20;   // In us
 constexpr uint32_t kSerialFormatRXINVBit = 0x10;
 constexpr uint32_t kSerialFormatTXINVBit = 0x20;
 
-#ifndef USE_PERIODICTIMER
+#ifndef TEENSYDMX_USE_PERIODICTIMER
 // Empirically observed BREAK generation adjustment constants, for 180us. The
 // timer adjust values are added to the requested BREAK to get the actual BREAK.
 #if defined(__MK20DX128__) || defined(__MK20DX256__)
@@ -54,7 +54,7 @@ constexpr uint32_t kBreakTimerAdjust = 0;
 #else
 constexpr uint32_t kBreakTimerAdjust = 0;
 #endif  // Which chip?
-#endif  // !USE_PERIODICTIMER
+#endif  // !TEENSYDMX_USE_PERIODICTIMER
 
 // Empirically observed MAB generation adjustment constants, for 20us. The timer
 // adjust values are subtracted from the requested MAB to get the actual MAB.
@@ -200,9 +200,9 @@ Sender::Sender(HardwareSerial &uart)
       inactiveBufIndex_(0),
       breakTime_(kDefaultBreakTime),
       mabTime_(kDefaultMABTime),
-#ifndef USE_PERIODICTIMER
+#ifndef TEENSYDMX_USE_PERIODICTIMER
       adjustedBreakTime_(breakTime_),
-#endif  // !USE_PERIODICTIMER
+#endif  // !TEENSYDMX_USE_PERIODICTIMER
       adjustedMABTime_(mabTime_),
       breakBaud_(kDefaultBreakBaud),
       breakFormat_(kDefaultBreakFormat),
@@ -220,9 +220,9 @@ Sender::Sender(HardwareSerial &uart)
       resumeCounter_(0),
       transmitting_(false),
       doneTXFunc_{nullptr} {
-#ifndef USE_PERIODICTIMER
+#ifndef TEENSYDMX_USE_PERIODICTIMER
   setBreakTime(breakTime_);
-#endif  // !USE_PERIODICTIMER
+#endif  // !TEENSYDMX_USE_PERIODICTIMER
   setMABTime(mabTime_);
 
   switch(serialIndex_) {
@@ -380,12 +380,12 @@ void Sender::end() {
   }
 }
 
-#ifndef USE_PERIODICTIMER
+#ifndef TEENSYDMX_USE_PERIODICTIMER
 void Sender::setBreakTime(uint32_t t) {
   breakTime_ = t;
   adjustedBreakTime_ = t + kBreakTimerAdjust;
 }
-#endif  // !USE_PERIODICTIMER
+#endif  // !TEENSYDMX_USE_PERIODICTIMER
 
 uint32_t Sender::breakTime() const {
   if (isBreakUseTimerNotSerial()) {

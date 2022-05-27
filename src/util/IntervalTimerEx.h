@@ -6,7 +6,7 @@
 // See also https://github.com/luni64/TeensyHelpers for luni64's take on
 // improved IntervalTimer usage; it was the basis for this code.
 
-#ifndef USE_PERIODICTIMER
+#ifndef TEENSYDMX_USE_PERIODICTIMER
 
 #ifndef TEENSYDMX_UTIL_INTERVALTIMEREX_H_
 #define TEENSYDMX_UTIL_INTERVALTIMEREX_H_
@@ -112,4 +112,4 @@ class IntervalTimerEx final {
 
 #endif  // TEENSYDMX_UTIL_INTERVALTIMEREX_H_
 
-#endif  // !USE_PERIODICTIMER
+#endif  // !TEENSYDMX_USE_PERIODICTIMER

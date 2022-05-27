@@ -807,9 +807,10 @@ line to remain high after that.
 
 By default, this library internally uses PIT timers via Teensy's default
 `IntervalTimer` API. For more accurate BREAK timing, a custom API,
-`PeriodicTimer`, can be used instead. Globally define `USE_PERIODICTIMER` when
-building and the library will use this custom API. However, be aware that
-conflicts may occur if other libraries in your project use `IntervalTimer`.
+`PeriodicTimer`, can be used instead. Globally define the
+`TEENSYDMX_USE_PERIODICTIMER` macro when building and the library will use this
+custom API. However, be aware that conflicts may occur if other libraries in
+your project use `IntervalTimer`.
 
 ## Code style
 

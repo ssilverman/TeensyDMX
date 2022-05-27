@@ -2,7 +2,7 @@
 // This file is part of the TeensyDMX library.
 // (c) 2020-2021 Shawn Silverman
 
-#ifndef USE_PERIODICTIMER
+#ifndef TEENSYDMX_USE_PERIODICTIMER
 
 #include "IntervalTimerEx.h"
 
@@ -48,4 +48,4 @@ void IntervalTimerEx::end() {
 }  // namespace teensydmx
 }  // namespace qindesign
 
-#endif  // !USE_PERIODICTIMER
+#endif  // !TEENSYDMX_USE_PERIODICTIMER

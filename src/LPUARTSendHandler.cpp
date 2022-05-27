@@ -129,7 +129,7 @@ void LPUARTSendHandler::irqHandler() const {
   if ((control & LPUART_CTRL_TIE) != 0 && (status & LPUART_STAT_TDRE) != 0) {
     switch (sender_->state_) {
       case Sender::XmitStates::kBreak:
-#ifndef USE_PERIODICTIMER
+#ifndef TEENSYDMX_USE_PERIODICTIMER
         if (sender_->breakUseTimer_ &&
             sender_->intervalTimer_.begin(
                 [this]() { breakTimerCallback(); },
@@ -141,7 +141,7 @@ void LPUARTSendHandler::irqHandler() const {
                 [this]() { breakTimerCallback(); },
                 sender_->breakTime_,
                 [this]() { breakTimerPreCallback(); })) {
-#endif  // !USE_PERIODICTIMER
+#endif  // !TEENSYDMX_USE_PERIODICTIMER
         } else {
           // Not using a timer or starting it failed;
           // revert to the original way

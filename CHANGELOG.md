@@ -12,8 +12,8 @@ and this project adheres to
 * Provided an option to replace internal use of the Teensy library's
   `IntervalTimer` API with our own custom `PeriodicTimer` API (see
   v4.1.0-beta.2). This improves transmitted BREAK time accuracy (when using a
-  timer and not serial parameters). Set the global `USE_PERIODICTIMER` define
-  when building to use this timer API instead.
+  timer and not serial parameters). Set the global `TEENSYDMX_USE_PERIODICTIMER`
+  macro when building to use this timer API instead.
 * Added a way to set the inter-slot MARK time. See `Sender::setInterSlotTime`
   and `Sender::interSlotTime()`.
 * Added a way to set the MARK before BREAK (MBB) time. See `Sender::setMBBTime`

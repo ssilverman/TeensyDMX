@@ -2,7 +2,7 @@
 // This file is part of the TeensyDMX library.
 // (c) 2019-2022 Shawn Silverman
 
-#ifdef USE_PERIODICTIMER
+#ifdef TEENSYDMX_USE_PERIODICTIMER
 
 #include "PeriodicTimer.h"
 
@@ -400,4 +400,4 @@ static void pit_isr() {
 }  // namespace teensydmx
 }  // namespace qindesign
 
-#endif  // USE_PERIODICTIMER
+#endif  // TEENSYDMX_USE_PERIODICTIMER
