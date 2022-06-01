@@ -89,7 +89,8 @@ void LPUARTReceiveHandler::irqHandler() const {
 
   uint32_t eventTime = micros();
 
-  // A framing error likely indicates a BREAK
+  // A framing error likely indicates a BREAK, but it could also mean that there
+  // were too few stop bits
   if ((status & LPUART_STAT_FE) != 0) {
     // Only allow a packet whose framing error actually indicates a BREAK.
     // A value of zero indicates a true BREAK and not some other

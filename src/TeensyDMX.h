@@ -491,8 +491,8 @@ class Receiver final : public TeensyDMX {
   // This is called from an ISR.
   void receivePotentialBreak(uint32_t eventTime);
 
-  // An invalid start-of-BREAK was received. There were non-zero bytes in the
-  // framing error.
+  // An invalid start-of-BREAK was received or there were too few stop bits.
+  // There were non-zero bytes in the framing error.
   // This is called from an ISR.
   void receiveBadBreak();
 
