@@ -20,6 +20,8 @@ and this project adheres to
   and `Sender::mbbTime()`.
 * New `RegenerateDMX` example.
 * New `FastLEDController` example.
+* Added `Sender::setPacketSizeAndData` for atomically setting the packet size
+  and data.
 
 ### Changed
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to

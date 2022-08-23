@@ -812,6 +812,13 @@ class Sender final : public TeensyDMX {
   // likely be larger than the return value due to some UART intricacies.
   uint32_t interSlotTime() const;
 
+  // Atomically sets the packet size and data. This function is useful because
+  // the library operates asynchronously.
+  //
+  // See the `setPacketSize` and `set` functions for more information.
+  bool setPacketSizeAndData(int size,
+                            int startChannel, const uint8_t *values, int len);
+
   // Sets the transmit packet size, in number of channels plus the start code.
   // This returns `false` if the size is not in the range 1-513. Otherwise, this
   // returns `true`.
