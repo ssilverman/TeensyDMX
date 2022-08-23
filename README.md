@@ -517,8 +517,8 @@ refresh rate.
 
 This can be changed at any time.
 
-The minimum packet time is 1204us, so as long as the actual time doesn't fall
-short of this, there is no minimum packet size. The equation is:
+The minimum packet time is 1204us, and so as long as the actual time doesn't
+fall short of this, there is no minimum packet size. The equation is:
 
 ```
 Packet Size >= max{(1204us - BREAK - MAB)/44us, 0}
