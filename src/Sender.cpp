@@ -510,6 +510,35 @@ uint32_t Sender::interSlotTime() const {
   return interSlotTime_;
 }
 
+bool Sender::setPacketSizeAndData(int size,
+                                  int startChannel,
+                                  const uint8_t *values,
+                                  int len) {
+  if (size <= 0 || kMaxDMXPacketSize < size) {
+    return false;
+  }
+  if (len < 0 || startChannel < 0 || kMaxDMXPacketSize <= startChannel) {
+    return false;
+  }
+  if (len == 0) {
+    activePacketSize_ = size;
+    return true;
+  }
+  if (startChannel + len <= 0 || kMaxDMXPacketSize < startChannel + len) {
+    return false;
+  }
+  if (values == nullptr) {
+    return false;
+  }
+
+  Lock lock{*this};
+  //{
+    activePacketSize_ = size;
+    std::copy_n(&values[0], len, &activeBuf_[startChannel]);
+  //}
+  return true;
+}
+
 bool Sender::setPacketSize(int size) {
   if (size <= 0 || kMaxDMXPacketSize < size) {
     return false;

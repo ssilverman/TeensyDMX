@@ -45,6 +45,7 @@ setBreakUseTimerNotSerial	KEYWORD2
 isBreakUseTimerNotSerial	KEYWORD2
 setInterSlotTime	KEYWORD2
 interSlotTime	KEYWORD2
+setPacketSizeAndData	KEYWORD2
 setPacketSize	KEYWORD2
 packetSize	KEYWORD2
 set	KEYWORD2

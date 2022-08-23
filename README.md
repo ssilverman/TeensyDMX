@@ -524,6 +524,44 @@ fall short of this, there is no minimum packet size. The equation is:
 Packet Size >= max{(1204us - BREAK - MAB)/44us, 0}
 ```
 
+Note that because the library operates asynchronously, if the packet size needs
+to be changed at the same time as the data, both must be set atomically. There
+are several ways:
+
+1. Disable the interrupts:
+   ```c++
+   __disable_irq();
+   dmxTx.setPacketSize(...);
+   dmxTx.set(...);
+   __enable_irq();
+   ```
+
+   The disadvantage of this approach is that it disables all interrupts,
+   possibly affecting the behaviour of other libraries. Instead of global
+   interrupt disable, only the IRQ of the specific serial port in use should
+   be disabled, but this is (currently) beyond the scope of this document.
+
+2. Pause and resume:
+   ```c++
+   dmxTx.pause();
+   while (dmxTx.isTransmitting()) {
+      yield();
+   }
+   dmxTx.setPacketSize(...);
+   dmxTx.set(...);
+   dmxTx.resume();
+   ```
+
+   The disadvantage of this approach is that it uses more code and effectively
+   pauses execution.
+
+3. Use the `setPacketSizeAndData()` function:
+   ```c++
+   dmxTx.setPacketSizeAndData(...);
+   ```
+
+   This is probably the easiest approach.
+
 ### Transmission rate
 
 The transmission rate can be changed from a maximum of about 44Hz down to as low
