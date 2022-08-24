@@ -17,6 +17,7 @@ namespace qindesign {
 namespace teensydmx {
 
 extern const uint32_t kCharTime;  // In microseconds
+const uint32_t kCharTimeLow = 0.98f * kCharTime;
 
 constexpr uint32_t kMinBreakTime = 88;  // In microseconds
 constexpr uint32_t kMinMABTime   = 8;   // In microseconds
@@ -592,7 +593,7 @@ void Receiver::receiveIdle(uint32_t eventTime) {
         }
       } else {
         // This catches the case where a short BREAK is followed by a longer MAB
-        if ((eventTime - breakStartTime_) < kMinBreakTime + kCharTime) {
+        if ((eventTime - breakStartTime_) < kMinBreakTime + kCharTimeLow) {
           seenMABStart_ = false;
           receiveBadBreak();
           return;
@@ -688,7 +689,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       if (seenMABStart_) {
         seenMABStart_ = false;
         if ((mabStartTime_ - breakStartTime_ < kMinBreakTime) ||
-            (eopTime - mabStartTime_ < kMinMABTime + kCharTime)) {
+            (eopTime - mabStartTime_ < kMinMABTime + kCharTimeLow)) {
           receiveBadBreak();
           return;
         }
@@ -705,7 +706,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
         // detect short BREAKs followed by long MABs. It only detects
         // whether BREAK + MAB time is at least 88us + 8us.
         if ((eopTime - breakStartTime_) <
-            kMinBreakTime + kMinMABTime + kCharTime) {
+            kMinBreakTime + kMinMABTime + kCharTimeLow) {
           // First byte is too early, discard any data
           receiveBadBreak();
           return;
@@ -754,11 +755,11 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       break;
     }
 
-    case RecvStates::kData:
+    case RecvStates::kData: {
       // Checking this here accounts for buffered input, where several
       // bytes come in at the same time
-      if (eopTime - breakStartTime_ < kMinBreakTime + kMinMABTime + kCharTime +
-                                          kCharTime*activeBufIndex_) {
+      uint32_t charTime = kCharTimeLow*(1 + activeBufIndex_);
+      if (eopTime - breakStartTime_ < kMinBreakTime + kMinMABTime + charTime) {
         // First byte is too early, discard any data
         receiveBadBreak();
         return;
@@ -766,6 +767,7 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       // NOTE: Don't need to check for inter-slot MARK time being
       //       too large because the IDLE detection will catch that
       break;
+    }
 
     case RecvStates::kDataIdle:
       // Conditions for recognizing an extra byte:
