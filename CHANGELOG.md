@@ -27,6 +27,11 @@ and this project adheres to
   inappropriately, for example if the calling program had disabled them.
 * Clarified some details about minimum packet size.
 
+### Fixed
+* Allow 2% smaller character time when determining a bad break. This fixes a
+  problem where packets with a slightly faster, but within allowed tolerance,
+  baud rate were being discarded.
+
 ## [4.2.0]
 
 ### Added
