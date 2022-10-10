@@ -117,7 +117,7 @@ class Responder {
 
  protected:
   Responder() = default;
-  ~Responder() = default;
+  virtual ~Responder() = default;
 };
 
 }  // namespace teensydmx

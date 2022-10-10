@@ -33,6 +33,7 @@ and this project adheres to
 * Allow 2% smaller character time when determining a bad break. This fixes a
   problem where packets with a slightly faster, but within allowed tolerance,
   baud rate were being discarded.
+* Made `Responder::~Responder()` `virtual`.
 
 ## [4.2.0]
 
