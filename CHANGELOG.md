@@ -28,6 +28,8 @@ and this project adheres to
   `ATOMIC_BLOCK(ATOMIC_RESTORESTATE)` so that interrupts are not enabled
   inappropriately, for example if the calling program had disabled them.
 * Clarified some details about minimum packet size.
+* Improved MAB time measurement when using an RX watch pin by watching for the
+  MAB fall time.
 
 ### Fixed
 * Allow 2% smaller character time when determining a bad break. This fixes a

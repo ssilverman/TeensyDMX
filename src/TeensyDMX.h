@@ -588,7 +588,9 @@ class Receiver final : public TeensyDMX {
   // be inferred even without monitoring the RX pin.
   volatile bool seenMABStart_;  // Tracks the RX state transitions for measuring
                                 // a BREAK
+  volatile bool seenMABEnd_;
   uint32_t mabStartTime_;       // When we've seen the pin rise
+  uint32_t mabEndTime_;         // When we've seen the pin fall
 
   // Timer for tracking IDLE timeouts and for timing sending a responder BREAK.
 #ifndef TEENSYDMX_USE_PERIODICTIMER

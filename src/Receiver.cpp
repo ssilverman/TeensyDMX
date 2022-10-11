@@ -95,18 +95,37 @@ static Receiver *volatile rxInstances[7]{nullptr};
 #endif  // __IMXRT1052__ || ARDUINO_TEENSY41
 
 // Forward declarations of RX watch pin ISRs
+void rxPinFellSerial0_isr();
 void rxPinRoseSerial0_isr();
+void rxPinFellSerial1_isr();
 void rxPinRoseSerial1_isr();
+void rxPinFellSerial2_isr();
 void rxPinRoseSerial2_isr();
+void rxPinFellSerial3_isr();
 void rxPinRoseSerial3_isr();
+void rxPinFellSerial4_isr();
 void rxPinRoseSerial4_isr();
+void rxPinFellSerial5_isr();
 void rxPinRoseSerial5_isr();
+void rxPinFellSerial6_isr();
 void rxPinRoseSerial6_isr();
 #if defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41)
+void rxPinFellSerial7_isr();
 void rxPinRoseSerial7_isr();
 #endif  // __IMXRT1052__ || ARDUINO_TEENSY41
 
 #if defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41)
+// RX watch pin fell ISRs.
+static void (*rxPinFellISRs[8])() {
+    rxPinFellSerial0_isr,
+    rxPinFellSerial1_isr,
+    rxPinFellSerial2_isr,
+    rxPinFellSerial3_isr,
+    rxPinFellSerial4_isr,
+    rxPinFellSerial5_isr,
+    rxPinFellSerial6_isr,
+    rxPinFellSerial7_isr,
+};
 // RX watch pin rose ISRs.
 static void (*rxPinRoseISRs[8])() {
     rxPinRoseSerial0_isr,
@@ -119,6 +138,16 @@ static void (*rxPinRoseISRs[8])() {
     rxPinRoseSerial7_isr,
 };
 #else
+// RX watch pin fell ISRs.
+static void (*rxPinFellISRs[7])() {
+    rxPinFellSerial0_isr,
+    rxPinFellSerial1_isr,
+    rxPinFellSerial2_isr,
+    rxPinFellSerial3_isr,
+    rxPinFellSerial4_isr,
+    rxPinFellSerial5_isr,
+    rxPinFellSerial6_isr,
+};
 // RX watch pin rose ISRs.
 static void (*rxPinRoseISRs[7])() {
     rxPinRoseSerial0_isr,
@@ -153,7 +182,9 @@ Receiver::Receiver(HardwareSerial &uart)
       setTXNotRXFunc_(nullptr),
       rxWatchPin_(-1),
       seenMABStart_(false),
-      mabStartTime_(0) {
+      seenMABEnd_(false),
+      mabStartTime_(0),
+      mabEndTime_(0) {
   switch(serialIndex_) {
 #if defined(HAS_KINETISK_UART0)
     case 0:
@@ -586,6 +617,11 @@ void Receiver::receiveIdle(uint32_t eventTime) {
   switch (state_) {
     case RecvStates::kBreak:
       if (seenMABStart_) {
+        if (!seenMABEnd_) {
+          if (rxWatchPin_ >= 0) {
+            detachInterrupt(rxWatchPin_);
+          }
+        }
         if ((mabStartTime_ - breakStartTime_) < kMinBreakTime) {
           seenMABStart_ = false;
           receiveBadBreak();
@@ -688,20 +724,31 @@ void Receiver::receiveByte(uint8_t b, uint32_t eopTime) {
       uint32_t mabTime = 0;
       if (seenMABStart_) {
         seenMABStart_ = false;
-        if ((mabStartTime_ - breakStartTime_ < kMinBreakTime) ||
-            (eopTime - mabStartTime_ < kMinMABTime + kCharTimeLow)) {
-          receiveBadBreak();
-          return;
+        if (seenMABEnd_) {
+          mabTime = mabEndTime_ - mabStartTime_;
+          if ((mabStartTime_ - breakStartTime_ < kMinBreakTime) ||
+              (mabTime < kMinMABTime)) {
+            receiveBadBreak();
+            return;
+          }
+        } else {
+          if (rxWatchPin_ >= 0) {
+            detachInterrupt(rxWatchPin_);
+          }
+          if ((mabStartTime_ - breakStartTime_ < kMinBreakTime) ||
+              (eopTime - mabStartTime_ < kMinMABTime + kCharTimeLow)) {
+            receiveBadBreak();
+            return;
+          }
+          mabTime = eopTime - kCharTime - mabStartTime_;
         }
         breakTime = mabStartTime_ - breakStartTime_;
-        mabTime = eopTime - kCharTime - mabStartTime_;
         if (mabTime >= kMaxDMXIdleTime) {
           completePacket(RecvStates::kIdle);
           setConnected(false);
           return;
         }
       } else {
-        seenMABStart_ = false;
         // This is only a rudimentary check for short BREAKs. It does not
         // detect short BREAKs followed by long MABs. It only detects
         // whether BREAK + MAB time is at least 88us + 8us.
@@ -915,7 +962,9 @@ void Receiver::setRXWatchPin(int pin) {
       seenMABStart_ = false;
     } else {
       if (rxWatchPin_ != pin) {
-        detachInterrupt(rxWatchPin_);
+        if (rxWatchPin_ >= 0) {
+          detachInterrupt(rxWatchPin_);
+        }
         rxWatchPin_ = pin;
         seenMABStart_ = false;
       }
@@ -923,21 +972,44 @@ void Receiver::setRXWatchPin(int pin) {
   }
 }
 
+void Receiver::rxPinFell_isr() {
+  if (seenMABStart_) {
+    mabEndTime_ = micros();
+    seenMABEnd_ = true;
+  }
+  detachInterrupt(rxWatchPin_);
+}
+
 void Receiver::rxPinRose_isr() {
-  mabStartTime_ = micros();
   if (!seenMABStart_) {
+    mabStartTime_ = micros();
     seenMABStart_ = true;
-    detachInterrupt(rxWatchPin_);
+    seenMABEnd_ = false;
+    attachInterrupt(rxWatchPin_, rxPinFellISRs[serialIndex_], FALLING);
   } else {
     seenMABStart_ = false;
   }
   receiveHandler_->setILT(true);  // Set IDLE detection to "after stop bit"
 }
 
+void rxPinFellSerial0_isr() {
+  Receiver *r = rxInstances[0];
+  if (r != nullptr) {
+    r->rxPinFell_isr();
+  }
+}
+
 void rxPinRoseSerial0_isr() {
   Receiver *r = rxInstances[0];
   if (r != nullptr) {
     r->rxPinRose_isr();
+  }
+}
+
+void rxPinFellSerial1_isr() {
+  Receiver *r = rxInstances[1];
+  if (r != nullptr) {
+    r->rxPinFell_isr();
   }
 }
 
@@ -948,10 +1020,24 @@ void rxPinRoseSerial1_isr() {
   }
 }
 
+void rxPinFellSerial2_isr() {
+  Receiver *r = rxInstances[2];
+  if (r != nullptr) {
+    r->rxPinFell_isr();
+  }
+}
+
 void rxPinRoseSerial2_isr() {
   Receiver *r = rxInstances[2];
   if (r != nullptr) {
     r->rxPinRose_isr();
+  }
+}
+
+void rxPinFellSerial3_isr() {
+  Receiver *r = rxInstances[3];
+  if (r != nullptr) {
+    r->rxPinFell_isr();
   }
 }
 
@@ -962,6 +1048,13 @@ void rxPinRoseSerial3_isr() {
   }
 }
 
+void rxPinFellSerial4_isr() {
+  Receiver *r = rxInstances[4];
+  if (r != nullptr) {
+    r->rxPinFell_isr();
+  }
+}
+
 void rxPinRoseSerial4_isr() {
   Receiver *r = rxInstances[4];
   if (r != nullptr) {
@@ -969,10 +1062,24 @@ void rxPinRoseSerial4_isr() {
   }
 }
 
+void rxPinFellSerial5_isr() {
+  Receiver *r = rxInstances[5];
+  if (r != nullptr) {
+    r->rxPinFell_isr();
+  }
+}
+
 void rxPinRoseSerial5_isr() {
   Receiver *r = rxInstances[5];
   if (r != nullptr) {
     r->rxPinRose_isr();
+  }
+}
+
+void rxPinFellSerial6_isr() {
+  Receiver *r = rxInstances[6];
+  if (r != nullptr) {
+    r->rxPinFell_isr();
   }
 }
 
@@ -984,6 +1091,13 @@ void rxPinRoseSerial6_isr() {
 }
 
 #if defined(__IMXRT1052__) || defined(ARDUINO_TEENSY41)
+void rxPinFellSerial7_isr() {
+  Receiver *r = rxInstances[7];
+  if (r != nullptr) {
+    r->rxPinFell_isr();
+  }
+}
+
 void rxPinRoseSerial7_isr() {
   Receiver *r = rxInstances[7];
   if (r != nullptr) {
