@@ -180,12 +180,15 @@ void LPUARTSendHandler::irqHandler() const {
 #else  // No FIFO
         if (sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) {
           port_->DATA = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
-          if ((sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) &&
-              (sender_->interSlotTime_ != 0)) {
+          if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
+            setCompleting();
+          } else if (sender_->interSlotTime_ != 0) {
             sender_->state_ = Sender::XmitStates::kInterSlot;
+            setCompleting();
           }
+        } else {
+          setCompleting();
         }
-        setCompleting();
 #endif  // __IMXRT1062__ || __IMXRT1052__
         break;
 

@@ -36,6 +36,8 @@ and this project adheres to
   problem where packets with a slightly faster, but within allowed tolerance,
   baud rate were being discarded.
 * Made `Responder::~Responder()` `virtual`.
+* Fixed send handler code paths that shouldn't have called `setCompleting()`.
+  This change was introduced in commit a2ac5f0.
 
 ## [4.2.0]
 

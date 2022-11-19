@@ -170,22 +170,28 @@ void UARTSendHandler::irqHandler() const {
         } else {  // No FIFO or don't use the FIFO
           if (sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) {
             port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
-            if ((sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) &&
-                (sender_->interSlotTime_ != 0)) {
+            if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
+              setCompleting();
+            } else if (sender_->interSlotTime_ != 0) {
               sender_->state_ = Sender::XmitStates::kInterSlot;
+              setCompleting();
             }
+          } else {
+            setCompleting();
           }
-          setCompleting();
         }
 #else  // No FIFO
         if (sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) {
           port_->D = sender_->inactiveBuf_[sender_->inactiveBufIndex_++];
-          if ((sender_->inactiveBufIndex_ < sender_->inactivePacketSize_) &&
-              (sender_->interSlotTime_ != 0)) {
+          if (sender_->inactiveBufIndex_ >= sender_->inactivePacketSize_) {
+            setCompleting();
+          } else if (sender_->interSlotTime_ != 0) {
             sender_->state_ = Sender::XmitStates::kInterSlot;
+            setCompleting();
           }
+        } else {
+          setCompleting();
         }
-        setCompleting();
 #endif  // KINETISK
         break;
 
