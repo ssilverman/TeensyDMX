@@ -815,7 +815,8 @@ class Sender final : public TeensyDMX {
   uint32_t interSlotTime() const;
 
   // Atomically sets the packet size and data. This function is useful because
-  // the library operates asynchronously.
+  // the library operates asynchronously. Note that this does not grab the lock
+  // if the new packet size is the same as the current packet size.
   //
   // See the `setPacketSize` and `set` functions for more information.
   bool setPacketSizeAndData(int size,

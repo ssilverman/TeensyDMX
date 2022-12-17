@@ -531,11 +531,15 @@ bool Sender::setPacketSizeAndData(int size,
     return false;
   }
 
-  Lock lock{*this};
-  //{
-    activePacketSize_ = size;
+  if (activePacketSize_ == size) {
     std::copy_n(&values[0], len, &activeBuf_[startChannel]);
-  //}
+  } else {
+    Lock lock{*this};
+    //{
+      activePacketSize_ = size;
+      std::copy_n(&values[0], len, &activeBuf_[startChannel]);
+    //}
+  }
   return true;
 }
 

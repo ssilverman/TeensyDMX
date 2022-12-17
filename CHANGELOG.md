@@ -21,7 +21,7 @@ and this project adheres to
 * New `RegenerateDMX` example.
 * New `FastLEDController` example.
 * Added `Sender::setPacketSizeAndData` for atomically setting the packet size
-  and data.
+  and data. This doesn't grab the lock if the new packet size is the same.
 
 ### Changed
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to
