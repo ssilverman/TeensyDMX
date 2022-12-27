@@ -63,9 +63,11 @@ constexpr int kMinTXMABTime = 12;
 // serial ports 1-6.
 class TeensyDMX {
  public:
-  // TeensyDMX is neither copyable nor movable.
+  // TeensyDMX isn't copyable but it is movable
   TeensyDMX(const TeensyDMX &) = delete;
   TeensyDMX &operator=(const TeensyDMX &) = delete;
+  TeensyDMX(TeensyDMX &&) = default;
+  TeensyDMX &operator=(TeensyDMX &&) = default;
 
   // Returns the total number of packets received or transmitted since the
   // instance was started. This is reset when begin() is called.
@@ -238,6 +240,10 @@ class Receiver final : public TeensyDMX {
 
   // Creates a new receiver and uses the given UART for communication.
   explicit Receiver(HardwareSerial &uart);
+
+  // Receiver is movable
+  Receiver(Receiver &&) = default;
+  Receiver &operator=(Receiver &&) = default;
 
   // Destructs Receiver. This calls `end()`.
   ~Receiver();
@@ -698,6 +704,10 @@ class Sender final : public TeensyDMX {
  public:
   // Creates a new transmitter and uses the given UART for communication.
   explicit Sender(HardwareSerial &uart);
+
+  // Sender is movable
+  Sender(Sender &&) = default;
+  Sender &operator=(Sender &&) = default;
 
   // Destructs Sender. This calls `end()`.
   ~Sender();

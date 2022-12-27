@@ -30,6 +30,7 @@ and this project adheres to
 * Clarified some details about minimum packet size.
 * Improved MAB time measurement when using an RX watch pin by watching for the
   MAB fall time.
+* Made `Sender` and `Receiver` movable.
 
 ### Fixed
 * Allow 2% smaller character time when determining a bad break. This fixes a
