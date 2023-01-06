@@ -243,7 +243,7 @@ bool PeriodicTimer::beginCycles(std::function<void()> func, uint32_t cycles,
                     *std::min_element(&priorities[0],
                                       &priorities[kNumChannels]));
   NVIC_ENABLE_IRQ(IRQ_PIT);
-#elif defined(__IMXRT1062__) || (__IMXRT1052__)
+#elif defined(__IMXRT1062__) || defined(__IMXRT1052__)
   priorities[index] = priority_;
   attachInterruptVector(IRQ_PIT, &pit_isr);
   NVIC_SET_PRIORITY(IRQ_PIT,

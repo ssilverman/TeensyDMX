@@ -99,7 +99,7 @@ void LPUARTReceiveHandler::irqHandler() const {
     // Clear interrupt flags
     port_->STAT |= (LPUART_STAT_FE | LPUART_STAT_IDLE);
 
-#if defined(__IMXRT1062__) || (__IMXRT1052__)
+#if defined(__IMXRT1062__) || defined(__IMXRT1052__)
     // Flush anything in the buffer
     uint8_t avail = (port_->WATER >> 24) & 0x07;  // RXCOUNT
     if (avail > 1) {
