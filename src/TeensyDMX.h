@@ -14,7 +14,7 @@
   [Teensy LC](https://www.pjrc.com/teensy/KL26P121M48SF4RM.pdf)
   [Teensy 3.5](https://www.pjrc.com/teensy/K64P144M120SF5RM.pdf)
   [Teensy 3.6](https://www.pjrc.com/teensy/K66P144M180SF5RMV2.pdf)
-  [Teensy 4.0/4.1](https://www.pjrc.com/teensy/IMXRT1060RM_rev2.pdf)
+  [Teensy 4.0/4.1](https://www.pjrc.com/teensy/IMXRT1060RM_rev3.pdf)
 */
 
 #ifndef TEENSYDMX_TEENSYDMX_H_
