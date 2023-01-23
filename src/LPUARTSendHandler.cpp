@@ -19,14 +19,27 @@ namespace teensydmx {
 extern const uint32_t kSlotsBaud;
 extern const uint32_t kSlotsFormat;
 
+// Disables all RX options for the given port. This is used before storing
+// BREAK and slots serial port parameters.
+static void disableRX(PortType *port) {
+  port->CTRL &= ~(LPUART_CTRL_ORIE | LPUART_CTRL_NEIE | LPUART_CTRL_FEIE |
+                  LPUART_CTRL_PEIE | LPUART_CTRL_RIE  | LPUART_CTRL_ILIE |
+                  LPUART_CTRL_RE);
+#if defined(__IMXRT1062__) || defined(__IMXRT1052__)
+  port->CTRL &= ~(LPUART_CTRL_MA1IE | LPUART_CTRL_MA2IE);
+#endif  // __IMXRT1062__ || __IMXRT1052__
+}
+
 void LPUARTSendHandler::start() {
   if (breakSerialParamsChanged_) {
     sender_->uart_.begin(sender_->breakBaud_, sender_->breakFormat_);
+    disableRX(port_);
     breakSerialParams_.getFrom(port_);
     breakSerialParamsChanged_ = false;
   }
   if (!slotsSerialParamsSet_) {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
+    disableRX(port_);
     slotsSerialParams_.getFrom(port_);
     slotsSerialParamsSet_ = true;
   } else {

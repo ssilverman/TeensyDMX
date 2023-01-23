@@ -39,6 +39,9 @@ and this project adheres to
 * Made `Responder::~Responder()` `virtual`.
 * Fixed send handler code paths that shouldn't have called `setCompleting()`.
   This change was introduced in commit a2ac5f0.
+* Fixed continuous TX interrupts in the transmitter (appears as a program
+  freeze) when RX gets triggered.
+  See: https://github.com/ssilverman/TeensyDMX/issues/20
 
 ## [4.2.0]
 

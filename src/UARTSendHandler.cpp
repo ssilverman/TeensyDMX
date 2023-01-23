@@ -19,16 +19,31 @@ namespace teensydmx {
 extern const uint32_t kSlotsBaud;
 extern const uint32_t kSlotsFormat;
 
+// Disables all RX options for the given port. This is used before storing
+// BREAK and slots serial port parameters.
+static void disableRX(int serialIndex, KINETISK_UART_t *port) {
+  port->C3 &= ~(UART_C3_ORIE | UART_C3_NEIE | UART_C3_FEIE | UART_C3_PEIE);
+#if defined(__MKL26Z64__)
+  if (serialIndex == 0) {
+    port->C4 &= ~(UART_C4_MAEN1 | UART_C4_MAEN2);
+  }
+#else
+  port->C4 &= ~(UART_C4_MAEN1 | UART_C4_MAEN2);
+#endif  // __MKL26Z64__
+}
+
 void UARTSendHandler::start() {
   // Set the serial parameters for the two modes
   if (breakSerialParamsChanged_) {
     sender_->uart_.begin(sender_->breakBaud_, sender_->breakFormat_);
+    disableRX(serialIndex_, port_);
     breakSerialParams_.getFrom(serialIndex_, port_,
                                (sender_->breakFormat_ & 0x80) != 0);
     breakSerialParamsChanged_ = false;
   }
   if (!slotsSerialParamsSet_) {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
+    disableRX(serialIndex_, port_);
     slotsSerialParams_.getFrom(serialIndex_, port_, (kSlotsFormat & 0x80) != 0);
     slotsSerialParamsSet_ = true;
   } else {
