@@ -44,6 +44,7 @@ void LPUARTSendHandler::start() {
     slotsSerialParamsSet_ = true;
   } else {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
+    disableRX(port_);
   }
 
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__)

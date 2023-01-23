@@ -42,6 +42,7 @@ and this project adheres to
 * Fixed continuous TX interrupts in the transmitter (appears as a program
   freeze) when RX gets triggered.
   See: https://github.com/ssilverman/TeensyDMX/issues/20
+* Fixed missing `disableRX()` calls in the send handlers.
 
 ## [4.2.0]
 

@@ -48,6 +48,7 @@ void UARTSendHandler::start() {
     slotsSerialParamsSet_ = true;
   } else {
     sender_->uart_.begin(kSlotsBaud, kSlotsFormat);
+    disableRX(serialIndex_, port_);
   }
 
 #if defined(KINETISK)
