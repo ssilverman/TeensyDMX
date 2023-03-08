@@ -22,6 +22,7 @@ and this project adheres to
 * New `FastLEDController` example.
 * Added `Sender::setPacketSizeAndData` for atomically setting the packet size
   and data. This doesn't grab the lock if the new packet size is the same.
+* New `TeensyDMX::serialNumber()` function that returns the serial port number.
 
 ### Changed
 * Changed relevant `__disable_irq()`/`__enable_irq()` pairs to

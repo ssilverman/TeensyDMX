@@ -75,6 +75,11 @@ class TeensyDMX {
     return packetCount_;
   }
 
+  // Returns the serial port number.
+  int serialNumber() const {
+    return serialIndex_ + 1;
+  }
+
  protected:
   // Creates a new DMX receiver or transmitter using the given hardware UART.
   // https://github.com/isocpp/CppCoreGuidelines/blob/master/CppCoreGuidelines.md#Rc-explicit
