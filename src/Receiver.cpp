@@ -1,5 +1,5 @@
 // This file is part of the TeensyDMX library.
-// (c) 2017-2022 Shawn Silverman
+// (c) 2017-2023 Shawn Silverman
 
 #include "TeensyDMX.h"
 

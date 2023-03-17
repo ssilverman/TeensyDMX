@@ -635,4 +635,4 @@ Initial public release.
 
 ---
 
-Copyright (c) 2017-2021 Shawn Silverman
+Copyright (c) 2017-2023 Shawn Silverman

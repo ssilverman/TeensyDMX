@@ -1,5 +1,5 @@
 // This file is part of the TeensyDMX library.
-// (c) 2019-2022 Shawn Silverman
+// (c) 2019-2023 Shawn Silverman
 
 #if defined(__IMXRT1062__) || defined(__IMXRT1052__) || defined(__MK66FX1M0__)
 
