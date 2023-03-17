@@ -44,6 +44,9 @@ and this project adheres to
   freeze) when RX gets triggered.
   See: https://github.com/ssilverman/TeensyDMX/issues/20
 * Fixed missing `disableRX()` calls in the send handlers.
+* Changed receiver to only check for bad break at first byte. It wasn't
+  technically accounting for inter-slot time, but that didn't actually matter;
+  it still simplified the code.
 
 ## [4.2.0]
 
